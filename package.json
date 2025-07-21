@@ -1,0 +1,83 @@
+{
+  "name": "Edumentum",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A sleek and minimal Next.js starter template, optimized for performance and rapid development.",
+  "author": "Accessdenied",
+  "keywords": [
+    "nextjs",
+    "react",
+    "boilerplate",
+    "template",
+    "starter",
+    "tailwindcss",
+    "minimal",
+    "sleek",
+    "clean",
+    "lightweight",
+    "fast",
+    "modern",
+    "optimized",
+    "developer-friendly"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "preview": "next build && next start",
+    "lint": "biome lint --write .",
+    "lint:fix": "biome lint --write . --unsafe",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "commit": "git cz",
+    "prepare": "husky install",
+    "build:prepare": "pnpm run typecheck && pnpm run lint && pnpm run format && pnpm run check && pnpm run build"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@radix-ui/react-slot": "^1.2.2",
+    "@serwist/next": "^9.0.13",
+    "@vercel/analytics": "^1.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.6.2",
+    "lucide-react": "^0.485.0",
+    "next": "15.3.2",
+    "next-themes": "^0.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.7.1",
+    "@commitlint/config-conventional": "^19.7.1",
+    "@tailwindcss/postcss": "^4.1.7",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "serwist": "^9.0.12",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "npx --no -- commitlint --edit $1",
+      "pre-commit": "npx --no -- lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": ["biome lint --apply ."],
+    "*.{json,css,html,md}": ["biome format --write ."]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
