@@ -10,7 +10,7 @@ export default function Home() {
         <div className="flex flex-row items-center space-x-3">
           <Logo />
           <div className="flex flex-col font-medium">
-            <span className="text-sm">Edumentum</span>
+            <span className="text-sm">Edumentum 2</span>
           </div>
         </div>
 
