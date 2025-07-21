@@ -1,2 +1,2 @@
 Edum
-config:
+config: test commit
