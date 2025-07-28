@@ -27,7 +27,7 @@ export default function LoginPage() {
       <WideContainer>
         <div className="flex min-h-screen flex-col md:flex-row">
           {/* Left side */}
-          <div className="flex w-full flex-col justify-center bg-white px-6 py-12 sm:px-10 md:w-1/2 md:px-12 md:py-16">
+          <div className="flex w-full flex-col justify-center px-6 py-12 sm:px-10 md:w-1/2 md:px-12 md:py-16">
             <div className="mx-auto max-w-lg md:mx-0">
               <h1 className="mb-8 font-bold text-3xl text-gray-900 leading-tight sm:text-4xl">
                 Nền tảng học tập <br />
@@ -105,7 +105,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="-translate-y-1/2 absolute top-1/2 right-3 mt-0 transform text-gray-400 hover:text-gray-600"
+                    className="-translate-y-1/2 absolute top-[68%] right-3 mt-0 transform text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
