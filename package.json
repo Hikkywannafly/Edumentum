@@ -111,8 +111,8 @@
     }
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["biome lint --apply ."],
-    "*.{json,css,html,md}": ["biome format --write ."]
+    "*.{ts,tsx,js,jsx}": ["biome lint --apply"],
+    "*.{json,css,html,md}": ["biome format --write"]
   },
   "config": {
     "commitizen": {
