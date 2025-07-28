@@ -210,8 +210,7 @@ export default function DashboardPage() {
                   className="flex items-center space-x-4 rounded-lg border p-4"
                 >
                   <div
-                    className={`h-2 w-2 rounded-full ${
-                      activity.type === "user"
+                    className={`h-2 w-2 rounded-full ${activity.type === "user"
                         ? "bg-blue-500"
                         : activity.type === "course"
                           ? "bg-green-500"
@@ -220,7 +219,7 @@ export default function DashboardPage() {
                             : activity.type === "report"
                               ? "bg-red-500"
                               : "bg-gray-500"
-                    }`}
+                      }`}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{activity.action}</p>
