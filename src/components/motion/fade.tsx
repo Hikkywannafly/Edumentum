@@ -10,7 +10,7 @@ const container = {
       delayChildren: 0.2,
     },
   },
-};
+} as const;
 
 const item = {
   hidden: {
@@ -24,13 +24,13 @@ const item = {
     y: 0,
     filter: "blur(0px)",
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 150,
       damping: 19,
       mass: 1.2,
     },
   },
-};
+} as const;
 
 function Container({ children, className }: React.HTMLProps<HTMLDivElement>) {
   return (

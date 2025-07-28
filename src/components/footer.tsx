@@ -1,5 +1,4 @@
 import Link from "@/components/link";
-import { ThemeSwitcher } from "@/components/theme";
 
 const Footer = () => {
   return (
@@ -11,9 +10,6 @@ const Footer = () => {
           text="Next.js"
           className="underline decoration-wavy underline-offset-2 hover:text-foreground"
         />
-      </div>
-      <div className="text-muted text-xs">
-        <ThemeSwitcher />
       </div>
     </div>
   );
