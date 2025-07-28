@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme";
-import { Analytics } from "@vercel/analytics/react";
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
@@ -27,12 +26,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <main className="mx-auto max-w-(--breakpoint-sm) px-6 py-24">
-            {children}
-          </main>
-          <Analytics />
+      <body
+        className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main className="mx-auto ">{children}</main>
         </ThemeProvider>
       </body>
     </html>
