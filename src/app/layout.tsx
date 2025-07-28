@@ -27,11 +27,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <main className="mx-auto max-w-(--breakpoint-sm) px-6 py-24">
-            {children}
-          </main>
+      <body
+        className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main className="mx-auto ">{children}</main>
           <Analytics />
         </ThemeProvider>
       </body>
