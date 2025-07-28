@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme";
-import { Analytics } from "@vercel/analytics/react";
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
@@ -37,7 +36,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main className="mx-auto ">{children}</main>
-          <Analytics />
         </ThemeProvider>
       </body>
     </html>
