@@ -24,9 +24,11 @@ export default function BaseLayout({
 }: BaseLayoutProps) {
     return (
         <React.Fragment>
-            {showHeader && <Header variant={variant} title={title} showAuth={showAuth} />}
-            <main>{children}</main>
-            {showFooter && <Footer />}
-        </React.Fragment>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-purple-50 dark:from-slate-900 dark:via-background dark:to-slate-800">
+                {showHeader && <Header variant={variant} title={title} showAuth={showAuth} />}
+                <main>{children}</main>
+                {showFooter && <Footer />}
+            </div>
+        </React.Fragment >
     );
 }
