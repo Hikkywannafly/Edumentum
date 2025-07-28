@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-const APP_NAME = "Minimil";
-const APP_DEFAULT_TITLE = "Minimil";
-const APP_TITLE_TEMPLATE = "%s - Minimil";
+const APP_NAME = "Edumentum";
+const APP_DEFAULT_TITLE = "Edumentum";
+const APP_TITLE_TEMPLATE = "%s - Edumentum";
 const APP_DESCRIPTION =
-  "A sleek and minimal Next.js starter template, optimized for performance and rapid development.";
+  "Edumentum is a platform for learning and teaching.";
 
 export const OpenGraph: Metadata = {
   applicationName: APP_NAME,
@@ -40,15 +40,14 @@ export const OpenGraph: Metadata = {
     },
   },
   keywords: [
-    "Next.js PWA",
-    "Next.js 15 PWA Template",
-    "Minimal PWA",
-    "Tailwind CSS",
-    "Serwist",
-    "React",
-    "Starter Template",
-    "Offline Support",
-    "Fast and Lightweight",
+    "Edumentum",
+    "Edumentum.vn",
+    "Edumentum.com",
+    "Edumentum.net",
+    "Edumentum.org",
+    "Edumentum.io",
+    "Edumentum.com.vn",
+    "Edumentum.com.vn",
   ],
   appleWebApp: {
     capable: true,
