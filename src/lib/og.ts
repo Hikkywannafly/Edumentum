@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 const APP_NAME = "Edumentum";
 const APP_DEFAULT_TITLE = "Edumentum";
 const APP_TITLE_TEMPLATE = "%s - Edumentum";
-const APP_DESCRIPTION =
-  "Edumentum is a platform for learning and teaching.";
+const APP_DESCRIPTION = "Edumentum is a platform for learning and teaching.";
 
 export const OpenGraph: Metadata = {
   applicationName: APP_NAME,

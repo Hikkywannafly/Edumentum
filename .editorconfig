@@ -5,31 +5,35 @@ root = true
 
 # Unix-style newlines with a newline ending every file
 [*]
+charset = utf-8
 end_of_line = lf
 insert_final_newline = true
-charset = utf-8
+trim_trailing_whitespace = true
 indent_style = space
+indent_size = 2
+
+# TypeScript/JavaScript files
+[*.{ts,tsx,js,jsx}]
 indent_size = 2
 max_line_length = 80
 
-# JavaScript and TypeScript files
-[*.{js,jsx,ts,tsx}]
-quote_type = double
-trim_trailing_whitespace = true
-
-# CSS files
-[*.css]
-quote_type = double
-
 # JSON files
 [*.json]
-insert_final_newline = false
+indent_size = 2
 
-# Ignore some folders
-[{.env,.changeset,.husky,.turbo,node_modules,build,dist}/**]
-charset = unset
-end_of_line = unset
-insert_final_newline = unset
-trim_trailing_whitespace = unset
-indent_style = unset
-indent_size = unset
+# CSS/SCSS files
+[*.{css,scss}]
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+
+# Package files
+[package.json]
+indent_size = 2

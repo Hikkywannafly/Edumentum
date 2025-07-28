@@ -78,9 +78,7 @@ export function Header({
             )}
           </div>
         </div>
-
       </WideContainer>
-
     </header>
   );
 }

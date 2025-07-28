@@ -1,4 +1,3 @@
-
 import BaseLayout from "@/components/layout/base-layout";
 import WideContainer from "@/components/layout/wide-layout";
 import { Badge } from "@/components/ui/badge";
@@ -25,9 +24,7 @@ import {
 
 export default function HomePage() {
   return (
-
     <BaseLayout>
-
       {/* Hero Section */}
       <WideContainer padding>
         <div className="mx-auto max-w-4xl">
@@ -238,7 +235,6 @@ export default function HomePage() {
           </div>
         </div>
       </WideContainer>
-
     </BaseLayout>
   );
 }
