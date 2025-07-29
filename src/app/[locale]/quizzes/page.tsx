@@ -1,5 +1,4 @@
 // Import the SidebarLayout at the top
-import { SidebarLayout } from "@/components/layout/sidebar-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +22,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import DashboardLayout from "../../../components/layout/dashboard-layout";
 
 // Wrap the entire page content in SidebarLayout
 export default function QuizzesPage() {
@@ -63,7 +63,7 @@ export default function QuizzesPage() {
   ];
 
   return (
-    <SidebarLayout>
+    <DashboardLayout>
       <div className="flex min-h-screen flex-col">
         {/* Header */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -261,6 +261,6 @@ export default function QuizzesPage() {
           </Card>
         </div>
       </div>
-    </SidebarLayout>
+    </DashboardLayout>
   );
 }
