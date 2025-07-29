@@ -1,7 +1,7 @@
+import { ThemeProvider } from "@/components/theme";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-
-import { ThemeProvider } from "@/components/theme";
+import NextTopLoader from 'nextjs-toploader';
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
@@ -29,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
       >
+        <NextTopLoader />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
