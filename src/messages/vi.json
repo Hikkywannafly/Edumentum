@@ -1,4 +1,130 @@
 {
-  "welcome": "Chào mừng bạn đến với Edumentum!",
-  "login": "Đăng nhập"
+  "HomePage": {
+    "title": "Học tập cá nhân hóa",
+    "subtitle": "cho tương lai",
+    "badge": "🚀 Nền tảng học tập thông minh",
+    "description": "EDUMENTUM - Hệ thống hỗ trợ học tập toàn diện với lộ trình cá nhân hóa, cộng đồng tương tác và phân tích thông minh cho giáo viên và học sinh.",
+    "startLearning": "Bắt đầu học ngay",
+    "joinCommunity": "Tham gia cộng đồng",
+    "featuresTitle": "Tính năng nổi bật",
+    "featuresSubtitle": "Khám phá những công cụ mạnh mẽ giúp việc học tập trở nên hiệu quả và thú vị hơn",
+    "features": {
+      "personalized": {
+        "title": "Học theo lộ trình",
+        "description": "Lộ trình học tập được cá nhân hóa từ cơ bản đến nâng cao, theo dõi tiến độ chi tiết cho từng bài học."
+      },
+      "ai": {
+        "title": "Cá nhân hóa học tập",
+        "description": "Gợi ý bài học phù hợp, tạo quiz và flashcard cá nhân dựa trên kết quả học tập của bạn."
+      },
+      "exams": {
+        "title": "Tạo kỳ thi thông minh",
+        "description": "Tự động tạo đề thi với độ khó phù hợp, chấm điểm và phân tích kết quả chi tiết."
+      }
+    }
+  },
+  "Header": {
+    "title": "EDUMENTUM",
+    "features": "Tính năng",
+    "courses": "Khóa học",
+    "community": "Cộng đồng",
+    "about": "Về chúng tôi",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất"
+  },
+  "Dashboard": {
+    "title": "Bảng điều khiển",
+    "stats": {
+      "totalStudents": "Tổng học sinh",
+      "totalCourses": "Tổng khóa học",
+      "activeUsers": "Người dùng đang hoạt động",
+      "completionRate": "Tỷ lệ hoàn thành"
+    },
+    "quickActions": {
+      "createCourse": "Tạo khóa học",
+      "addStudent": "Thêm học sinh",
+      "generateReport": "Tạo báo cáo",
+      "sendNotification": "Gửi thông báo"
+    }
+  },
+  "Courses": {
+    "title": "Khóa học",
+    "create": "Tạo khóa học mới",
+    "edit": "Chỉnh sửa khóa học",
+    "delete": "Xóa khóa học",
+    "publish": "Xuất bản",
+    "draft": "Bản nháp",
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
+      "draft": "Bản nháp"
+    }
+  },
+  "Students": {
+    "title": "Học sinh",
+    "add": "Thêm học sinh",
+    "edit": "Chỉnh sửa thông tin",
+    "delete": "Xóa học sinh",
+    "enroll": "Ghi danh khóa học",
+    "progress": "Tiến độ học tập"
+  },
+  "Exams": {
+    "title": "Kỳ thi",
+    "create": "Tạo kỳ thi",
+    "edit": "Chỉnh sửa kỳ thi",
+    "delete": "Xóa kỳ thi",
+    "grade": "Chấm điểm",
+    "results": "Kết quả"
+  },
+  "Navigation": {
+    "home": "Trang chủ",
+    "features": "Tính năng",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ",
+    "dashboard": "Bảng điều khiển",
+    "courses": "Khóa học",
+    "students": "Học sinh",
+    "exams": "Kỳ thi",
+    "reports": "Báo cáo",
+    "settings": "Cài đặt"
+  },
+  "Common": {
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "success": "Thành công",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "export": "Xuất",
+    "import": "Nhập",
+    "yes": "Có",
+    "no": "Không",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "submit": "Gửi",
+    "reset": "Đặt lại"
+  },
+  "Forms": {
+    "validation": {
+      "required": "Trường này là bắt buộc",
+      "email": "Email không hợp lệ",
+      "minLength": "Tối thiểu {min} ký tự",
+      "maxLength": "Tối đa {max} ký tự",
+      "passwordMatch": "Mật khẩu không khớp"
+    }
+  },
+  "Notifications": {
+    "success": "Thành công",
+    "error": "Lỗi",
+    "warning": "Cảnh báo",
+    "info": "Thông tin"
+  }
 }
