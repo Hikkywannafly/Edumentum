@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/layout/page-header";
 // Import the SidebarLayout at the top
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
   Clock,
   Edit,
@@ -22,9 +22,20 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import DashboardLayout from "../../../components/layout/dashboard-layout";
 
-export default function QuizzesPage() {
+export default async function QuizzesPage({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const t = await getTranslations('Quizzes');
+
   const quizzes = [
     {
       title: "Mathematics Quiz - Algebra",
@@ -65,14 +76,17 @@ export default function QuizzesPage() {
     <DashboardLayout>
       <div className="flex min-h-screen flex-col">
         {/* Header */}
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <h1 className="font-semibold text-xl">Quizzes</h1>
-          <Button className="ml-auto" size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Quiz
-          </Button>
-        </header>
+        <PageHeader
+          title={t('title')}
+          action={
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              {t('createQuiz')}
+            </Button>
+          }
+          showThemeToggle={true}
+          showLanguageSwitcher={true}
+        />
 
         {/* Main Content */}
         <div className="flex-1 space-y-6 p-6">
@@ -81,7 +95,7 @@ export default function QuizzesPage() {
             <div className="max-w-md flex-1">
               <div className="relative">
                 <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search quizzes..." className="pl-8" />
+                <Input placeholder={t('searchPlaceholder')} className="pl-8" />
               </div>
             </div>
             <Button
@@ -89,7 +103,7 @@ export default function QuizzesPage() {
               className="flex items-center gap-2 bg-transparent"
             >
               <Filter className="h-4 w-4" />
-              Filters
+              {t('filters')}
             </Button>
           </div>
 
@@ -102,7 +116,7 @@ export default function QuizzesPage() {
                   <div>
                     <div className="font-bold text-2xl">12</div>
                     <p className="text-muted-foreground text-sm">
-                      Total Quizzes
+                      {t('stats.totalQuizzes')}
                     </p>
                   </div>
                 </div>
@@ -115,7 +129,7 @@ export default function QuizzesPage() {
                   <div>
                     <div className="font-bold text-2xl">479</div>
                     <p className="text-muted-foreground text-sm">
-                      Total Attempts
+                      {t('stats.totalAttempts')}
                     </p>
                   </div>
                 </div>
@@ -128,7 +142,7 @@ export default function QuizzesPage() {
                   <div>
                     <div className="font-bold text-2xl">76%</div>
                     <p className="text-muted-foreground text-sm">
-                      Average Score
+                      {t('stats.averageScore')}
                     </p>
                   </div>
                 </div>
@@ -141,7 +155,7 @@ export default function QuizzesPage() {
                   <div>
                     <div className="font-bold text-2xl">18</div>
                     <p className="text-muted-foreground text-sm">
-                      Avg. Duration (min)
+                      {t('stats.avgDuration')}
                     </p>
                   </div>
                 </div>
@@ -151,7 +165,7 @@ export default function QuizzesPage() {
 
           {/* Quizzes List */}
           <div>
-            <h2 className="mb-4 font-semibold text-xl">Your Quizzes</h2>
+            <h2 className="mb-4 font-semibold text-xl">{t('yourQuizzes')}</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {quizzes.map((quiz, index) => (
                 <Card key={index} className="transition-shadow hover:shadow-lg">
@@ -175,7 +189,7 @@ export default function QuizzesPage() {
                         }
                         className="ml-2"
                       >
-                        {quiz.difficulty}
+                        {t(`difficulty.${quiz.difficulty.toLowerCase()}`)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -183,7 +197,7 @@ export default function QuizzesPage() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Target className="h-4 w-4 text-muted-foreground" />
-                        <span>{quiz.questions} questions</span>
+                        <span>{quiz.questions} {t('quizCard.questions')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
@@ -191,7 +205,7 @@ export default function QuizzesPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{quiz.attempts} attempts</span>
+                        <span>{quiz.attempts} {t('quizCard.attempts')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground">Avg:</span>
@@ -201,7 +215,7 @@ export default function QuizzesPage() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Average Score</span>
+                        <span>{t('quizCard.averageScore')}</span>
                         <span>{quiz.avgScore}%</span>
                       </div>
                       <Progress value={quiz.avgScore} className="h-2" />
@@ -222,7 +236,7 @@ export default function QuizzesPage() {
                     <div className="flex gap-2">
                       <Button className="flex-1" size="sm">
                         <Play className="mr-2 h-4 w-4" />
-                        Take Quiz
+                        {t('quizCard.takeQuiz')}
                       </Button>
                       <Button variant="outline" size="sm">
                         <Edit className="h-4 w-4" />
@@ -233,7 +247,7 @@ export default function QuizzesPage() {
                     </div>
 
                     <p className="text-muted-foreground text-xs">
-                      Last attempt: {quiz.lastAttempt}
+                      {t('quizCard.lastAttempt')}: {quiz.lastAttempt}
                     </p>
                   </CardContent>
                 </Card>
@@ -249,12 +263,12 @@ export default function QuizzesPage() {
                   <Plus className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-medium">Create your first quiz</h3>
+                  <h3 className="font-medium">{t('createCTA.title')}</h3>
                   <p className="text-muted-foreground text-sm">
-                    Start building interactive quizzes to test your knowledge
+                    {t('createCTA.description')}
                   </p>
                 </div>
-                <Button>Create New Quiz</Button>
+                <Button>{t('createCTA.button')}</Button>
               </div>
             </CardContent>
           </Card>
