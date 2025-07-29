@@ -1,0 +1,130 @@
+{
+  "HomePage": {
+    "title": "Personalized Learning",
+    "subtitle": "for the future",
+    "badge": "🚀 Smart Learning Platform",
+    "description": "EDUMENTUM - A comprehensive learning support system with personalized learning paths, interactive community, and intelligent analytics for teachers and students.",
+    "startLearning": "Start Learning Now",
+    "joinCommunity": "Join Community",
+    "featuresTitle": "Key Features",
+    "featuresSubtitle": "Discover powerful tools that make learning more effective and engaging",
+    "features": {
+      "personalized": {
+        "title": "Learning Paths",
+        "description": "Personalized learning paths from basic to advanced, with detailed progress tracking for each lesson."
+      },
+      "ai": {
+        "title": "Personalized Learning",
+        "description": "Suggest suitable lessons, create personalized quizzes and flashcards based on your learning results."
+      },
+      "exams": {
+        "title": "Smart Exam Creation",
+        "description": "Automatically create exams with appropriate difficulty levels, grade and analyze results in detail."
+      }
+    }
+  },
+  "Header": {
+    "title": "EDUMENTUM",
+    "features": "Features",
+    "courses": "Courses",
+    "community": "Community",
+    "about": "About",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalCourses": "Total Courses",
+      "activeUsers": "Active Users",
+      "completionRate": "Completion Rate"
+    },
+    "quickActions": {
+      "createCourse": "Create Course",
+      "addStudent": "Add Student",
+      "generateReport": "Generate Report",
+      "sendNotification": "Send Notification"
+    }
+  },
+  "Courses": {
+    "title": "Courses",
+    "create": "Create New Course",
+    "edit": "Edit Course",
+    "delete": "Delete Course",
+    "publish": "Publish",
+    "draft": "Draft",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft"
+    }
+  },
+  "Students": {
+    "title": "Students",
+    "add": "Add Student",
+    "edit": "Edit Information",
+    "delete": "Delete Student",
+    "enroll": "Enroll Course",
+    "progress": "Learning Progress"
+  },
+  "Exams": {
+    "title": "Exams",
+    "create": "Create Exam",
+    "edit": "Edit Exam",
+    "delete": "Delete Exam",
+    "grade": "Grade",
+    "results": "Results"
+  },
+  "Navigation": {
+    "home": "Home",
+    "features": "Features",
+    "about": "About",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "students": "Students",
+    "exams": "Exams",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset"
+  },
+  "Forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Invalid email address",
+      "minLength": "Minimum {min} characters",
+      "maxLength": "Maximum {max} characters",
+      "passwordMatch": "Passwords do not match"
+    }
+  },
+  "Notifications": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  }
+}

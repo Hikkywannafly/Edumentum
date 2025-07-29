@@ -1,7 +1,8 @@
+import { LocaleProvider } from "@/components/locale-provider";
+import { ThemeProvider } from "@/components/theme";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-
-import { ThemeProvider } from "@/components/theme";
+import NextTopLoader from 'nextjs-toploader';
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
@@ -25,17 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="vi" suppressHydrationWarning>
       <body
         className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="mx-auto ">{children}</main>
+        <NextTopLoader />
+        <ThemeProvider>
+          <LocaleProvider>
+            <main className="mx-auto ">{children}</main>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>
