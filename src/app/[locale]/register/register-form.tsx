@@ -30,19 +30,19 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="relative w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-lg">
+    <div className="relative w-full max-w-md rounded-2xl border border-border p-8 shadow-lg">
       <div className="relative z-10">
         <div className="mb-6">
-          <h2 className="mb-2 font-bold text-2xl text-gray-900">
+          <h2 className="mb-2 font-bold text-2xl text-foreground">
             {t("register")}
           </h2>
-          <p className="text-gray-600 text-sm">
+          <p className="text-muted-foreground text-sm">
             {t("registerDesc")}
           </p>
         </div>
 
         {errorMsg && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-red-600 text-sm">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-red-600 text-sm dark:border-red-400 dark:bg-red-900 dark:text-red-400">
             {errorMsg}
           </div>
         )}
@@ -50,7 +50,7 @@ export default function RegisterForm() {
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label
-              className="mb-2 block font-medium text-gray-700 text-sm"
+              className="mb-2 block font-medium text-foreground text-sm"
               htmlFor="email"
             >
               {t("email")}
@@ -58,7 +58,7 @@ export default function RegisterForm() {
             <input
               type="email"
               placeholder="your@email.com"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -67,7 +67,7 @@ export default function RegisterForm() {
 
           <div className="relative">
             <label
-              className="mb-2 block font-medium text-gray-700 text-sm"
+              className="mb-2 block font-medium text-foreground text-sm"
               htmlFor="password"
             >
               {t("password")}
@@ -75,7 +75,7 @@ export default function RegisterForm() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="••••••••••"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -95,7 +95,7 @@ export default function RegisterForm() {
 
           <div className="relative">
             <label
-              className="mb-2 block font-medium text-gray-700 text-sm"
+              className="mb-2 block font-medium text-foreground text-sm"
               htmlFor="password-confirmation"
             >
               {t("confirmPassword")}
@@ -103,7 +103,7 @@ export default function RegisterForm() {
             <input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••••"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -126,7 +126,7 @@ export default function RegisterForm() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-gray-600 text-sm">
+        <p className="mt-6 text-center text-muted-foreground text-sm">
           {t("alreadyAccount")}{" "}
           <a
             href="login"
@@ -136,7 +136,7 @@ export default function RegisterForm() {
           </a>
         </p>
 
-        <p className="mt-4 text-center text-gray-400 text-xs">
+        <p className="mt-4 text-center text-muted-foreground text-xs">
           {t("recaptchaNotice")}{" "}
           <a href="example" className="underline hover:text-gray-600">
             {t("terms")}

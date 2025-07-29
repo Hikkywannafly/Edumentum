@@ -24,10 +24,10 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-lg sm:p-8">
+    <div className="w-full max-w-md rounded-2xl border border-border p-6 shadow-lg sm:p-8">
       <div>
-        <h2 className="mb-2 font-bold text-2xl text-gray-900">{t("login")}</h2>
-        <p className="text-gray-600 text-sm">{t("loginDesc")}</p>
+        <h2 className="mb-2 font-bold text-2xl text-foreground">{t("login")}</h2>
+        <p className="text-muted-foreground text-sm">{t("loginDesc")}</p>
       </div>
 
       {errorMsg && (
@@ -39,7 +39,7 @@ export default function LoginForm() {
       <form onSubmit={handleLogin} className="mt-6 space-y-4">
         <div>
           <label
-            className="mb-2 block font-medium text-gray-700 text-sm"
+            className="mb-2 block font-medium text-foreground text-sm"
             htmlFor="email"
           >
             {t("email")}
@@ -47,7 +47,7 @@ export default function LoginForm() {
           <input
             type="email"
             placeholder="your@email.com"
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -55,7 +55,7 @@ export default function LoginForm() {
         </div>
         <div className="relative">
           <label
-            className="mb-2 block font-medium text-gray-700 text-sm"
+            className="mb-2 block font-medium text-foreground text-sm"
             htmlFor="password"
           >
             {t("password")}
@@ -63,7 +63,7 @@ export default function LoginForm() {
           <input
             type={showPassword ? "text" : "password"}
             placeholder="••••••••••"
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
