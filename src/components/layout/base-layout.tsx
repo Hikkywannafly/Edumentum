@@ -11,6 +11,7 @@ interface BaseLayoutProps {
   showAuth?: boolean;
   showMobileNav?: boolean;
   showThemeToggle?: boolean;
+  locale?: string;
 }
 
 export default function BaseLayout({
@@ -20,12 +21,13 @@ export default function BaseLayout({
   variant = "default",
   title = "EDUMENTUM",
   showAuth = true,
+  locale = "vi",
 }: BaseLayoutProps) {
   return (
     <React.Fragment>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-purple-50 dark:from-slate-900 dark:via-background dark:to-slate-800">
         {showHeader && (
-          <Header variant={variant} title={title} showAuth={showAuth} />
+          <Header variant={variant} title={title} showAuth={showAuth} locale={locale} />
         )}
         <main>{children}</main>
         {showFooter && <Footer />}
