@@ -180,17 +180,16 @@ export function AppSidebar() {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`fixed top-0 left-0 z-50 h-full bg-stone-50 transition-all duration-200 ease-in-out ${isPinned ? "relative" : "fixed"}
-      `}
+      className={`${isPinned ? "relative" : "fixed top-0 left-0 z-50"} h-full bg-white transition-all duration-200 ease-in-out dark:bg-gray-900`}
     >
       <div
         className={`h-full transition-all duration-200 ease-in-out ${isPinned ? "w-64" : isHovered ? "w-64" : "w-16"}
-          ${isHovered && !isPinned ? "shadow-lg" : ""}
+          ${isHovered && !isPinned ? "bg-white shadow-lg dark:bg-gray-900" : "bg-white dark:bg-gray-900"}
         `}
       >
-        <div className="h-full border-sidebar-border border-r bg-sidebar">
+        <div className="h-full border-gray-200 border-r bg-white dark:border-gray-700 dark:bg-gray-900">
           {/* Header */}
-          <div className="h-16 border-sidebar-border border-b">
+          <div className="h-16 border-gray-200 border-b dark:border-gray-700">
             <div className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -223,7 +222,7 @@ export function AppSidebar() {
             {Object.entries(menuData).map(([key, items]) => (
               <Collapsible key={key} defaultOpen className="group/collapsible">
                 <div className="relative flex w-full min-w-0 flex-col p-2">
-                  <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-2 font-medium text-sidebar-foreground/70 text-xs hover:text-sidebar-foreground">
+                  <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-2 font-medium text-gray-500 text-xs hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
                     <span
                       className={`transition-opacity duration-200 ${textVisibility}`}
                     >
@@ -246,7 +245,7 @@ export function AppSidebar() {
                           >
                             <a
                               href={item.url}
-                              className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground"
+                              className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] hover:bg-gray-100 focus-visible:ring-2 active:bg-gray-100 dark:active:bg-gray-800 dark:hover:bg-gray-800"
                               title={!isExpanded ? item.title : undefined}
                             >
                               <item.icon className="h-4 w-4 flex-shrink-0" />
