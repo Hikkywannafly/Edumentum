@@ -1,27 +1,22 @@
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { LocalizedLink } from "@/components/localized-link";
 import { MobileNav } from "@/components/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { getTranslations } from 'next-intl/server';
-import { setRequestLocale } from 'next-intl/server';
 import WideContainer from "./layout/wide-layout";
 
 interface HeaderProps {
   variant?: "default" | "admin";
   title?: string;
   showAuth?: boolean;
-  locale?: string;
 }
 
 export async function Header({
   variant = "default",
   showAuth = true,
-  locale = "vi",
 }: HeaderProps) {
-  // Enable static rendering
-  setRequestLocale(locale);
-
   const isAdmin = variant === "admin";
   const t = await getTranslations('Header');
 
@@ -29,12 +24,12 @@ export async function Header({
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <WideContainer>
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <LocalizedLink href="" className="flex items-center space-x-2">
             <div className="m-4 flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <BookOpen className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="font-bold text-xl">{t('title')}</span>
-          </div>
+          </LocalizedLink>
 
           {!isAdmin && (
             <nav className="hidden items-center space-x-6 md:flex">
@@ -71,17 +66,31 @@ export async function Header({
             {!isAdmin && <MobileNav />}
             {showAuth && (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:inline-flex"
-                >
-                  {isAdmin ? t('logout') : t('login')}
-                </Button>
-                {!isAdmin && (
-                  <Button size="sm" className="hidden md:inline-flex">
-                    {t('register')}
+                {isAdmin ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden md:inline-flex"
+                  >
+                    {t('logout')}
                   </Button>
+                ) : (
+                  <LocalizedLink href="login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden md:inline-flex"
+                    >
+                      {t('login')}
+                    </Button>
+                  </LocalizedLink>
+                )}
+                {!isAdmin && (
+                  <LocalizedLink href="register">
+                    <Button size="sm" className="hidden md:inline-flex">
+                      {t('register')}
+                    </Button>
+                  </LocalizedLink>
                 )}
               </>
             )}

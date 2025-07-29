@@ -24,7 +24,6 @@ import {
   Users,
 } from "lucide-react";
 
-// Wrap the entire page content in SidebarLayout
 export default function QuizzesPage() {
   const quizzes = [
     {

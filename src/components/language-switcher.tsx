@@ -7,8 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLocalePersistence } from '@/hooks/use-locale-persistence';
 import { usePathname, useRouter } from '@/i18n/navigation';
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useCallback, useTransition } from 'react';
 
 const locales = [
   { code: 'vi', label: 'Tiếng Việt' },
@@ -18,26 +19,20 @@ const locales = [
 export function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
+  const { locale, saveLocale } = useLocalePersistence();
   const [isPending, startTransition] = useTransition();
-  const [currentLocale, setCurrentLocale] = useState('vi');
 
-  // Lấy locale hiện tại từ URL khi component mount
-  useEffect(() => {
-    const locale = window.location.pathname.split('/')[1] || 'vi';
-    setCurrentLocale(locale);
-  }, []);
-
-  const handleLocaleChange = useCallback((locale: string) => {
-    setCurrentLocale(locale);
+  const handleLocaleChange = useCallback((newLocale: string) => {
+    saveLocale(newLocale);
     startTransition(() => {
-      router.replace(pathname, { locale });
+      router.replace(pathname, { locale: newLocale });
     });
-  }, [router, pathname]);
+  }, [router, pathname, saveLocale]);
 
   return (
     <Select
       disabled={isPending}
-      value={currentLocale}
+      value={locale}
       onValueChange={handleLocaleChange}
     >
       <SelectTrigger className="w-[140px]">
