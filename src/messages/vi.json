@@ -23,6 +23,45 @@
       }
     }
   },
+  "LoginPage": {
+    "title": "Chào mừng trở lại!",
+    "subtitle": "Đăng nhập để tiếp tục",
+    "login": "Đăng nhập",
+    "loginDesc": "Vui lòng nhập email và mật khẩu để truy cập hệ thống.",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "noAccount": "Chưa có tài khoản?",
+    "register": "Đăng ký",
+    "recaptchaNotice": "Trang này được bảo vệ bởi reCAPTCHA.",
+    "terms": "Điều khoản dịch vụ",
+    "feature": {
+      "roadmap": "Lộ trình học tập cá nhân hóa cho từng học sinh.",
+      "personalize": "Gợi ý bài học và kiểm tra phù hợp với năng lực.",
+      "community": "Tham gia cộng đồng học tập năng động."
+    },
+    "error": {
+      "invalidCredentials": "Email hoặc mật khẩu không đúng."
+    }
+  },
+  "RegisterPage": {
+    "title": "Tạo tài khoản mới",
+    "subtitle": "Đăng ký để bắt đầu hành trình học tập",
+    "register": "Đăng ký",
+    "registerDesc": "Điền thông tin để tạo tài khoản miễn phí.",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "alreadyAccount": "Đã có tài khoản?",
+    "login": "Đăng nhập",
+    "recaptchaNotice": "Trang này được bảo vệ bởi reCAPTCHA.",
+    "terms": "Điều khoản dịch vụ",
+    "error": {
+      "passwordNotMatch": "Mật khẩu xác nhận không khớp.",
+      "emailExists": "Email đã được sử dụng."
+    }
+  },
   "Header": {
     "title": "EDUMENTUM",
     "features": "Tính năng",
