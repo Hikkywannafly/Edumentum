@@ -165,5 +165,35 @@
     "error": "Error",
     "warning": "Warning",
     "info": "Information"
+  },
+  "Quizzes": {
+    "title": "Quizzes",
+    "createQuiz": "Create Quiz",
+    "searchPlaceholder": "Search quizzes...",
+    "filters": "Filters",
+    "stats": {
+      "totalQuizzes": "Total Quizzes",
+      "totalAttempts": "Total Attempts",
+      "averageScore": "Average Score",
+      "avgDuration": "Avg. Duration (min)"
+    },
+    "yourQuizzes": "Your Quizzes",
+    "quizCard": {
+      "questions": "questions",
+      "attempts": "attempts",
+      "averageScore": "Average Score",
+      "takeQuiz": "Take Quiz",
+      "lastAttempt": "Last attempt"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "createCTA": {
+      "title": "Create your first quiz",
+      "description": "Start building interactive quizzes to test your knowledge",
+      "button": "Create New Quiz"
+    }
   }
 }

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from 'next-intl/server';
 import { setRequestLocale } from 'next-intl/server';
+import Link from "next/link";
 
 export default async function HomePage({
   params
@@ -46,13 +47,17 @@ export default async function HomePage({
             {t('description')}
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <Button size="lg" className="px-8 text-lg">
-              <Play className="mr-2 h-5 w-5" />
-              {t('startLearning')}
+            <Button size="lg" className="px-8 text-lg" asChild>
+              <Link href={`/${locale}/quizzes`}>
+                <Play className="mr-2 h-5 w-5" />
+                {t('startLearning')}
+              </Link>
             </Button>
-            <Button variant="outline" size="lg" className="px-8 text-lg">
-              <Users className="mr-2 h-5 w-5" />
-              {t('joinCommunity')}
+            <Button variant="outline" size="lg" className="px-8 text-lg" asChild>
+              <Link href={`/${locale}/login`}>
+                <Users className="mr-2 h-5 w-5" />
+                {t('joinCommunity')}
+              </Link>
             </Button>
           </div>
         </div>

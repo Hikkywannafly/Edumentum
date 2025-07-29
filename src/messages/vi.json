@@ -165,5 +165,35 @@
     "error": "Lỗi",
     "warning": "Cảnh báo",
     "info": "Thông tin"
+  },
+  "Quizzes": {
+    "title": "Bài kiểm tra",
+    "createQuiz": "Tạo bài kiểm tra",
+    "searchPlaceholder": "Tìm kiếm bài kiểm tra...",
+    "filters": "Bộ lọc",
+    "stats": {
+      "totalQuizzes": "Tổng bài kiểm tra",
+      "totalAttempts": "Tổng lượt làm",
+      "averageScore": "Điểm trung bình",
+      "avgDuration": "Thời gian TB (phút)"
+    },
+    "yourQuizzes": "Bài kiểm tra của bạn",
+    "quizCard": {
+      "questions": "câu hỏi",
+      "attempts": "lượt làm",
+      "averageScore": "Điểm trung bình",
+      "takeQuiz": "Làm bài",
+      "lastAttempt": "Lần làm cuối"
+    },
+    "difficulty": {
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "createCTA": {
+      "title": "Tạo bài kiểm tra đầu tiên",
+      "description": "Bắt đầu xây dựng các bài kiểm tra tương tác để kiểm tra kiến thức",
+      "button": "Tạo bài kiểm tra mới"
+    }
   }
 }
