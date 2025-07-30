@@ -33,11 +33,18 @@ export function RoleSelector() {
     }
 
     try {
+      console.log("Setting role:", selectedRole)
       await selectRole(selectedRole)
+      console.log("Role set successfully, redirecting to settings...")
       toast.success("Role selected successfully!")
-      const locale = getLocaleFromPathname(pathname)
-      router.push(`/${locale}/settings`)
+
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        const locale = getLocaleFromPathname(pathname)
+        router.push(`/${locale}/settings`)
+      }, 500)
     } catch (error) {
+      console.error("Error setting role:", error)
       toast.error(error instanceof Error ? error.message : "Failed to select role")
     }
   }
