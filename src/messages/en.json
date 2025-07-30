@@ -112,60 +112,6 @@
     "submit": "Submit",
     "reset": "Reset"
   },
-  "LoginPage": {
-    "title": "Welcome back!",
-    "subtitle": "Sign in to continue",
-    "login": "Sign In",
-    "loginDesc": "Please enter your email and password to access the system.",
-    "email": "Email",
-    "password": "Password",
-    "forgotPassword": "Forgot password?",
-    "orContinueWith": "Or continue with",
-    "noAccount": "Don't have an account?",
-    "register": "Sign Up",
-    "recaptchaNotice": "This page is protected by reCAPTCHA.",
-    "terms": "Terms of Service",
-    "feature": {
-      "roadmap": "Personalized learning roadmap for each student.",
-      "personalize": "Suggest suitable lessons and tests based on your abilities.",
-      "community": "Join a dynamic learning community."
-    },
-    "error": {
-      "invalidCredentials": "Invalid email or password."
-    }
-  },
-  "RegisterPage": {
-    "title": "Create new account",
-    "subtitle": "Sign up to start your learning journey",
-    "register": "Sign Up",
-    "registerDesc": "Fill in the information to create a free account.",
-    "email": "Email",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "alreadyAccount": "Already have an account?",
-    "login": "Sign In",
-    "recaptchaNotice": "This page is protected by reCAPTCHA.",
-    "terms": "Terms of Service",
-    "error": {
-      "passwordNotMatch": "Passwords do not match.",
-      "emailExists": "Email already exists."
-    }
-  },
-  "Forms": {
-    "validation": {
-      "required": "This field is required",
-      "email": "Invalid email address",
-      "minLength": "Minimum {min} characters",
-      "maxLength": "Maximum {max} characters",
-      "passwordMatch": "Passwords do not match"
-    }
-  },
-  "Notifications": {
-    "success": "Success",
-    "error": "Error",
-    "warning": "Warning",
-    "info": "Information"
-  },
   "Quizzes": {
     "title": "Quizzes",
     "createQuiz": "Create Quiz",
@@ -195,5 +141,80 @@
       "description": "Start building interactive quizzes to test your knowledge",
       "button": "Create New Quiz"
     }
+  },
+  "RoleSelector": {
+    "title": "Choose Your Role",
+    "description": "Select the role that best describes you to get started",
+    "selecting": "Selecting...",
+    "continue": "Continue",
+    "roles": {
+      "ROLE_STUDENT": {
+        "title": "Student",
+        "description": "I want to learn and take courses"
+      },
+      "ROLE_TEACHER": {
+        "title": "Teacher",
+        "description": "I want to create and manage courses"
+      }
+    }
+  },
+  "LoginPage": {
+    "loggingIn": "Logging in...",
+    "loginSuccess": "Login successful!",
+    "title": "Welcome back!",
+    "subtitle": "Sign in to continue",
+    "login": "Sign In",
+    "loginDesc": "Please enter your email and password to access the system.",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "orContinueWith": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "register": "Sign Up",
+    "recaptchaNotice": "This page is protected by reCAPTCHA.",
+    "terms": "Terms of Service",
+    "feature": {
+      "roadmap": "Personalized learning roadmap for each student.",
+      "personalize": "Suggest suitable lessons and tests based on your abilities.",
+      "community": "Join a dynamic learning community."
+    },
+    "error": {
+      "invalidCredentials": "Invalid email or password."
+    }
+  },
+  "RegisterPage": {
+    "registering": "Registering...",
+    "registerSuccess": "Registration successful!",
+    "title": "Create new account",
+    "subtitle": "Sign up to start your learning journey",
+    "register": "Sign Up",
+    "registerDesc": "Fill in the information to create a free account.",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "alreadyAccount": "Already have an account?",
+    "login": "Sign In",
+    "recaptchaNotice": "This page is protected by reCAPTCHA.",
+    "terms": "Terms of Service",
+    "error": {
+      "passwordNotMatch": "Passwords do not match.",
+      "emailExists": "Email already exists."
+    }
+  },
+  "Forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Invalid email address",
+      "minLength": "Minimum {min} characters",
+      "maxLength": "Maximum {max} characters",
+      "passwordMatch": "Passwords do not match"
+    }
+  },
+  "Notifications": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
   }
 }
