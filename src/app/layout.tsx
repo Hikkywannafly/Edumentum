@@ -1,8 +1,10 @@
 import { LocaleProvider } from "@/components/locale-provider";
 import { ThemeProvider } from "@/components/theme";
+import { AuthProvider } from "@/contexts/auth-context";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import NextTopLoader from 'nextjs-toploader';
+import { Toaster } from "sonner";
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
@@ -33,9 +35,17 @@ export default function RootLayout({
         <NextTopLoader />
         <ThemeProvider>
           <LocaleProvider>
-            <main className="mx-auto ">{children}</main>
+            <AuthProvider>
+              <main className="mx-auto ">{children}</main>
+            </AuthProvider>
           </LocaleProvider>
         </ThemeProvider>
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          duration={4000}
+        />
       </body>
     </html>
   );

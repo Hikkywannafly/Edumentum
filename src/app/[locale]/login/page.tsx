@@ -1,8 +1,8 @@
 import { BaseLayout } from "@/components/layout";
 import WideContainer from "@/components/layout/wide-layout";
+import LoginForm from "@/components/auth/login-form";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
-import LoginForm from "./login-form";
 
 export default async function LoginPage({
   params,
@@ -23,7 +23,7 @@ export default async function LoginPage({
               <h1 className="mb-8 font-bold text-3xl leading-tight sm:text-4xl">
                 {t("title")}
                 <br />
-                <span className="text-blue-600 underline-offset-4">
+                <span className="text-blue-600 ">
                   {t("subtitle")}
                 </span>
               </h1>

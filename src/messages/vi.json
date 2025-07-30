@@ -24,6 +24,8 @@
     }
   },
   "LoginPage": {
+    "loggingIn": "Đang đăng nhập...",
+    "loginSuccess": "Đăng nhập thành công!",
     "title": "Chào mừng trở lại!",
     "subtitle": "Đăng nhập để tiếp tục",
     "login": "Đăng nhập",
@@ -46,10 +48,13 @@
     }
   },
   "RegisterPage": {
+    "registering": "Đang đăng ký...",
+    "registerSuccess": "Đăng ký thành công!",
     "title": "Tạo tài khoản mới",
     "subtitle": "Đăng ký để bắt đầu hành trình học tập",
     "register": "Đăng ký",
     "registerDesc": "Điền thông tin để tạo tài khoản miễn phí.",
+    "username": "Tên người dùng",
     "email": "Email",
     "password": "Mật khẩu",
     "confirmPassword": "Xác nhận mật khẩu",
@@ -194,6 +199,22 @@
       "title": "Tạo bài kiểm tra đầu tiên",
       "description": "Bắt đầu xây dựng các bài kiểm tra tương tác để kiểm tra kiến thức",
       "button": "Tạo bài kiểm tra mới"
+    }
+  },
+  "RoleSelector": {
+    "title": "Chọn vai trò của bạn",
+    "description": "Chọn vai trò phù hợp nhất để bắt đầu",
+    "selecting": "Đang chọn...",
+    "continue": "Tiếp tục",
+    "roles": {
+      "ROLE_STUDENT": {
+        "title": "Học sinh",
+        "description": "Tôi muốn học và tham gia các khóa học"
+      },
+      "ROLE_TEACHER": {
+        "title": "Giáo viên",
+        "description": "Tôi muốn tạo và quản lý khóa học"
+      }
     }
   }
 }
