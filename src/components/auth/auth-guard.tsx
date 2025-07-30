@@ -17,7 +17,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     if (isLoading) return;
     // Public page dont require ath
-    const publicPages = ["/", "/login", "/register", "/settings"];
+    const publicPages = ["/", "/login", "/register",];
     const isPublicPage = publicPages.some(page => {
       if (page === "/") {
         return pathname === "/" || pathname.match(/^\/[a-z]{2}$/);
@@ -34,6 +34,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // If user is auth but has no role (GUEST), redirect to role selector
+    // Only redirect if user has GUEST role specifically
     if (isAuthenticated && !hasRole && !pathname.includes("/role-selector") && !pathname.includes("/settings")) {
       router.push(`/${locale}/role-selector`);
       return;
@@ -71,6 +72,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // If user is authenticated but has no role and not on role-selector or settings, don't render
+  // Allow settings page even if user has no role (for initial setup)
   if (isAuthenticated && !hasRole && !pathname.includes("/role-selector") && !pathname.includes("/settings")) {
     return null;
   }

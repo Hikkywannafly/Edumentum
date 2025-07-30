@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/contexts/auth-context"
 import { getLocaleFromPathname } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { Globe, Moon, Settings as SettingsIcon, Sun } from "lucide-react"
@@ -27,6 +28,7 @@ export function Settings() {
   const router = useRouter()
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { hasRole } = useAuth()
   const [selectedLanguage, setSelectedLanguage] = useState("en")
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
 
@@ -56,7 +58,7 @@ export function Settings() {
 
   const handleSaveSettings = () => {
     try {
-      // Save settings to localStorage or API
+
       localStorage.setItem("language", selectedLanguage)
       localStorage.setItem("theme", selectedTheme)
 
@@ -65,9 +67,13 @@ export function Settings() {
 
       toast.success("Settings saved successfully!")
 
-      // Redirect to dashboard
       const locale = getLocaleFromPathname(pathname)
-      router.push(`/${locale}/dashboard`)
+      if (hasRole) {
+        router.push(`/${locale}/dashboard`)
+      } else {
+
+        router.push(`/${locale}/role-selector`)
+      }
     } catch (_error) {
       toast.error("Failed to save settings")
     }
@@ -157,7 +163,11 @@ export function Settings() {
               variant="outline"
               onClick={() => {
                 const locale = getLocaleFromPathname(pathname)
-                router.push(`/${locale}/dashboard`)
+                if (hasRole) {
+                  router.push(`/${locale}/dashboard`)
+                } else {
+                  router.push(`/${locale}/role-selector`)
+                }
               }}
               className="flex-1"
             >
