@@ -12,7 +12,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasRole: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string) => Promise<void>;
   googleAuth: (code: string) => Promise<void>;
   selectRole: (roleId: number) => Promise<void>;
   logout: () => void;
@@ -69,30 +69,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    const response = await authAPI.login({ email, password });
-    saveAuthState(response);
-    setIsLoading(false);
+    try {
+      const response = await authAPI.login({ email, password });
+      saveAuthState(response);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const register = async (email: string, password: string) => {
+  const register = async (username: string, email: string, password: string) => {
     setIsLoading(true);
-    const response = await authAPI.register({ email, password, confirmPassword: password, username: "" });
-    saveAuthState(response);
-    setIsLoading(false);
+    try {
+      const response = await authAPI.register({ username, email, password, confirmPassword: password });
+      saveAuthState(response);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const googleAuth = async (code: string) => {
     setIsLoading(true);
-    const response = await authAPI.googleAuth(code);
-    saveAuthState(response);
-    setIsLoading(false);
+    try {
+      const response = await authAPI.googleAuth(code);
+      saveAuthState(response);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const selectRole = async (roleId: number) => {
     setIsLoading(true);
-    const response = await authAPI.selectRole({ roleId });
-    saveAuthState(response);
-    setIsLoading(false);
+    try {
+      const response = await authAPI.selectRole({ roleId });
+      saveAuthState(response);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const refreshAuth = async () => {

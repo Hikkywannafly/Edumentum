@@ -23,7 +23,6 @@ export function useLocalePersistence() {
     }
   }, []);
 
-  // Lấy locale từ localStorage
   const getSavedLocale = useCallback(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(LOCALE_STORAGE_KEY);
@@ -31,12 +30,10 @@ export function useLocalePersistence() {
     return null;
   }, []);
 
-  // Cập nhật currentLocale khi locale từ URL thay đổi
   useEffect(() => {
     setCurrentLocale(locale);
   }, [locale]);
 
-  // Lưu locale hiện tại khi component mount
   useEffect(() => {
     saveLocale(locale);
   }, [locale, saveLocale]);
