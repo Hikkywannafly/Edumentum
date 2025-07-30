@@ -75,21 +75,31 @@ class AuthAPI {
   }
 
   async selectRole(roleData: RoleFormData): Promise<AuthResponse> {
-
     const validatedData = roleSelectionSchema.parse(roleData);
 
-
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      throw new Error("No access token available");
+    }
     const apiData = {
       roleName: validatedData.roleId
     };
-
-    const response = await this.request<AuthResponse>("/guest/set-user-role", {
+    const requestConfig = {
       method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(apiData),
-    });
+    };
+    const url = `${API_BASE_URL}/guest/set-user-role`;
+    const response = await fetch(url, requestConfig);
 
-
-    return authResponseSchema.parse(response);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+    return data as AuthResponse;
   }
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

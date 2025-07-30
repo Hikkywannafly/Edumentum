@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasRole = user?.roles && user.roles.some(role => role.name !== "ROLE_GUEST");
   const isAuthenticated = !!user && !!accessToken;
 
+
+
   // Load auth state from localStorage on mount
   useEffect(() => {
     const loadAuthState = () => {
