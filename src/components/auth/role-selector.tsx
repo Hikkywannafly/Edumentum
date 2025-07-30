@@ -24,7 +24,7 @@ export function RoleSelector() {
   const { selectRole, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [selectedRole, setSelectedRole] = useState<number | null>(null)
+  const [selectedRole, setSelectedRole] = useState<Roles | null>(null)
 
   const handleRoleSelect = async () => {
     if (!selectedRole) {

@@ -161,13 +161,13 @@ export function Settings() {
               }}
               className="flex-1"
             >
-              Skip
+              {t("skip")}
             </Button>
             <Button
               onClick={handleSaveSettings}
               className="flex-1 rounded-xl bg-primary py-3 font-bold text-lg text-primary-foreground shadow-lg transition-all duration-300 hover:bg-primary/90 hover:shadow-xl"
             >
-              {t("save") || "Save & Continue"}
+              {t("save")}
             </Button>
           </motion.div>
         </CardContent>

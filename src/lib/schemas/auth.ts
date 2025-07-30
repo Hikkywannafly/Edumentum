@@ -1,3 +1,4 @@
+import { Roles } from "@/types/auth";
 import { z } from "zod";
 
 // Login schema
@@ -23,7 +24,7 @@ export type RegisterFormData = z.infer<typeof registerSchema>;
 
 // Role selection schema
 export const roleSelectionSchema = z.object({
-  roleId: z.number().refine((val) => val === 2 || val === 3, {
+  roleId: z.nativeEnum(Roles).refine((val) => val === Roles.STUDENT || val === Roles.TEACHER, {
     message: "Please select a valid role",
   }),
 });
@@ -59,7 +60,7 @@ export type AuthResponse = z.infer<typeof authResponseSchema>;
 export type User = z.infer<typeof userSchema>;
 
 export const ROLE_OPTIONS = [
-  { id: 2, name: "ROLE_STUDENT", label: "Student" },
-  { id: 3, name: "ROLE_TEACHER", label: "Teacher" },
-  { id: 4, name: "ROLE_GUEST", label: "Guest", },
+  { id: Roles.STUDENT, name: Roles.STUDENT, label: "Student" },
+  { id: Roles.TEACHER, name: Roles.TEACHER, label: "Teacher" },
+  { id: Roles.GUEST, name: Roles.GUEST, label: "Guest" },
 ] as const;
