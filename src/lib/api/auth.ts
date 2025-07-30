@@ -1,6 +1,6 @@
-import { authResponseSchema, loginSchema, registerSchema, roleSchema, type AuthResponse, type LoginFormData, type RegisterFormData, type RoleFormData } from "@/lib/schemas/auth";
+import { type AuthResponse, type LoginFormData, type RegisterFormData, type RoleFormData, authResponseSchema, loginSchema, registerSchema, roleSelectionSchema } from "@/lib/schemas/auth";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 class AuthAPI {
   private async request<T>(
@@ -8,7 +8,7 @@ class AuthAPI {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +19,7 @@ class AuthAPI {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -38,28 +38,28 @@ class AuthAPI {
   async login(credentials: LoginFormData): Promise<AuthResponse> {
     // Validate input
     const validatedData = loginSchema.parse(credentials);
-    
+
     const response = await this.request<AuthResponse>("/auth/login", {
       method: "POST",
       body: JSON.stringify(validatedData),
     });
-
-    // Validate response
+    console.log("auth test login", response);
     return authResponseSchema.parse(response);
   }
 
   async register(userData: RegisterFormData): Promise<AuthResponse> {
     // Validate input
     const validatedData = registerSchema.parse(userData);
-    
+
     const response = await this.request<AuthResponse>("/auth/register", {
       method: "POST",
       body: JSON.stringify({
+        username: validatedData.username,
         email: validatedData.email,
         password: validatedData.password,
       }),
     });
-
+    console.log("auth test register", validatedData, response);
     // Validate response
     return authResponseSchema.parse(response);
   }
@@ -76,9 +76,9 @@ class AuthAPI {
 
   async selectRole(roleData: RoleFormData): Promise<AuthResponse> {
     // Validate input
-    const validatedData = roleSchema.parse(roleData);
-    
-    const response = await this.request<AuthResponse>("/auth/select-role", {
+    const validatedData = roleSelectionSchema.parse(roleData);
+
+    const response = await this.request<AuthResponse>("/guest/set-user-role", {
       method: "POST",
       body: JSON.stringify(validatedData),
     });
@@ -98,4 +98,4 @@ class AuthAPI {
   }
 }
 
-export const authAPI = new AuthAPI(); 
+export const authAPI = new AuthAPI();

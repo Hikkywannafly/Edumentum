@@ -22,20 +22,26 @@ export const registerSchema = z.object({
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
 // Role selection schema
-export const roleSchema = z.object({
+export const roleSelectionSchema = z.object({
   roleId: z.number().refine((val) => val === 2 || val === 3, {
     message: "Please select a valid role",
   }),
 });
 
-export type RoleFormData = z.infer<typeof roleSchema>;
+export type RoleFormData = z.infer<typeof roleSelectionSchema>;
+
+// Role schema
+export const roleSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
 
 // API Response schemas
 export const userSchema = z.object({
   userId: z.number(),
   username: z.string(),
-  gmail: z.string().regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: "Invalid email address" }),
-  roles: z.array(z.string()),
+  email: z.string().regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, { message: "Invalid email address" }),
+  roles: z.array(roleSchema),
   isActive: z.boolean(),
 });
 
@@ -56,4 +62,5 @@ export type User = z.infer<typeof userSchema>;
 export const ROLE_OPTIONS = [
   { id: 2, name: "ROLE_STUDENT", label: "Student" },
   { id: 3, name: "ROLE_TEACHER", label: "Teacher" },
+  { id: 4, name: "ROLE_GUEST", label: "Guest" },
 ] as const;

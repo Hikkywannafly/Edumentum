@@ -31,10 +31,12 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await registerUser(data.email, data.password);
+      await registerUser(data.username, data.email, data.password);
+      console.log("registerUser", data);
       toast.success(t("registerSuccess") || "Registration successful!");
       router.push("/dashboard");
     } catch (error) {
+      console.log("error", error);
       toast.error(error instanceof Error ? error.message : "Registration failed");
     }
   };
@@ -56,7 +58,7 @@ export default function RegisterForm() {
           <FormInput
             label={t("username")}
             type="text"
-            placeholder="John Doe"
+            placeholder="username"
             error={errors.username?.message}
             {...register("username")}
           />
@@ -71,7 +73,6 @@ export default function RegisterForm() {
           <FormInput
             label={t("password")}
             type="password"
-            placeholder="••••••••••"
             error={errors.password?.message}
             showPasswordToggle={true}
             {...register("password")}
@@ -80,7 +81,7 @@ export default function RegisterForm() {
           <FormInput
             label={t("confirmPassword")}
             type="password"
-            placeholder="••••••••••"
+
             error={errors.confirmPassword?.message}
             showPasswordToggle={true}
             {...register("confirmPassword")}
