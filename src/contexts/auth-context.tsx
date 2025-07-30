@@ -2,6 +2,7 @@
 
 import { authAPI } from "@/lib/api/auth";
 import type { AuthResponse, User } from "@/lib/schemas/auth";
+import type { Roles } from "@/types/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
@@ -14,7 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   googleAuth: (code: string) => Promise<void>;
-  selectRole: (roleId: number) => Promise<void>;
+  selectRole: (roleId: Roles) => Promise<void>;
   logout: () => void;
   refreshAuth: () => Promise<void>;
 }
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadAuthState();
   }, []);
 
-  // Save auth state to localStorage
+
   const saveAuthState = (authResponse: AuthResponse) => {
     const { data } = authResponse;
     setUser(data.user);
@@ -97,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const selectRole = async (roleId: number) => {
+  const selectRole = async (roleId: Roles) => {
     setIsLoading(true);
     try {
       const response = await authAPI.selectRole({ roleId });

@@ -75,15 +75,20 @@ class AuthAPI {
   }
 
   async selectRole(roleData: RoleFormData): Promise<AuthResponse> {
-    // Validate input
+
     const validatedData = roleSelectionSchema.parse(roleData);
+
+
+    const apiData = {
+      roleName: validatedData.roleId
+    };
 
     const response = await this.request<AuthResponse>("/guest/set-user-role", {
       method: "POST",
-      body: JSON.stringify(validatedData),
+      body: JSON.stringify(apiData),
     });
 
-    // Validate response
+
     return authResponseSchema.parse(response);
   }
 
