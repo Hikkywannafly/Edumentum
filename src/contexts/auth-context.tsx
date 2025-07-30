@@ -27,8 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user has any roles
-  const hasRole = user?.roles && user.roles.length > 0;
+  // Check if user has any roles other than GUEST
+  const hasRole = user?.roles && user.roles.some(role => role.name !== "ROLE_GUEST");
   const isAuthenticated = !!user && !!accessToken;
 
   // Load auth state from localStorage on mount

@@ -38,6 +38,7 @@ export function PageHeader({
         <div className="flex items-center gap-2">
           {showThemeToggle && <ThemeToggle />}
           {showLanguageSwitcher && <LanguageSwitcher />}
+          
         </div>
       </div>
     </header>

@@ -1,8 +1,8 @@
+import RegisterForm from "@/components/auth/register-form";
 import { BaseLayout } from "@/components/layout";
 import WideContainer from "@/components/layout/wide-layout";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
-import RegisterForm from "@/components/auth/register-form";
 
 export default async function RegisterPage({
   params,
@@ -17,7 +17,6 @@ export default async function RegisterPage({
     <BaseLayout>
       <WideContainer>
         <div className="flex min-h-screen flex-col md:flex-row">
-          {/* Left side: Info */}
           <div className="flex flex-1 flex-col justify-center px-12 py-16">
             <div className="max-w-lg">
               <h1 className="mb-8 font-bold text-4xl leading-tight">
@@ -32,7 +31,6 @@ export default async function RegisterPage({
             </div>
           </div>
 
-          {/* Right side: Register form */}
           <div className="flex w-full items-center justify-center px-6 py-12 sm:px-10 md:w-1/2 md:px-12 md:py-16">
             <RegisterForm />
           </div>

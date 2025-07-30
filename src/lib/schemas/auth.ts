@@ -58,9 +58,8 @@ export const authResponseSchema = z.object({
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 export type User = z.infer<typeof userSchema>;
 
-// Role options
 export const ROLE_OPTIONS = [
   { id: 2, name: "ROLE_STUDENT", label: "Student" },
   { id: 3, name: "ROLE_TEACHER", label: "Teacher" },
-  { id: 4, name: "ROLE_GUEST", label: "Guest" },
+  { id: 4, name: "ROLE_GUEST", label: "Guest", },
 ] as const;
