@@ -1,6 +1,6 @@
+import LoginForm from "@/components/auth/login-form";
 import { BaseLayout } from "@/components/layout";
 import WideContainer from "@/components/layout/wide-layout";
-import LoginForm from "@/components/auth/login-form";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
 

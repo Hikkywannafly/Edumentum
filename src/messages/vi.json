@@ -209,11 +209,11 @@
     "roles": {
       "ROLE_STUDENT": {
         "title": "Học sinh",
-        "description": "Tôi muốn học và tham gia các khóa học"
+        "description": "Tôi muốn được tận hưởng tất cả công cụ hỗ trợ học tập tuyệt vời của edumentum"
       },
       "ROLE_TEACHER": {
         "title": "Giáo viên",
-        "description": "Tôi muốn tạo và quản lý khóa học"
+        "description": "Tôi muốn được tạo và quản lý khóa học để hỗ trợ học sinh học tập"
       }
     }
   }

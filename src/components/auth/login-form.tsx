@@ -7,13 +7,12 @@ import { type LoginFormData, loginSchema } from "@/lib/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Facebook } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function LoginForm() {
   const t = useTranslations("LoginPage");
-  const router = useRouter();
+  // const router = useRouter();
   const { login, isLoading } = useAuth();
 
   const {
@@ -32,7 +31,6 @@ export default function LoginForm() {
     try {
       await login(data.email, data.password);
       toast.success(t("loginSuccess") || "Login successful!");
-      router.push("/dashboard");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     }

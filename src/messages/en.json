@@ -150,11 +150,11 @@
     "roles": {
       "ROLE_STUDENT": {
         "title": "Student",
-        "description": "I want to learn and take courses"
+        "description": "I want to enjoy all the great learning tools of edumentum"
       },
       "ROLE_TEACHER": {
         "title": "Teacher",
-        "description": "I want to create and manage courses"
+        "description": "I want to create and manage courses to support students learning"
       }
     }
   },
