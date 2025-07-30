@@ -17,7 +17,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     if (isLoading) return;
     // Public page dont require ath
-    const publicPages = ["/", "/login", "/register"];
+    const publicPages = ["/", "/login", "/register", "/settings"];
     const isPublicPage = publicPages.some(page => {
       if (page === "/") {
         return pathname === "/" || pathname.match(/^\/[a-z]{2}$/);
@@ -34,12 +34,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
 
     // If user is auth but has no role (GUEST), redirect to role selector
-    if (isAuthenticated && !hasRole && !pathname.includes("/role-selector")) {
+    if (isAuthenticated && !hasRole && !pathname.includes("/role-selector") && !pathname.includes("/settings")) {
       router.push(`/${locale}/role-selector`);
       return;
     }
 
-    // If user is auth and has role, redirect from auth pages to dashboard
+    // If user is auth and has role, redirect from auth pages to dashboard (but allow settings)
     if (isAuthenticated && hasRole && (pathname.includes("/login") || pathname.includes("/register") || pathname.includes("/role-selector"))) {
       router.push(`/${locale}/dashboard`);
       return;
@@ -70,8 +70,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null;
   }
 
-  // If user is authenticated but has no role and not on role-selector, don't render
-  if (isAuthenticated && !hasRole && !pathname.includes("/role-selector")) {
+  // If user is authenticated but has no role and not on role-selector or settings, don't render
+  if (isAuthenticated && !hasRole && !pathname.includes("/role-selector") && !pathname.includes("/settings")) {
     return null;
   }
 

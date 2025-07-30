@@ -216,5 +216,38 @@
     "error": "Error",
     "warning": "Warning",
     "info": "Information"
+  },
+  "Settings": {
+    "title": "Settings",
+    "description": "Configure your preferences to personalize your experience",
+    "save": "Save & Continue",
+    "skip": "Skip",
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language",
+      "en": "English",
+      "vi": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "Choose your preferred theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure notification preferences",
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "sms": "SMS Notifications"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Manage your privacy settings",
+      "profile": "Profile Visibility",
+      "data": "Data Sharing",
+      "cookies": "Cookie Preferences"
+    }
   }
 }

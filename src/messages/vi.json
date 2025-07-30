@@ -216,5 +216,38 @@
         "description": "Tôi muốn được tạo và quản lý khóa học để hỗ trợ học sinh học tập"
       }
     }
+  },
+  "Settings": {
+    "title": "Cài đặt",
+    "description": "Cấu hình tùy chọn để cá nhân hóa trải nghiệm của bạn",
+    "save": "Lưu & Tiếp tục",
+    "skip": "Bỏ qua",
+    "language": {
+      "title": "Ngôn ngữ",
+      "description": "Chọn ngôn ngữ ưa thích của bạn",
+      "en": "English",
+      "vi": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Giao diện",
+      "description": "Chọn giao diện ưa thích của bạn",
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Hệ thống"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "description": "Cấu hình tùy chọn thông báo",
+      "email": "Thông báo qua email",
+      "push": "Thông báo đẩy",
+      "sms": "Thông báo SMS"
+    },
+    "privacy": {
+      "title": "Quyền riêng tư",
+      "description": "Quản lý cài đặt quyền riêng tư",
+      "profile": "Hiển thị hồ sơ",
+      "data": "Chia sẻ dữ liệu",
+      "cookies": "Tùy chọn cookie"
+    }
   }
 }

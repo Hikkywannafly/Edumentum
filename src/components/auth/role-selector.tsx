@@ -36,7 +36,7 @@ export function RoleSelector() {
       await selectRole(selectedRole)
       toast.success("Role selected successfully!")
       const locale = getLocaleFromPathname(pathname)
-      router.push(`/${locale}/dashboard`)
+      router.push(`/${locale}/settings`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to select role")
     }
