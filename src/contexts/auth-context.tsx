@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, password: string) => {
     setIsLoading(true);
-    const response = await authAPI.register({ email, password, confirmPassword: password });
+    const response = await authAPI.register({ email, password, confirmPassword: password, username: "" });
     saveAuthState(response);
     setIsLoading(false);
   };
