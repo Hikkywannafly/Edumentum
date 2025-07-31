@@ -12,7 +12,7 @@ export function useAuthGuard() {
   // Memoize public pages check
   const isPublicPage = useMemo(() => {
     const publicPages = ["/", "/login", "/register"];
-    return publicPages.some(page => {
+    return publicPages.some((page) => {
       if (page === "/") {
         return pathname === "/" || pathname.match(/^\/[a-z]{2}$/);
       }
@@ -38,25 +38,34 @@ export function useAuthGuard() {
     }
 
     // Case 3: Authenticated with role and on auth pages
-    if (isAuthenticated && hasRole && (pathname.includes("/login") || pathname.includes("/register") || pathname.includes("/setup"))) {
-      return `/${locale}/dashboard`;
+    if (
+      isAuthenticated &&
+      hasRole &&
+      (pathname.includes("/login") ||
+        pathname.includes("/register") ||
+        pathname.includes("/setup"))
+    ) {
+      return `/${locale}`;
     }
 
     return null;
   }, [isAuthenticated, hasRole, isLoading, pathname, locale, isPublicPage]);
 
   // Debounced redirect handler
-  const handleRedirect = useCallback((url: string) => {
-    // Clear any existing timeout
-    if (redirectTimeoutRef.current) {
-      clearTimeout(redirectTimeoutRef.current);
-    }
+  const handleRedirect = useCallback(
+    (url: string) => {
+      // Clear any existing timeout
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
 
-    // Set a small delay to prevent rapid redirects
-    redirectTimeoutRef.current = setTimeout(() => {
-      router.push(url);
-    }, 100);
-  }, [router]);
+      // Set a small delay to prevent rapid redirects
+      redirectTimeoutRef.current = setTimeout(() => {
+        router.push(url);
+      }, 100);
+    },
+    [router],
+  );
 
   // Handle redirects with debounce
   useEffect(() => {
@@ -81,7 +90,8 @@ export function useAuthGuard() {
     if (!isAuthenticated && !isPublicPage) return false;
 
     // Don't render if authenticated without role and not on setup
-    if (isAuthenticated && !hasRole && !pathname.includes("/setup")) return false;
+    if (isAuthenticated && !hasRole && !pathname.includes("/setup"))
+      return false;
 
     return true;
   }, [isAuthenticated, hasRole, isLoading, pathname, isPublicPage]);

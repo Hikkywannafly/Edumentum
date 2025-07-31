@@ -108,14 +108,8 @@
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3"
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "npx --no -- commitlint --edit $1",
-      "pre-commit": "npx --no -- lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["biome lint --apply"],
+    "*.{ts,tsx,js,jsx}": ["biome check --apply"],
     "*.{json,css,html,md}": ["biome format --write"]
   },
   "config": {

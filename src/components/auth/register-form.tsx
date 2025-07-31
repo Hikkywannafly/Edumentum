@@ -17,8 +17,6 @@ export default function RegisterForm() {
   const pathname = usePathname();
   const { register: registerUser, isLoading } = useAuth();
 
-
-
   const {
     register,
     handleSubmit,
@@ -42,35 +40,39 @@ export default function RegisterForm() {
       router.push(`/${locale}/setup`);
     } catch (error) {
       console.log("error", error);
-      toast.error(error instanceof Error ? error.message : "Registration failed");
+      toast.error(
+        error instanceof Error ? error.message : "Registration failed",
+      );
     }
   };
 
   return (
-    <div className="relative w-full max-w-md rounded-2xl p-8 shadow-lg">
+    <div className="w-full max-w-md rounded-2xl p-6 shadow-lg sm:p-8">
+      <div className="-z-10 absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-50 via-white to-purple-50" />
       <div className="relative z-10">
         <div className="mb-6">
           <h2 className="mb-2 font-bold text-2xl text-foreground">
             {t("register")}
           </h2>
-          {/* <p className="text-muted-foreground text-sm">
-            {t("registerDesc")}
-          </p> */}
+          <p className="mt-2 text-gray-500 text-sm">
+            Create your account to get started
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col space-y-4">
-
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <FormInput
             label={t("username")}
             type="text"
-            placeholder="username"
+            placeholder="Choose a username"
             error={errors.username?.message}
             {...register("username")}
           />
+
           <FormInput
             label={t("email")}
             type="email"
-            placeholder="your@email.com"
+            placeholder="Enter your email"
             error={errors.email?.message}
             {...register("email")}
           />
@@ -78,6 +80,7 @@ export default function RegisterForm() {
           <FormInput
             label={t("password")}
             type="password"
+            placeholder="Create a password"
             error={errors.password?.message}
             showPasswordToggle={true}
             {...register("password")}
@@ -86,7 +89,7 @@ export default function RegisterForm() {
           <FormInput
             label={t("confirmPassword")}
             type="password"
-
+            placeholder="Confirm your password"
             error={errors.confirmPassword?.message}
             showPasswordToggle={true}
             {...register("confirmPassword")}
@@ -97,22 +100,16 @@ export default function RegisterForm() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-muted-foreground text-sm">
+        {/* Footer */}
+        <p className="mt-8 text-center text-gray-600 text-sm">
           {t("alreadyAccount")}{" "}
           <a
             href="login"
-            className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            className="font-semibold text-purple-600 transition-colors hover:text-purple-800"
           >
             {t("login")}
           </a>
         </p>
-
-        {/* <p className="mt-4 text-center text-muted-foreground text-xs">
-          {t("recaptchaNotice")}{" "}
-          <a href="example" className="underline hover:text-foreground">
-            {t("terms")}
-          </a>
-        </p> */}
       </div>
     </div>
   );
