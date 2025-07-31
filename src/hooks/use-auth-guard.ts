@@ -59,10 +59,8 @@ export function useAuthGuard() {
         clearTimeout(redirectTimeoutRef.current);
       }
 
-      // Set a small delay to prevent rapid redirects
-      redirectTimeoutRef.current = setTimeout(() => {
-        router.push(url);
-      }, 100);
+      // Immediate redirect for better UX
+      router.push(url);
     },
     [router],
   );
@@ -93,8 +91,18 @@ export function useAuthGuard() {
     if (isAuthenticated && !hasRole && !pathname.includes("/setup"))
       return false;
 
+    // Don't render if there's a pending redirect
+    if (shouldRedirect) return false;
+
     return true;
-  }, [isAuthenticated, hasRole, isLoading, pathname, isPublicPage]);
+  }, [
+    isAuthenticated,
+    hasRole,
+    isLoading,
+    pathname,
+    isPublicPage,
+    shouldRedirect,
+  ]);
 
   return {
     isLoading,

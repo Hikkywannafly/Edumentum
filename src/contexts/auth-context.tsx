@@ -13,7 +13,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasRole: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (
+    username: string,
+    email: string,
+    password: string,
+  ) => Promise<void>;
   googleAuth: (code: string) => Promise<void>;
   selectRole: (roleId: Roles) => Promise<void>;
   logout: () => void;
@@ -29,7 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   // Check if user has any roles other than GUEST
-  const hasRole = user?.roles && user.roles.some(role => role.name !== "ROLE_GUEST");
+  const hasRole =
+    user?.roles && user.roles.some((role) => role.name !== "ROLE_GUEST");
   const isAuthenticated = !!user && !!accessToken;
 
   useEffect(() => {
@@ -55,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadAuthState();
   }, []);
 
-
   const saveAuthState = (authResponse: AuthResponse) => {
     const { data } = authResponse;
     setUser(data.user);
@@ -72,16 +76,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authAPI.login({ email, password });
       saveAuthState(response);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (
+    username: string,
+    email: string,
+    password: string,
+  ) => {
     setIsLoading(true);
     try {
-      const response = await authAPI.register({ username, email, password, confirmPassword: password });
+      const response = await authAPI.register({
+        username,
+        email,
+        password,
+        confirmPassword: password,
+      });
       saveAuthState(response);
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } finally {
       setIsLoading(false);
     }
@@ -100,11 +117,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const selectRole = async (roleId: Roles) => {
     setIsLoading(true);
     try {
-
       const response = await authAPI.selectRole({ roleId });
 
       saveAuthState(response);
-
     } finally {
       setIsLoading(false);
     }
