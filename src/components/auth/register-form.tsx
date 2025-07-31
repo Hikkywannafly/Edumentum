@@ -39,7 +39,7 @@ export default function RegisterForm() {
       console.log("registerUser", data);
       toast.success(t("registerSuccess") || "Registration successful!");
       const locale = getLocaleFromPathname(pathname);
-      router.push(`/${locale}/role-selector`);
+      router.push(`/${locale}/setup`);
     } catch (error) {
       console.log("error", error);
       toast.error(error instanceof Error ? error.message : "Registration failed");
@@ -53,9 +53,9 @@ export default function RegisterForm() {
           <h2 className="mb-2 font-bold text-2xl text-foreground">
             {t("register")}
           </h2>
-          <p className="text-muted-foreground text-sm">
+          {/* <p className="text-muted-foreground text-sm">
             {t("registerDesc")}
-          </p>
+          </p> */}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col space-y-4">
@@ -107,12 +107,12 @@ export default function RegisterForm() {
           </a>
         </p>
 
-        <p className="mt-4 text-center text-muted-foreground text-xs">
+        {/* <p className="mt-4 text-center text-muted-foreground text-xs">
           {t("recaptchaNotice")}{" "}
           <a href="example" className="underline hover:text-foreground">
             {t("terms")}
           </a>
-        </p>
+        </p> */}
       </div>
     </div>
   );

@@ -3,11 +3,12 @@
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
-import { useTranslations } from "next-intl";
+import { useAuth } from "@/contexts/auth-context";
 import type React from "react";
+import { Button } from "../ui/button";
 
 interface PageHeaderClientProps {
-  titleKey: string; // Translation key instead of direct title
+  title: string;
   action?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
@@ -16,15 +17,14 @@ interface PageHeaderClientProps {
 }
 
 export function PageHeaderClient({
-  titleKey,
+  title,
   action,
   children,
   className = "",
   showThemeToggle = true,
   showLanguageSwitcher = true
 }: PageHeaderClientProps) {
-  const t = useTranslations();
-  const title = t(titleKey);
+  const { logout } = useAuth();
 
   return (
     <header className={`flex h-16 items-center gap-3 border-b px-4 ${className}`}>
@@ -43,6 +43,7 @@ export function PageHeaderClient({
         <div className="flex items-center gap-2">
           {showThemeToggle && <ThemeToggle />}
           {showLanguageSwitcher && <LanguageSwitcher />}
+          <Button onClick={logout}>Logout</Button>
         </div>
       </div>
     </header>

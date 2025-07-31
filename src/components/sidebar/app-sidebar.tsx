@@ -25,6 +25,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { LocalizedLink } from "../localized-link";
 
 type MenuItem = {
   title: string;
@@ -229,25 +230,26 @@ export function AppSidebar() {
                           key={item.title}
                           className="group/menu-item relative"
                         >
-                          <a
-                            href={item.url}
-                            className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] hover:bg-gray-100 focus-visible:ring-2 active:bg-gray-100 dark:active:bg-gray-800 dark:hover:bg-gray-800"
-                            title={!isExpanded ? item.title : undefined}
-                          >
-                            <item.icon className="h-4 w-4 flex-shrink-0" />
-                            <span
-                              className={`transition-opacity duration-200 ${textVisibility}`}
+                          <div title={!isExpanded ? item.title : undefined}>
+                            <LocalizedLink
+                              href={item.url}
+                              className="peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none transition-[width,height,padding] hover:bg-gray-100 focus-visible:ring-2 active:bg-gray-100 dark:active:bg-gray-800 dark:hover:bg-gray-800"
                             >
-                              {item.title}
-                            </span>
-                            {item.badge && (
+                              <item.icon className="h-4 w-4 flex-shrink-0" />
                               <span
-                                className={`rounded-full bg-blue-500 px-2 py-0.5 text-white text-xs transition-opacity duration-200 ${textVisibility}`}
+                                className={`transition-opacity duration-200 ${textVisibility}`}
                               >
-                                {item.badge}
+                                {item.title}
                               </span>
-                            )}
-                          </a>
+                              {item.badge && (
+                                <span
+                                  className={`rounded-full bg-blue-500 px-2 py-0.5 text-white text-xs transition-opacity duration-200 ${textVisibility}`}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+                            </LocalizedLink>
+                          </div>
                         </li>
                       ))}
                     </ul>

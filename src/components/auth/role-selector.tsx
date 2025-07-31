@@ -24,27 +24,22 @@ export function RoleSelector() {
   const { selectRole, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const [selectedRole, setSelectedRole] = useState<Roles | null>(null)
+  const [selectedRole, setSelectedRole] = useState<Roles | null>(Roles.STUDENT)
 
   const handleRoleSelect = async () => {
     if (!selectedRole) {
       toast.error("Please select a role")
       return
     }
-
     try {
-      console.log("Setting role:", selectedRole)
       await selectRole(selectedRole)
-      console.log("Role set successfully, redirecting to settings...")
       toast.success("Role selected successfully!")
 
-      // Add a small delay to ensure state is updated
       setTimeout(() => {
         const locale = getLocaleFromPathname(pathname)
-        router.push(`/${locale}/settings`)
+        router.push(`/${locale}/dashboard`)
       }, 500)
     } catch (error) {
-      console.error("Error setting role:", error)
       toast.error(error instanceof Error ? error.message : "Failed to select role")
     }
   }

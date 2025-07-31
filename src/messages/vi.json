@@ -75,10 +75,12 @@
     "about": "Về chúng tôi",
     "login": "Đăng nhập",
     "register": "Đăng ký",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "dashboard": "Bảng điều khiển"
   },
   "Dashboard": {
     "title": "Bảng điều khiển",
+    "createQuiz": "Tạo bài kiểm tra",
     "stats": {
       "totalStudents": "Tổng học sinh",
       "totalCourses": "Tổng khóa học",
@@ -249,5 +251,13 @@
       "data": "Chia sẻ dữ liệu",
       "cookies": "Tùy chọn cookie"
     }
+  },
+  "Setup": {
+    "title": "Chào mừng đến với Edumentum",
+    "description": "Hãy để chúng tôi thiết lập trải nghiệm học tập cá nhân hóa cho bạn",
+    "continue": "Tiếp tục",
+    "back": "Quay lại",
+    "skip": "Bỏ qua",
+    "complete": "Hoàn thành thiết lập"
   }
 }
