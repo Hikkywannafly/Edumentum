@@ -216,5 +216,42 @@
         "description": "Tôi muốn tạo và quản lý khóa học"
       }
     }
+  },
+  "Achievements": {
+    "title": "Những thành tựu",
+    "description": "Hoàn thành các thử thách và mở khóa phần thưởng khi bạn tiến bộ trong hành trình học tập của mình",
+    "rarities": {
+      "title": "Tất cả độ hiếm",
+      "COMMON": "Thông thường",
+      "UNCOMMON": "Không phổ biến",
+      "RARE": "Hiếm",
+      "EPIC": "Epic",
+      "LEGENDARY": "Huyền thoại"
+    },
+    "status": {
+      "title": "Tất cả trạng thái",
+      "COMPLETED": "Đã hoàn thành",
+      "IN_PROGRESS": "Đang tiến hành",
+      "NOT_STARTED": "Chưa bắt đầu"
+    },
+    "searchPlaceholder": "Tìm kiếm thành tựu...",
+    "stats": {
+      "totalUnlocked": {
+        "title": "Đã mở khóa",
+        "description": "Hoàn thành 0%"
+      },
+      "xpEarned": {
+        "title": "XP đã nhận",
+        "description": "Từ thành tích"
+      },
+      "rarestUnlocked": {
+        "title": "Hiếm nhất đã mở",
+        "description": ""
+      },
+      "recentProgress": {
+        "title": "Tiến trình gần nhất",
+        "description": "Bắt đầu học!"
+      }
+    }
   }
 }
