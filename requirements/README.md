@@ -41,11 +41,11 @@ EDUMENTUM là một hệ thống hỗ trợ học tập toàn diện được th
 - Biểu đồ tiến trình học của từng cá nhân, khoá học
 - Thống kê kết quả bài kiểm tra, kỳ thi
 - So sánh theo nhóm/lớp/khoá học
-  
+
 ## ⚙️ 6. Quản Trị Hệ Thống (Admin)
 - Quản lý tài khoản người dùng
 - Tìm kiếm, lọc và khóa/mở tài khoản
-- Kiểm duyệt nội dung do người dùng chia sẻ 
+- Kiểm duyệt nội dung do người dùng chia sẻ
 ---
 
 ## 👥 Vai Trò Người Dùng
@@ -73,7 +73,7 @@ EDUMENTUM là một hệ thống hỗ trợ học tập toàn diện được th
 ## 🔐 Bảo Mật & Công Nghệ
 
 - JWT Authentication, Role-Based Access Control
-- Cơ sở dữ liệu: PostgreSQL / MySQL
+- Cơ sở dữ liệu: PostgreSQL
 - Backend: Java Springboot
 - Frontend: React (dasboard) / NextJS (member)
 - Triển khai: Docker, CI/CD, Cloud (AWS, GCP...)
@@ -84,4 +84,4 @@ EDUMENTUM là một hệ thống hỗ trợ học tập toàn diện được th
 
 EDUMENTUM là nền tảng học tập hiện đại không chỉ phục vụ mục tiêu học cá nhân mà còn xây dựng cộng đồng học tập năng động, sáng tạo và hiệu quả – một hệ sinh thái học tập số đích thực.
 
---- 
+---
