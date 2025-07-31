@@ -4,11 +4,12 @@ import { ThemeProvider } from "@/components/theme";
 import { AuthProvider } from "@/contexts/auth-context";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import NextTopLoader from 'nextjs-toploader';
+import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "sonner";
 
 import { OpenGraph } from "@/lib/og";
 import "./globals.css";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,21 +36,21 @@ export default function RootLayout({
       >
         <NextTopLoader />
         <ThemeProvider>
-          <LocaleProvider>
-            <AuthProvider>
-              <AuthGuard>
-                <main className="mx-auto ">{children}</main>
-              </AuthGuard>
-            </AuthProvider>
-          </LocaleProvider>
+          <GoogleOAuthProvider
+            clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+          >
+            <LocaleProvider>
+              <AuthProvider>
+                <AuthGuard>
+                  <main className="mx-auto ">{children}</main>
+                </AuthGuard>
+              </AuthProvider>
+            </LocaleProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
-        <Toaster
-          position="top-right"
-          richColors
-          closeButton
-          duration={4000}
-        />
+        <Toaster position="top-right" richColors closeButton duration={4000} />
       </body>
     </html>
   );
 }
+// export const dynamic = "force-dynamic"; // Ensures the layout is always re-rendered

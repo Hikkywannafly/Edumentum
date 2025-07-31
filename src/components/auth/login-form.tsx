@@ -1,12 +1,12 @@
 "use client";
 
+import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
 import { useAuth } from "@/contexts/auth-context";
 import { type LoginFormData, loginSchema } from "@/lib/schemas/auth";
 import { getLocaleFromPathname } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Facebook, Github } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -88,32 +88,15 @@ export default function LoginForm() {
           <div className="w-full border-gray-200 border-t dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="bg-white px-4 text-gray-500 dark:bg-gray-900">
+          <span className="rounded-2xl bg-white px-4 dark:bg-gray-900">
             {t("orContinueWith")}
           </span>
         </div>
       </div>
 
       {/* Social buttons */}
-      <div className="grid grid-cols-3 gap-3">
-        <Button
-          variant="outline"
-          className="flex items-center justify-center rounded-xl border-gray-200 py-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50"
-        >
-          <div className="h-5 w-5 rounded bg-gradient-to-br from-red-400 to-red-600" />
-        </Button>
-        <Button
-          variant="outline"
-          className="flex items-center justify-center rounded-xl border-gray-200 py-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50"
-        >
-          <Facebook className="h-5 w-5 text-blue-600" />
-        </Button>
-        <Button
-          variant="outline"
-          className="flex items-center justify-center rounded-xl border-gray-200 py-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50"
-        >
-          <Github className="h-5 w-5" />
-        </Button>
+      <div className="space-y-4 rounded-2xl shadow-sm">
+        <GoogleLoginButton />
       </div>
 
       {/* Footer */}
