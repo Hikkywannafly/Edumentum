@@ -259,5 +259,42 @@
     "back": "Back",
     "skip": "Skip",
     "complete": "Complete Setup"
+  },
+  "Achievements": {
+    "title": "Achievements",
+    "description": "Complete challenges and unlock rewards as you progress in your learning journey",
+    "rarities": {
+      "title": "All Rarity",
+      "COMMON": "Common",
+      "UNCOMMON": "Uncommon",
+      "RARE": "Rare",
+      "EPIC": "Epic",
+      "LEGENDARY": "Legendary"
+    },
+    "status": {
+      "title": "All status",
+      "COMPLETED": "Completed",
+      "IN_PROGRESS": "In Progress",
+      "NOT_STARTED": "Not Started"
+    },
+    "searchPlaceholder": "Search achievements...",
+    "stats": {
+      "totalUnlocked": {
+        "title": "Total Unlocked",
+        "description": "0% Complete"
+      },
+      "xpEarned": {
+        "title": "XP Earned",
+        "description": "From achievements"
+      },
+      "rarestUnlocked": {
+        "title": "Rarest Unlocked",
+        "description": ""
+      },
+      "recentProgress": {
+        "title": "Recent Progress",
+        "description": "Start learning!"
+      }
+    }
   }
 }

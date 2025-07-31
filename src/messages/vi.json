@@ -259,5 +259,42 @@
     "back": "Quay lại",
     "skip": "Bỏ qua",
     "complete": "Hoàn thành thiết lập"
+  },
+  "Achievements": {
+    "title": "Thành tựu",
+    "description": "Hoàn thành thử thách và mở khóa phần thưởng khi bạn tiến bộ trong hành trình học tập",
+    "rarities": {
+      "title": "Tất cả độ hiếm",
+      "COMMON": "Phổ biến",
+      "UNCOMMON": "Ít phổ biến",
+      "RARE": "Hiếm",
+      "EPIC": "Sử thi",
+      "LEGENDARY": "Huyền thoại"
+    },
+    "status": {
+      "title": "Tất cả trạng thái",
+      "COMPLETED": "Đã hoàn thành",
+      "IN_PROGRESS": "Đang tiến hành",
+      "NOT_STARTED": "Chưa bắt đầu"
+    },
+    "searchPlaceholder": "Tìm kiếm thành tựu...",
+    "stats": {
+      "totalUnlocked": {
+        "title": "Đã mở khóa",
+        "description": "Hoàn thành 0%"
+      },
+      "xpEarned": {
+        "title": "XP đã nhận",
+        "description": "Từ thành tích"
+      },
+      "rarestUnlocked": {
+        "title": "Hiếm nhất đã mở",
+        "description": ""
+      },
+      "recentProgress": {
+        "title": "Tiến trình gần nhất",
+        "description": "Bắt đầu học!"
+      }
+    }
   }
 }
