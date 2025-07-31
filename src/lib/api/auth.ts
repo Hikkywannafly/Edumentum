@@ -1,11 +1,20 @@
-import { type AuthResponse, type LoginFormData, type RegisterFormData, type RoleFormData, authResponseSchema, loginSchema, registerSchema, roleSelectionSchema } from "@/lib/schemas/auth";
+import {
+  type AuthResponse,
+  type LoginFormData,
+  type RegisterFormData,
+  type RoleFormData,
+  authResponseSchema,
+  loginSchema,
+  registerSchema,
+  roleSelectionSchema,
+} from "@/lib/schemas/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 class AuthAPI {
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
@@ -22,7 +31,9 @@ class AuthAPI {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`,
+        );
       }
 
       const data = await response.json();
@@ -64,10 +75,10 @@ class AuthAPI {
     return authResponseSchema.parse(response);
   }
 
-  async googleAuth(code: string): Promise<AuthResponse> {
+  async googleAuth(token: string): Promise<AuthResponse> {
     const response = await this.request<AuthResponse>("/auth/google", {
       method: "POST",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ token }),
     });
 
     // Validate response
@@ -82,12 +93,12 @@ class AuthAPI {
       throw new Error("No access token available");
     }
     const apiData = {
-      roleName: validatedData.roleId
+      roleName: validatedData.roleId,
     };
     const requestConfig = {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(apiData),

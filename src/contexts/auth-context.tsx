@@ -18,7 +18,7 @@ interface AuthContextType {
     email: string,
     password: string,
   ) => Promise<void>;
-  googleAuth: (code: string) => Promise<void>;
+  googleAuth: (token: string) => Promise<void>;
   selectRole: (roleId: Roles) => Promise<void>;
   logout: () => void;
   refreshAuth: () => Promise<void>;
@@ -104,10 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const googleAuth = async (code: string) => {
+  const googleAuth = async (token: string) => {
     setIsLoading(true);
     try {
-      const response = await authAPI.googleAuth(code);
+      const response = await authAPI.googleAuth(token);
       saveAuthState(response);
     } finally {
       setIsLoading(false);
