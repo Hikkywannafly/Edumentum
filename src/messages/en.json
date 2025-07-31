@@ -31,10 +31,12 @@
     "about": "About",
     "login": "Login",
     "register": "Register",
-    "logout": "Logout"
+    "logout": "Logout",
+    "dashboard": "Dashboard"
   },
   "Dashboard": {
     "title": "Dashboard",
+    "createQuiz": "Create Quiz",
     "stats": {
       "totalStudents": "Total Students",
       "totalCourses": "Total Courses",
@@ -150,11 +152,11 @@
     "roles": {
       "ROLE_STUDENT": {
         "title": "Student",
-        "description": "I want to learn and take courses"
+        "description": "I want to enjoy all the great learning tools of edumentum"
       },
       "ROLE_TEACHER": {
         "title": "Teacher",
-        "description": "I want to create and manage courses"
+        "description": "I want to create and manage courses to support students learning"
       }
     }
   },
@@ -217,41 +219,45 @@
     "warning": "Warning",
     "info": "Information"
   },
-  "Achievements": {
-    "title": "Achievements",
-    "description": "Complete challenges and unlock rewards as you progress in your learning journey",
-    "rarities": {
-      "title": "All Rarity",
-      "COMMON": "Common",
-      "UNCOMMON": "Uncommon",
-      "RARE": "Rare",
-      "EPIC": "Epic",
-      "LEGENDARY": "Legendary"
+  "Settings": {
+    "title": "Settings",
+    "description": "Configure your preferences to personalize your experience",
+    "save": "Save & Continue",
+    "skip": "Skip",
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language",
+      "en": "English",
+      "vi": "Tiếng Việt"
     },
-    "status": {
-      "title": "All status",
-      "COMPLETED": "Completed",
-      "IN_PROGRESS": "In Progress",
-      "NOT_STARTED": "Not Started"
+    "theme": {
+      "title": "Theme",
+      "description": "Choose your preferred theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
     },
-    "searchPlaceholder": "Search achievements...",
-    "stats": {
-      "totalUnlocked": {
-        "title": "Total Unlocked",
-        "description": "0% Complete"
-      },
-      "xpEarned": {
-        "title": "XP Earned",
-        "description": "From achievements"
-      },
-      "rarestUnlocked": {
-        "title": "Rarest Unlocked",
-        "description": ""
-      },
-      "recentProgress": {
-        "title": "Recent Progress",
-        "description": "Start learning!"
-      }
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure notification preferences",
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "sms": "SMS Notifications"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Manage your privacy settings",
+      "profile": "Profile Visibility",
+      "data": "Data Sharing",
+      "cookies": "Cookie Preferences"
     }
+  },
+  "Setup": {
+    "title": "Welcome to Edumentum",
+    "description": "Let's get you set up with your personalized learning experience",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "complete": "Complete Setup"
   }
 }

@@ -4,16 +4,20 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
 import { useAuth } from "@/contexts/auth-context";
 import { type RegisterFormData, registerSchema } from "@/lib/schemas/auth";
+import { getLocaleFromPathname } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function RegisterForm() {
   const t = useTranslations("RegisterPage");
   const router = useRouter();
+  const pathname = usePathname();
   const { register: registerUser, isLoading } = useAuth();
+
+
 
   const {
     register,
@@ -34,7 +38,8 @@ export default function RegisterForm() {
       await registerUser(data.username, data.email, data.password);
       console.log("registerUser", data);
       toast.success(t("registerSuccess") || "Registration successful!");
-      router.push("/dashboard");
+      const locale = getLocaleFromPathname(pathname);
+      router.push(`/${locale}/setup`);
     } catch (error) {
       console.log("error", error);
       toast.error(error instanceof Error ? error.message : "Registration failed");
@@ -48,9 +53,9 @@ export default function RegisterForm() {
           <h2 className="mb-2 font-bold text-2xl text-foreground">
             {t("register")}
           </h2>
-          <p className="text-muted-foreground text-sm">
+          {/* <p className="text-muted-foreground text-sm">
             {t("registerDesc")}
-          </p>
+          </p> */}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col space-y-4">
@@ -102,12 +107,12 @@ export default function RegisterForm() {
           </a>
         </p>
 
-        <p className="mt-4 text-center text-muted-foreground text-xs">
+        {/* <p className="mt-4 text-center text-muted-foreground text-xs">
           {t("recaptchaNotice")}{" "}
           <a href="example" className="underline hover:text-foreground">
             {t("terms")}
           </a>
-        </p>
+        </p> */}
       </div>
     </div>
   );

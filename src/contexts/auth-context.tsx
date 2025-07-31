@@ -2,6 +2,7 @@
 
 import { authAPI } from "@/lib/api/auth";
 import type { AuthResponse, User } from "@/lib/schemas/auth";
+import type { Roles } from "@/types/auth";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
@@ -14,7 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   googleAuth: (code: string) => Promise<void>;
-  selectRole: (roleId: number) => Promise<void>;
+  selectRole: (roleId: Roles) => Promise<void>;
   logout: () => void;
   refreshAuth: () => Promise<void>;
 }
@@ -27,11 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check if user has any roles
-  const hasRole = user?.roles && user.roles.length > 0;
+  // Check if user has any roles other than GUEST
+  const hasRole = user?.roles && user.roles.some(role => role.name !== "ROLE_GUEST");
   const isAuthenticated = !!user && !!accessToken;
 
-  // Load auth state from localStorage on mount
   useEffect(() => {
     const loadAuthState = () => {
       try {
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadAuthState();
   }, []);
 
-  // Save auth state to localStorage
+
   const saveAuthState = (authResponse: AuthResponse) => {
     const { data } = authResponse;
     setUser(data.user);
@@ -97,11 +97,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const selectRole = async (roleId: number) => {
+  const selectRole = async (roleId: Roles) => {
     setIsLoading(true);
     try {
+
       const response = await authAPI.selectRole({ roleId });
+
       saveAuthState(response);
+
     } finally {
       setIsLoading(false);
     }

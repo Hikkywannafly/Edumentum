@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeaderClient } from "@/components/layout/page-header-client";
 import { QuizzesContent } from "@/components/quizzes/quizzes-content";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -20,7 +20,7 @@ export default async function QuizzesPage({
     <DashboardLayout>
       <div className="flex min-h-screen flex-col">
         {/* Header */}
-        <PageHeader
+        <PageHeaderClient
           title={t('title')}
           action={
             <Button size="sm">

@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form-input";
 import { useAuth } from "@/contexts/auth-context";
 import { type LoginFormData, loginSchema } from "@/lib/schemas/auth";
+import { getLocaleFromPathname } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Facebook } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function LoginForm() {
   const t = useTranslations("LoginPage");
-  const router = useRouter();
   const { login, isLoading } = useAuth();
-
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
   const {
     register,
     handleSubmit,
@@ -32,7 +34,6 @@ export default function LoginForm() {
     try {
       await login(data.email, data.password);
       toast.success(t("loginSuccess") || "Login successful!");
-      router.push("/dashboard");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed");
     }
@@ -42,7 +43,7 @@ export default function LoginForm() {
     <div className="w-full max-w-md rounded-2xl p-6 shadow-lg sm:p-8 ">
       <div>
         <h2 className="mb-2 font-bold text-2xl text-foreground">{t("login")}</h2>
-        <p className="text-muted-foreground text-sm">{t("loginDesc")}</p>
+        {/* <p className="text-muted-foreground text-sm">{t("loginDesc")}</p> */}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
@@ -94,19 +95,16 @@ export default function LoginForm() {
 
       <p className="mt-6 text-center text-muted-foreground text-sm">
         {t("noAccount")}{" "}
-        <a
-          href="register"
-          className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-        >
+        <Link href={`/${locale}/register`} className="text-blue-600 hover:text-blue-800 hover:underline">
           {t("register")}
-        </a>
+        </Link>
       </p>
-      <p className="mt-4 text-center text-muted-foreground text-xs">
+      {/* <p className="mt-4 text-center text-muted-foreground text-xs">
         {t("recaptchaNotice")}{" "}
         <a href="example" className="underline hover:text-foreground">
           {t("terms")}
         </a>
-      </p>
+      </p> */}
     </div>
   );
 }

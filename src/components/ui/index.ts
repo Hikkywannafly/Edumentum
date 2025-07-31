@@ -43,4 +43,5 @@ export { Slider } from "./slider";
 export { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "./table";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 export { ToggleGroup, ToggleGroupItem } from "./toggle-group";
+export { LoadingSpinner } from "./loading-spinner";
 // export { useMobile } from "./use-mobile";

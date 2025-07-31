@@ -1,3 +1,4 @@
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { LocaleProvider } from "@/components/locale-provider";
 import { ThemeProvider } from "@/components/theme";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -36,7 +37,9 @@ export default function RootLayout({
         <ThemeProvider>
           <LocaleProvider>
             <AuthProvider>
-              <main className="mx-auto ">{children}</main>
+              <AuthGuard>
+                <main className="mx-auto ">{children}</main>
+              </AuthGuard>
             </AuthProvider>
           </LocaleProvider>
         </ThemeProvider>
