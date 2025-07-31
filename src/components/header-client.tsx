@@ -1,48 +1,49 @@
-"use client"
+"use client";
 
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { LocalizedLink } from "@/components/localized-link"
-import { MobileNav } from "@/components/mobile-nav"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/auth-context"
-import { getLocaleFromPathname } from "@/lib/utils"
-import { BookOpen, LogOut } from "lucide-react"
-import { useTranslations } from "next-intl"
-import { usePathname, useRouter } from "next/navigation"
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { LocalizedLink } from "@/components/localized-link";
+import { MobileNav } from "@/components/mobile-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
+import { getLocaleFromPathname } from "@/lib/utils";
+import { BookOpen, LogOut } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "next/navigation";
+import WideContainer from "./layout/wide-layout";
 
 interface HeaderClientProps {
-  title?: string
+  title?: string;
 }
 
 export function HeaderClient({ title }: HeaderClientProps) {
-  const t = useTranslations("Header")
-  const { isAuthenticated, logout } = useAuth()
-  const router = useRouter()
-  const pathname = usePathname()
+  const t = useTranslations("Header");
+  const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     try {
-      await logout()
-      const locale = getLocaleFromPathname(pathname)
-      router.push(`/${locale}`)
+      await logout();
+      const locale = getLocaleFromPathname(pathname);
+      router.push(`/${locale}`);
     } catch (error) {
-      console.error("Logout failed:", error)
+      console.error("Logout failed:", error);
     }
-  }
+  };
 
   const handleDashboard = () => {
-    const locale = getLocaleFromPathname(pathname)
-    router.push(`/${locale}/dashboard`)
-  }
+    const locale = getLocaleFromPathname(pathname);
+    router.push(`/${locale}/dashboard`);
+  };
 
   const handleLogin = () => {
-    const locale = getLocaleFromPathname(pathname)
-    router.push(`/${locale}/login`)
-  }
+    const locale = getLocaleFromPathname(pathname);
+    router.push(`/${locale}/login`);
+  };
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <WideContainer classNames="container flex h-16 items-center justify-between">
         <LocalizedLink href="" className="flex items-center space-x-2">
           <div className="m-4 flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <BookOpen className="h-5 w-5 text-primary-foreground" />
@@ -114,7 +115,7 @@ export function HeaderClient({ title }: HeaderClientProps) {
 
           <MobileNav />
         </div>
-      </div>
+      </WideContainer>
     </header>
-  )
+  );
 }
