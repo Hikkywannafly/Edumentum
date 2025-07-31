@@ -31,10 +31,12 @@
     "about": "About",
     "login": "Login",
     "register": "Register",
-    "logout": "Logout"
+    "logout": "Logout",
+    "dashboard": "Dashboard"
   },
   "Dashboard": {
     "title": "Dashboard",
+    "createQuiz": "Create Quiz",
     "stats": {
       "totalStudents": "Total Students",
       "totalCourses": "Total Courses",
@@ -249,5 +251,13 @@
       "data": "Data Sharing",
       "cookies": "Cookie Preferences"
     }
+  },
+  "Setup": {
+    "title": "Welcome to Edumentum",
+    "description": "Let's get you set up with your personalized learning experience",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "complete": "Complete Setup"
   }
 }

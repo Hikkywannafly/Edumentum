@@ -1,8 +1,8 @@
-import { Settings } from "@/components/auth/settings"
+import { Setup } from "@/components/auth/setup"
 import { BaseLayout } from "@/components/layout"
 import { setRequestLocale } from "next-intl/server"
 
-export default async function SettingsPage({
+export default async function SetupPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -12,7 +12,7 @@ export default async function SettingsPage({
 
   return (
     <BaseLayout showHeader={false} showFooter={false}>
-      <Settings />
+      <Setup />
     </BaseLayout>
   );
 }
