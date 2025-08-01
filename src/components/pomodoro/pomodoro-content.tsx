@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LayoutGrid, List, Plus, RotateCcw, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import type { Task, ViewMode } from ".";
 import { KanbanBoardView } from "./kanban-board";
@@ -155,6 +156,8 @@ export default function PomodoroContent() {
     progress = ((countdownMinutes * 60 - time) / (countdownMinutes * 60)) * 100;
   }
 
+  const t = useTranslations("Pomodoro");
+
   return (
     <div className="flex h-full flex-col items-center justify-center p-6">
       <div className="grid w-full max-w-7xl gap-8 lg:grid-cols-2">
@@ -163,23 +166,27 @@ export default function PomodoroContent() {
           <CardContent className="space-y-6">
             {/* Timer Type Tags */}
             <div className="flex justify-center gap-2">
-              {(["pomodoro", "countdown"] as TimerType[]).map((type) => (
-                <Button
-                  key={type}
-                  variant={timerType === type ? "default" : "outline"}
-                  onClick={() => handleTimerTypeChange(type)}
-                  className="rounded-full px-6 py-2 font-medium capitalize"
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </Button>
-              ))}
+              <Button
+                variant={timerType === "pomodoro" ? "default" : "outline"}
+                onClick={() => handleTimerTypeChange("pomodoro")}
+                className="rounded-full px-6 py-2 font-medium"
+              >
+                Pomodoro
+              </Button>
+              <Button
+                variant={timerType === "countdown" ? "default" : "outline"}
+                onClick={() => handleTimerTypeChange("countdown")}
+                className="rounded-full px-6 py-2 font-medium"
+              >
+                {t("countdown.title")}
+              </Button>
             </div>
 
             {/* Countdown input nếu là countdown */}
             {timerType === "countdown" && (
               <div className="my-4 flex items-center justify-center gap-2">
                 <label htmlFor="countdown-minutes" className="font-medium">
-                  Duration (minutes):
+                  {t("countdown.duration")}:
                 </label>
                 <input
                   type="number"
@@ -202,19 +209,19 @@ export default function PomodoroContent() {
                   variant={timerMode === "focus" ? "default" : "outline"}
                   onClick={() => handleModeChange("focus")}
                 >
-                  Focus
+                  {t("pomodoro.focus")}
                 </Button>
                 <Button
                   variant={timerMode === "shortBreak" ? "default" : "outline"}
                   onClick={() => handleModeChange("shortBreak")}
                 >
-                  Short Break
+                  {t("pomodoro.shortBreak")}
                 </Button>
                 <Button
                   variant={timerMode === "longBreak" ? "default" : "outline"}
                   onClick={() => handleModeChange("longBreak")}
                 >
-                  Long Break
+                  {t("pomodoro.longBreak")}
                 </Button>
               </div>
             )}
@@ -285,9 +292,13 @@ export default function PomodoroContent() {
                   className="px-8 py-3 font-semibold text-lg"
                 >
                   {isRunning ? (
-                    <span className="flex items-center gap-2">PAUSE</span>
+                    <span className="flex items-center gap-2">
+                      {t("pause")}
+                    </span>
                   ) : (
-                    <span className="flex items-center gap-2">START</span>
+                    <span className="flex items-center gap-2">
+                      {t("start")}
+                    </span>
                   )}
                 </Button>
               </div>
@@ -315,7 +326,7 @@ export default function PomodoroContent() {
                 className="flex items-center gap-2"
               >
                 <List className="h-4 w-4" />
-                Simple Todo
+                {t("simpleTodo.title")}
               </Button>
               <Button
                 variant={viewMode === "kanban" ? "default" : "outline"}
@@ -323,7 +334,7 @@ export default function PomodoroContent() {
                 className="flex items-center gap-2"
               >
                 <LayoutGrid className="h-4 w-4" />
-                Kanban Board
+                {t("kanbanBoard.title")}
               </Button>
             </div>
 

@@ -296,5 +296,34 @@
         "description": "Bắt đầu học!"
       }
     }
+  },
+  "Pomodoro": {
+    "title": "Pomodoro",
+    "start": "Bắt đầu",
+    "pause": "Tạm dừng",
+    "notTask": "Chưa có nhiệm vụ nào",
+    "advice": "Thêm một nhiệm vụ để bắt đầu!",
+    "countdown": {
+      "title": "Đếm ngược",
+      "duration": "Thời gian (phút)"
+    },
+    "pomodoro": {
+      "focus": "Tập trung",
+      "shortBreak": "Nghỉ ngắn",
+      "longBreak": "Nghỉ dài"
+    },
+    "simpleTodo": {
+      "title": "Danh sách công việc",
+      "placeholder": "Thêm một nhiệm vụ..."
+    },
+    "kanbanBoard": {
+      "title": "Bảng Kanban",
+      "addTask": "Thêm một nhiệm vụ...",
+      "columns": {
+        "todo": "Cần làm",
+        "inProgress": "Đang tiến hành",
+        "done": "Đã hoàn thành"
+      }
+    }
   }
 }
