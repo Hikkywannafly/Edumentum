@@ -1,13 +1,13 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { PageHeaderClient } from "@/components/layout/page-header-client";
 import { LocalizedLink } from "@/components/localized-link";
-import { QuizzesContent } from "@/components/quizzes/quizzes-content";
+import { QuizCreator } from "@/components/quizzes/quiz-creator";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
 
-export default async function QuizzesPage({
+export default async function CreateQuizPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -22,12 +22,12 @@ export default async function QuizzesPage({
       <div className="flex min-h-screen flex-col">
         {/* Header */}
         <PageHeaderClient
-          title={t("title")}
+          title={t("create.title")}
           action={
-            <LocalizedLink href="quizzes/create">
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                {t("createQuiz")}
+            <LocalizedLink href="quizzes">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t("create.backToQuizzes")}
               </Button>
             </LocalizedLink>
           }
@@ -36,7 +36,7 @@ export default async function QuizzesPage({
         />
 
         {/* Main Content */}
-        <QuizzesContent />
+        <QuizCreator />
       </div>
     </DashboardLayout>
   );

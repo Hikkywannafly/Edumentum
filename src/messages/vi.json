@@ -174,9 +174,9 @@
     "info": "Thông tin"
   },
   "Quizzes": {
-    "title": "Bài kiểm tra",
-    "createQuiz": "Tạo bài kiểm tra",
-    "searchPlaceholder": "Tìm kiếm bài kiểm tra...",
+    "title": "Quizzes",
+    "createQuiz": "Tạo quiz",
+    "searchPlaceholder": "Tìm kiếm quiz...",
     "filters": "Bộ lọc",
     "stats": {
       "totalQuizzes": "Tổng bài kiểm tra",
@@ -198,9 +198,78 @@
       "hard": "Khó"
     },
     "createCTA": {
-      "title": "Tạo bài kiểm tra đầu tiên",
-      "description": "Bắt đầu xây dựng các bài kiểm tra tương tác để kiểm tra kiến thức",
-      "button": "Tạo bài kiểm tra mới"
+      "title": "Tạo quiz đầu tiên",
+      "description": "Bắt đầu xây dựng các quiz tương tác để kiểm tra kiến thức",
+      "button": "Tạo quiz mới"
+    },
+    "create": {
+      "title": "Tạo Quiz",
+      "backToQuizzes": "Quay lại Quizzes",
+      "generateQuiz": "Tạo Quiz",
+      "subtitle": "Nhanh chóng tạo quiz mới từ tài liệu học tập của bạn!",
+      "tabs": {
+        "fileWithAnswers": "Tạo thủ công",
+        "aiGenerated": "AI tạo"
+      },
+      "settings": {
+        "title": "Cài đặt Quiz",
+        "description": "Cấu hình cài đặt tạo quiz",
+        "visibility": "Hiển thị",
+        "private": "Riêng tư",
+        "public": "Công khai",
+        "language": "Ngôn ngữ quiz",
+        "autoDetect": "Tự động phát hiện",
+        "questionType": "Loại câu hỏi",
+        "mixed": "Hỗn hợp",
+        "multipleChoice": "Trắc nghiệm",
+        "trueFalse": "Đúng/Sai",
+        "numberOfQuestions": "Số câu hỏi",
+        "difficulty": "Độ khó",
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó",
+        "parsingMode": "Chế độ xử lý",
+        "fast": "Nhanh",
+        "balanced": "Cân bằng",
+        "thorough": "Kỹ lưỡng",
+        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn."
+      },
+      "supportedFormats": {
+        "title": "Định dạng hỗ trợ",
+        "limit": "Tối đa 10 file, 20 MB tổng cộng"
+      },
+      "fileWithAnswers": {
+        "title": "Upload File có đáp án",
+        "description": "Upload file đã có sẵn câu hỏi và đáp án",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), JSON, MD",
+        "limits": "Tối đa 10 file, 20 MB tổng cộng",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "success": "Thành công",
+        "createQuiz": "Tạo Quiz",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      },
+      "aiGenerated": {
+        "title": "Quiz AI tạo",
+        "description": "Upload file lý thuyết và để AI tạo câu hỏi quiz",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Tối đa 5 file, 50 MB tổng cộng",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "aiGenerating": "AI đang tạo...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "aiControls": "Tạo AI",
+        "aiDescription": "Nhấn nút bên dưới để bắt đầu AI tạo câu hỏi quiz từ file đã upload.",
+        "startGeneration": "Bắt đầu tạo AI",
+        "createQuiz": "Tạo Quiz",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      }
     }
   },
   "RoleSelector": {
