@@ -56,7 +56,7 @@ export default function KanbanContent() {
 
   return (
     <div className="flex h-full flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b pb-4">
         <h1 className="font-bold text-2xl">Kanban Board</h1>
         <Button onClick={() => setIsAddModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -64,14 +64,14 @@ export default function KanbanContent() {
         </Button>
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="mt-4 grid flex-1 grid-cols-1 gap-4 md:grid-cols-3">
         {columns.map((column) => (
           <div
             key={column.status}
             className={`flex flex-col rounded-lg border ${column.color} p-4`}
           >
             <div className="mb-4 flex items-center justify-between border-b">
-              <h2 className="flex items-center gap-2 font-medium">
+              <h3 className="mb-2 flex items-center gap-2 font-medium">
                 <span
                   className={`h-2 w-2 rounded-full ${
                     column.status === "toDo"
@@ -82,7 +82,7 @@ export default function KanbanContent() {
                   }`}
                 />
                 {column.title}
-              </h2>
+              </h3>
               <span className="rounded-full bg-white px-2 py-0.5 font-medium text-xs dark:bg-gray-800">
                 {tasks.filter((task) => task.status === column.status).length}
               </span>
