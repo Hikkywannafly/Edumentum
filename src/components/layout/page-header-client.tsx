@@ -22,12 +22,12 @@ export function PageHeaderClient({
   children,
   className = "",
   showThemeToggle = true,
-  showLanguageSwitcher = true
+  showLanguageSwitcher = true,
 }: PageHeaderClientProps) {
   const { logout } = useAuth();
 
   return (
-    <header className={`flex h-16 items-center gap-3 border-b px-4 ${className}`}>
+    <header className={`flex h-16 items-center gap-3 px-4 ${className}`}>
       <Separator orientation="vertical" className="mr-2 h-4" />
       <h1 className="font-semibold text-xl">{title}</h1>
 

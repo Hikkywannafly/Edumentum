@@ -6,22 +6,22 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useLocalePersistence } from '@/hooks/use-locale-persistence';
-import { usePathname, useRouter } from '@/i18n/navigation';
-import { useCallback, useTransition } from 'react';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useLocalePersistence } from "@/hooks/use-locale-persistence";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { useCallback, useTransition } from "react";
 
 const locales = [
   {
-    code: 'vi',
-    label: 'Tiếng Việt',
-    flag: '🇻🇳'
+    code: "vi",
+    label: "Tiếng Việt",
+    flag: "🇻🇳",
   },
   {
-    code: 'en',
-    label: 'English',
-    flag: '🇺🇸'
+    code: "en",
+    label: "English",
+    flag: "🇺🇸",
   },
 ];
 
@@ -31,19 +31,20 @@ export function LanguageSwitcher() {
   const { locale, saveLocale } = useLocalePersistence();
   const [isPending, startTransition] = useTransition();
 
-  const handleLocaleChange = useCallback((newLocale: string) => {
-    saveLocale(newLocale);
-    startTransition(() => {
-      router.replace(pathname, { locale: newLocale });
-    });
-  }, [router, pathname, saveLocale]);
+  const handleLocaleChange = useCallback(
+    (newLocale: string) => {
+      saveLocale(newLocale);
+      startTransition(() => {
+        router.replace(pathname, { locale: newLocale });
+      });
+    },
+    [router, pathname, saveLocale],
+  );
 
-  const currentLocale = locales.find(l => l.code === locale);
+  const currentLocale = locales.find((l) => l.code === locale);
 
   if (!currentLocale) {
-    return (
-      <Skeleton className="h-9 w-9 rounded-full" />
-    );
+    return <Skeleton className="h-9 w-12 rounded-sm" />;
   }
 
   return (
@@ -52,9 +53,11 @@ export function LanguageSwitcher() {
       value={locale}
       onValueChange={handleLocaleChange}
     >
-      <SelectTrigger className="h-9 w-9 rounded-full border-0 bg-transparent p-0 shadow-none ring-0 transition-colors hover:bg-muted/50 focus:ring-0 focus:ring-offset-0">
+      <SelectTrigger className=" h-9 w-16 rounded-sm border-0 bg-transparent p-2 shadow-none ring-0 transition-colors hover:bg-muted/50 focus:ring-0 focus:ring-offset-0">
         <SelectValue>
-          <span className="text-xl leading-none">{currentLocale.flag}</span>
+          <span className="mr-2 text-lg leading-none">
+            {currentLocale.flag}
+          </span>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

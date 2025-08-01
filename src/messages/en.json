@@ -142,6 +142,76 @@
       "title": "Create your first quiz",
       "description": "Start building interactive quizzes to test your knowledge",
       "button": "Create New Quiz"
+    },
+    "create": {
+      "title": "Create Quiz",
+      "backToQuizzes": "Back to Quizzes",
+      "generateQuiz": "Generate Quiz",
+      "subtitle": "Quickly create a new quiz from your study materials!",
+      "tabs": {
+        "fileWithAnswers": "File with Answers",
+        "aiGenerated": "AI Generated"
+      },
+      "settings": {
+        "title": "Quiz Settings",
+        "description": "Configure your quiz generation settings",
+        "visibility": "Visibility",
+        "private": "Private",
+        "public": "Public",
+        "language": "Language of the quiz",
+        "autoDetect": "Auto detect",
+        "questionType": "Question type",
+        "mixed": "Mixed",
+        "multipleChoice": "Multiple Choice",
+        "trueFalse": "True/False",
+        "numberOfQuestions": "# Number of questions",
+        "difficulty": "Difficulty",
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard",
+        "parsingMode": "Parsing mode",
+        "fast": "Fast",
+        "balanced": "Balanced",
+        "thorough": "Thorough",
+        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer."
+      },
+      "supportedFormats": {
+        "title": "Supported Formats",
+        "limit": "Up to 10 files, 20 MB total"
+      },
+      "fileWithAnswers": {
+        "title": "Upload Files with Answers",
+        "description": "Upload files that already contain quiz questions and answers",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), JSON, MD",
+        "limits": "Up to 10 files, 20 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "success": "Success",
+        "createQuiz": "Create Quiz",
+        "guidance": "Use documents with accurate factual information for best results."
+      },
+      "aiGenerated": {
+        "title": "AI Generated Quiz",
+        "description": "Upload theory files and let AI generate quiz questions",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Up to 5 files, 50 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "aiGenerating": "AI Generating...",
+        "success": "Success",
+        "error": "Error",
+        "aiControls": "AI Generation",
+        "aiDescription": "Click the button below to start AI generation of quiz questions from your uploaded files.",
+        "startGeneration": "Start AI Generation",
+        "createQuiz": "Create Quiz",
+        "guidance": "Use documents with accurate factual information for best results."
+      }
     }
   },
   "RoleSelector": {
