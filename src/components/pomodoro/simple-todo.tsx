@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { Task } from "./index";
 
 interface SimpleTodoViewProps {
@@ -25,6 +26,8 @@ export function SimpleTodoView({
   toggleTaskCompletion,
   deleteTask,
 }: SimpleTodoViewProps) {
+  const t = useTranslations("Pomodoro");
+
   return (
     <div className="space-y-6">
       {/* Add Task */}
@@ -32,7 +35,7 @@ export function SimpleTodoView({
         <CardContent className="p-4">
           <div className="flex gap-2">
             <Input
-              placeholder="Add a task..."
+              placeholder={t("simpleTodo.placeholder")}
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addTask()}
@@ -50,8 +53,8 @@ export function SimpleTodoView({
         <CardContent className="p-4">
           {tasks.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="mb-2 font-semibold text-xl">No tasks yet</p>
-              <p>Add a task to get started!</p>
+              <p className="mb-2 font-semibold text-xl">{t("notTask")}</p>
+              <p>{t("advice")}</p>
             </div>
           ) : (
             <div className="space-y-2">

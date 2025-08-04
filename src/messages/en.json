@@ -368,5 +368,34 @@
         "description": "Start learning!"
       }
     }
+  },
+  "Pomodoro": {
+    "title": "Pomodoro",
+    "start": "Start",
+    "pause": "Pause",
+    "notTask": "No tasks yet",
+    "advice": "Add a task to get started!",
+    "countdown": {
+      "title": "Countdown",
+      "duration": "Duration (minutes)"
+    },
+    "pomodoro": {
+      "focus": "Focus",
+      "shortBreak": "Short Break",
+      "longBreak": "Long Break"
+    },
+    "simpleTodo": {
+      "title": "Simple Todo",
+      "placeholder": "Add a task..."
+    },
+    "kanbanBoard": {
+      "title": "Kanban Board",
+      "addTask": "Add a task...",
+      "columns": {
+        "todo": "To Do",
+        "inProgress": "In Progress",
+        "done": "Done"
+      }
+    }
   }
 }
