@@ -1,0 +1,85 @@
+{
+  "quiz": {
+    "title": "Sample Quiz from JSON",
+    "description": "This is a sample quiz created from JSON file",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "What is the main purpose of JSON?",
+        "type": "MULTIPLE_CHOICE",
+        "difficulty": "MEDIUM",
+        "points": 1,
+        "answers": [
+          {
+            "id": "a1_1",
+            "text": "To store data in a structured format",
+            "isCorrect": true
+          },
+          {
+            "id": "a1_2",
+            "text": "To create web pages",
+            "isCorrect": false
+          },
+          {
+            "id": "a1_3",
+            "text": "To run JavaScript code",
+            "isCorrect": false
+          },
+          {
+            "id": "a1_4",
+            "text": "To style HTML elements",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "id": "q2",
+        "question": "JSON stands for JavaScript Object Notation.",
+        "type": "TRUE_FALSE",
+        "difficulty": "EASY",
+        "points": 1,
+        "answers": [
+          {
+            "id": "a2_1",
+            "text": "True",
+            "isCorrect": true
+          },
+          {
+            "id": "a2_2",
+            "text": "False",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "id": "q3",
+        "question": "Which of the following is a valid JSON data type?",
+        "type": "MULTIPLE_CHOICE",
+        "difficulty": "HARD",
+        "points": 2,
+        "answers": [
+          {
+            "id": "a3_1",
+            "text": "String",
+            "isCorrect": true
+          },
+          {
+            "id": "a3_2",
+            "text": "Function",
+            "isCorrect": false
+          },
+          {
+            "id": "a3_3",
+            "text": "Undefined",
+            "isCorrect": false
+          },
+          {
+            "id": "a3_4",
+            "text": "Date",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  }
+}

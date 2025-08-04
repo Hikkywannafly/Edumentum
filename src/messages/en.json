@@ -191,6 +191,8 @@
         "processing": "Processing...",
         "success": "Success",
         "createQuiz": "Create Quiz",
+        "editQuiz": "Edit Quiz",
+        "editQuizDescription": "Review and edit the extracted questions before creating your quiz",
         "guidance": "Use documents with accurate factual information for best results."
       },
       "aiGenerated": {
