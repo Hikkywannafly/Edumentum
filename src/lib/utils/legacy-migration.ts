@@ -78,14 +78,19 @@ export function validateAndFixLegacyData(data: any): any {
 }
 
 // Convert old question types to new ones
-export function convertQuestionType(oldType: string): string {
-  const typeMap: Record<string, string> = {
+export function convertQuestionType(
+  oldType: string,
+): "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK" | "FREE_RESPONSE" {
+  const typeMap: Record<
+    string,
+    "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK" | "FREE_RESPONSE"
+  > = {
     SHORT_ANSWER: "FILL_BLANK",
     ESSAY: "FREE_RESPONSE",
     MATCHING: "MULTIPLE_CHOICE", // Fallback
   };
 
-  return typeMap[oldType] || oldType;
+  return typeMap[oldType] || "MULTIPLE_CHOICE";
 }
 
 // Migrate entire quiz data
