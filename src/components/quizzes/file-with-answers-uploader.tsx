@@ -1,254 +1,125 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useFileProcessor } from "@/hooks/use-file-processor";
+import { quizAPI } from "@/lib/api/quiz";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, CheckCircle, FileText, Upload, X } from "lucide-react";
+  FILE_UPLOAD_LIMITS,
+  getAcceptedFileTypes,
+} from "@/lib/utils/file-utils";
+import { CheckCircle, Edit } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  status: "uploading" | "processing" | "success" | "error";
-  progress: number;
-  error?: string;
-}
+import { FileList } from "./file-list";
+import { FileUploadArea } from "./file-upload-area";
+import { QuizEditorDialog } from "./quiz-editor-dialog";
+import { QuizPreview } from "./quiz-preview";
 
 export function FileWithAnswersUploader() {
   const t = useTranslations("Quizzes");
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  // const [isProcessing, setIsProcessing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: UploadedFile[] = acceptedFiles.map((file, index) => ({
-      id: `${Date.now()}-${index}`,
-      name: file.name,
-      size: file.size,
-      status: "uploading",
-      progress: 0,
-    }));
+  const {
+    uploadedFiles,
+    generatedQuiz,
+    addFiles,
+    removeFile,
+    updateQuizDetails,
+    isProcessing,
+    hasFiles,
+    hasGeneratedQuiz,
+  } = useFileProcessor();
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
-
-    // Simulate file processing
-    newFiles.forEach((file, _index) => {
-      simulateFileProcessing(file.id);
-    });
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/pdf": [".pdf"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        [".docx"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-        [".pptx"],
-      "application/vnd.ms-powerpoint": [".ppt"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-      "application/vnd.ms-excel": [".xls"],
-      "application/json": [".json"],
-      "text/markdown": [".md"],
-    },
-    maxFiles: 10,
-    maxSize: 20 * 1024 * 1024, // 20MB
+  const { isDragActive } = useDropzone({
+    onDrop: addFiles,
+    accept: getAcceptedFileTypes(),
+    maxFiles: FILE_UPLOAD_LIMITS.maxFiles,
+    maxSize: FILE_UPLOAD_LIMITS.maxSize,
   });
 
-  const simulateFileProcessing = (fileId: string) => {
-    const interval = setInterval(() => {
-      setUploadedFiles((prev) =>
-        prev.map((file) => {
-          if (file.id === fileId) {
-            if (file.progress < 100) {
-              return { ...file, progress: file.progress + 10 };
-            }
-            clearInterval(interval);
-            return { ...file, status: "processing" };
-          }
-          return file;
-        }),
-      );
-    }, 200);
-
-    // Simulate processing completion
-    setTimeout(() => {
-      setUploadedFiles((prev) =>
-        prev.map((file) => {
-          if (file.id === fileId) {
-            return { ...file, status: "success" };
-          }
-          return file;
-        }),
-      );
-    }, 3000);
+  const handleEditQuiz = () => {
+    setIsEditorOpen(true);
   };
 
-  const removeFile = (fileId: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
-  };
+  const handleSaveQuiz = async (quizData: {
+    title: string;
+    description: string;
+    questions: any[];
+  }) => {
+    try {
+      setIsCreating(true);
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split(".").pop()?.toLowerCase();
-    switch (extension) {
-      case "pdf":
-        return <FileText className="h-8 w-8 text-red-500" />;
-      case "docx":
-      case "doc":
-        return <FileText className="h-8 w-8 text-blue-500" />;
-      case "pptx":
-      case "ppt":
-        return <FileText className="h-8 w-8 text-orange-500" />;
-      case "xlsx":
-      case "xls":
-        return <FileText className="h-8 w-8 text-green-500" />;
-      case "json":
-        return <FileText className="h-8 w-8 text-purple-500" />;
-      case "md":
-        return <FileText className="h-8 w-8 text-gray-500" />;
-      default:
-        return <FileText className="h-8 w-8 text-gray-500" />;
+      // Use legacy API for now
+      const quizRequestData = {
+        title: quizData.title,
+        description: quizData.description,
+        visibility: true,
+        total: quizData.questions.length,
+        topic: "Auto-generated",
+        quizCreationType: "FILE_UPLOAD" as const,
+        questions: quizData.questions,
+      };
+
+      const response = await quizAPI.createQuiz(quizRequestData);
+      console.log("Quiz created successfully:", response);
+
+      // Update the generated quiz with edited data
+      updateQuizDetails({
+        title: quizData.title,
+        description: quizData.description,
+        questions: quizData.questions,
+      });
+
+      // TODO: Show success toast and redirect
+    } catch (error) {
+      console.error("Error creating quiz:", error);
+      // TODO: Show error toast
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const getStatusIcon = (status: UploadedFile["status"]) => {
-    switch (status) {
-      case "uploading":
-        return (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-        );
-      case "processing":
-        return (
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-yellow-500 border-t-transparent" />
-        );
-      case "success":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "error":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-    }
-  };
+  const handleCreateQuiz = async () => {
+    if (!generatedQuiz) return;
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
+    try {
+      setIsCreating(true);
+
+      const quizData = {
+        title: generatedQuiz.title,
+        description: generatedQuiz.description,
+        visibility: true,
+        total: generatedQuiz.questions.length,
+        topic: "Auto-generated",
+        quizCreationType: "FILE_UPLOAD" as const,
+        questions: generatedQuiz.questions,
+      };
+
+      const response = await quizAPI.createQuiz(quizData);
+      console.log("Quiz created successfully:", response);
+
+      // TODO: Show success toast and redirect
+    } catch (error) {
+      console.error("Error creating quiz:", error);
+      // TODO: Show error toast
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
     <div className="space-y-6 border-none">
       {/* Upload Area */}
-      <Card className="border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            {t("create.fileWithAnswers.title")}
-          </CardTitle>
-          <CardDescription>
-            {t("create.fileWithAnswers.description")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div
-            {...getRootProps()}
-            className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-              isDragActive
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
-          >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-            <p className="mb-2 font-medium text-lg">
-              {isDragActive
-                ? t("create.fileWithAnswers.dropHere")
-                : t("create.fileWithAnswers.dropOrSelect")}
-            </p>
-            <p className="mb-4 text-muted-foreground text-sm">
-              {t("create.fileWithAnswers.supportedFormats")}
-            </p>
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
-              <Badge variant="outline">PDF</Badge>
-              <Badge variant="outline">DOC(X)</Badge>
-              <Badge variant="outline">PPT(X)</Badge>
-              <Badge variant="outline">XLS(X)</Badge>
-              <Badge variant="outline">JSON</Badge>
-              <Badge variant="outline">MD</Badge>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              {t("create.fileWithAnswers.limits")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <FileUploadArea onDrop={addFiles} isDragActive={isDragActive} />
 
       {/* Uploaded Files */}
-      {uploadedFiles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("create.fileWithAnswers.uploadedFiles")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {uploadedFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center gap-4 rounded-lg border p-4"
-                >
-                  {getFileIcon(file.name)}
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <p className="truncate font-medium">{file.name}</p>
-                      {getStatusIcon(file.status)}
-                    </div>
-                    <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                      <span>{formatFileSize(file.size)}</span>
-                      {file.status === "uploading" && (
-                        <span>{t("create.fileWithAnswers.uploading")}</span>
-                      )}
-                      {file.status === "processing" && (
-                        <span>{t("create.fileWithAnswers.processing")}</span>
-                      )}
-                      {file.status === "success" && (
-                        <span className="text-green-600">
-                          {t("create.fileWithAnswers.success")}
-                        </span>
-                      )}
-                      {file.status === "error" && (
-                        <span className="text-red-600">{file.error}</span>
-                      )}
-                    </div>
-                    {(file.status === "uploading" ||
-                      file.status === "processing") && (
-                      <Progress value={file.progress} className="mt-2" />
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(file.id)}
-                    className="text-muted-foreground hover:text-red-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <FileList files={uploadedFiles} onRemoveFile={removeFile} />
+
+      {/* Generated Quiz Preview */}
+      {generatedQuiz && (
+        <QuizPreview quiz={generatedQuiz} onUpdateQuiz={updateQuizDetails} />
       )}
 
       {/* Action Buttons */}
@@ -256,19 +127,38 @@ export function FileWithAnswersUploader() {
         <p className="text-muted-foreground text-sm">
           {t("create.fileWithAnswers.guidance")}
         </p>
-        <Button
-          disabled={
-            uploadedFiles.length === 0 ||
-            uploadedFiles.some(
-              (f) => f.status === "uploading" || f.status === "processing",
-            )
-          }
-          className="flex items-center gap-2"
-        >
-          <CheckCircle className="h-4 w-4" />
-          {t("create.fileWithAnswers.createQuiz")}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            disabled={!hasFiles || isProcessing || !hasGeneratedQuiz}
+            onClick={handleEditQuiz}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4" />
+            Edit Quiz
+          </Button>
+          <Button
+            disabled={
+              !hasFiles || isProcessing || !hasGeneratedQuiz || isCreating
+            }
+            onClick={handleCreateQuiz}
+            className="flex items-center gap-2"
+          >
+            <CheckCircle className="h-4 w-4" />
+            {isCreating
+              ? "Creating..."
+              : t("create.fileWithAnswers.createQuiz")}
+          </Button>
+        </div>
       </div>
+
+      {/* Quiz Editor Dialog */}
+      <QuizEditorDialog
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        onSave={handleSaveQuiz}
+        initialQuiz={generatedQuiz || undefined}
+      />
     </div>
   );
 }

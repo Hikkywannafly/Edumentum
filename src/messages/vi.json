@@ -250,6 +250,8 @@
         "processing": "Đang xử lý...",
         "success": "Thành công",
         "createQuiz": "Tạo Quiz",
+        "editQuiz": "Chỉnh sửa Quiz",
+        "editQuizDescription": "Xem lại và chỉnh sửa các câu hỏi đã trích xuất trước khi tạo quiz",
         "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
       },
       "aiGenerated": {
