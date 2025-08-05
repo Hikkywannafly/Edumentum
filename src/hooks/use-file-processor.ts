@@ -4,7 +4,7 @@ import {
 } from "@/lib/services/content-extractor.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface UploadedFile {
   id: string;
@@ -57,23 +57,6 @@ export function useFileProcessor() {
               : file,
           );
 
-          // Generate quiz after updating files
-          const successfulFiles = updatedFiles.filter(
-            (f) => f.status === "success" && f.extractedQuestions,
-          );
-
-          if (successfulFiles.length > 0) {
-            const allQuestions = successfulFiles.flatMap(
-              (f) => f.extractedQuestions || [],
-            );
-
-            setQuizData({
-              title: `Quiz from ${successfulFiles.length} file(s)`,
-              description: "Auto-generated quiz from uploaded files",
-              questions: allQuestions,
-            });
-          }
-
           return updatedFiles;
         });
       } catch (error) {
@@ -92,7 +75,7 @@ export function useFileProcessor() {
         );
       }
     },
-    [setQuizData],
+    [],
   );
 
   const addFiles = useCallback(
@@ -142,6 +125,28 @@ export function useFileProcessor() {
 
   // Get current quiz data from store
   const { quizData } = useQuizEditorStore();
+
+  // Update quiz data when files are processed
+  useEffect(() => {
+    const successfulFiles = uploadedFiles.filter(
+      (f) => f.status === "success" && f.extractedQuestions,
+    );
+
+    if (successfulFiles.length > 0) {
+      const allQuestions = successfulFiles.flatMap(
+        (f) => f.extractedQuestions || [],
+      );
+
+      setQuizData({
+        title: `Quiz from ${successfulFiles.length} file(s)`,
+        description: "Auto-generated quiz from uploaded files",
+        questions: allQuestions,
+      });
+    } else if (uploadedFiles.length === 0) {
+      // Clear quiz data when no files
+      setQuizData(null as any);
+    }
+  }, [uploadedFiles, setQuizData]);
 
   return {
     uploadedFiles,
