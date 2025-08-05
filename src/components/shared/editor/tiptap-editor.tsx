@@ -37,6 +37,7 @@ export default function TiptapEditor({
   showToolbar = true,
 }: TiptapEditorProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const [isToolbarInteracting, setIsToolbarInteracting] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -46,21 +47,24 @@ export default function TiptapEditor({
       }),
     ],
     content: content,
+    immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
     onFocus: () => {
       setIsFocused(true);
     },
-    onBlur: () => {
-      // Delay hiding toolbar to allow clicking on toolbar buttons
-      setTimeout(() => setIsFocused(false), 200);
+    onBlur: (_props) => {
+      // Don't hide toolbar immediately if user is interacting with it
+      setTimeout(() => {
+        if (!isToolbarInteracting) {
+          setIsFocused(false);
+        }
+      }, 100);
     },
     editorProps: {
       attributes: {
-        class: `prose max-w-none focus:outline-none p-3 min-h-[40px] transition-all duration-200 ${
-          isFocused ? "ring-2 ring-blue-500" : ""
-        } ${className || ""}`,
+        class: `prose max-w-none focus:outline-none p-3 min-h-[40px] transition-all duration-200 ${className || ""}`,
         "data-placeholder": placeholder || "",
       },
     },
@@ -86,14 +90,19 @@ export default function TiptapEditor({
   };
 
   return (
-    <div className="relative">
-      <div className="overflow-hidden rounded-md border bg-white transition-colors hover:border-gray-400">
-        <EditorContent editor={editor} />
-      </div>
-
-      {/* Floating Toolbar */}
-      {showToolbar && isFocused && (
-        <div className="-mt-12 slide-in-from-top-2 absolute top-0 right-0 left-0 z-10 animate-in rounded-md border border-gray-200 bg-white p-2 shadow-lg duration-200">
+    <div
+      className={
+        "relative rounded-md border bg-background transition-all duration-200"
+      }
+    >
+      {/* Fixed Toolbar - Only show when focused */}
+      {showToolbar && (isFocused || isToolbarInteracting) && (
+        <div
+          className="border-b bg-muted/50 p-2"
+          data-toolbar
+          onMouseEnter={() => setIsToolbarInteracting(true)}
+          onMouseLeave={() => setIsToolbarInteracting(false)}
+        >
           <div className="flex items-center gap-1">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -218,6 +227,11 @@ export default function TiptapEditor({
           </div>
         </div>
       )}
+
+      {/* Editor Content */}
+      <div className="overflow-hidden transition-colors">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }

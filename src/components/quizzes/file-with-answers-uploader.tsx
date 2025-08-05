@@ -7,19 +7,22 @@ import {
   FILE_UPLOAD_LIMITS,
   getAcceptedFileTypes,
 } from "@/lib/utils/file-utils";
+import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { CheckCircle, Edit } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileList } from "./file-list";
 import { FileUploadArea } from "./file-upload-area";
-import { QuizEditorDialog } from "./quiz-editor-dialog";
 import { QuizPreview } from "./quiz-preview";
 
 export function FileWithAnswersUploader() {
   const t = useTranslations("Quizzes");
+  const router = useRouter();
+  const pathname = usePathname();
   const [isCreating, setIsCreating] = useState(false);
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isInitialMount, setIsInitialMount] = useState(true);
 
   const {
     uploadedFiles,
@@ -32,6 +35,8 @@ export function FileWithAnswersUploader() {
     hasGeneratedQuiz,
   } = useFileProcessor();
 
+  const { setEditing } = useQuizEditorStore();
+
   const { isDragActive } = useDropzone({
     onDrop: addFiles,
     accept: getAcceptedFileTypes(),
@@ -39,45 +44,53 @@ export function FileWithAnswersUploader() {
     maxSize: FILE_UPLOAD_LIMITS.maxSize,
   });
 
+  // Auto-navigate to edit page when quiz is generated
+  useEffect(() => {
+    console.log("Auto-navigation check:", {
+      generatedQuiz: !!generatedQuiz,
+      hasGeneratedQuiz,
+      uploadedFilesLength: uploadedFiles.length,
+      isProcessing: uploadedFiles.some(
+        (f) => f.status === "uploading" || f.status === "processing",
+      ),
+    });
+
+    if (generatedQuiz && hasGeneratedQuiz && !isInitialMount) {
+      const isProcessing = uploadedFiles.some(
+        (f) => f.status === "uploading" || f.status === "processing",
+      );
+
+      if (!isProcessing) {
+        console.log("Navigating to edit page...");
+        setEditing(true);
+        // Navigate to edit page with locale
+        const currentLocale = pathname.split("/")[1]; // Get locale from current path
+        router.push(`/${currentLocale}/quizzes/edit`);
+      }
+    }
+  }, [
+    generatedQuiz,
+    hasGeneratedQuiz,
+    uploadedFiles,
+    isInitialMount,
+    pathname,
+    router,
+    setEditing,
+  ]);
+
+  // Mark initial mount as complete
+  useEffect(() => {
+    if (isInitialMount) {
+      setIsInitialMount(false);
+    }
+  }, [isInitialMount]);
+
   const handleEditQuiz = () => {
-    setIsEditorOpen(true);
-  };
-
-  const handleSaveQuiz = async (quizData: {
-    title: string;
-    description: string;
-    questions: any[];
-  }) => {
-    try {
-      setIsCreating(true);
-
-      // Use legacy API for now
-      const quizRequestData = {
-        title: quizData.title,
-        description: quizData.description,
-        visibility: true,
-        total: quizData.questions.length,
-        topic: "Auto-generated",
-        quizCreationType: "FILE_UPLOAD" as const,
-        questions: quizData.questions,
-      };
-
-      const response = await quizAPI.createQuiz(quizRequestData);
-      console.log("Quiz created successfully:", response);
-
-      // Update the generated quiz with edited data
-      updateQuizDetails({
-        title: quizData.title,
-        description: quizData.description,
-        questions: quizData.questions,
-      });
-
-      // TODO: Show success toast and redirect
-    } catch (error) {
-      console.error("Error creating quiz:", error);
-      // TODO: Show error toast
-    } finally {
-      setIsCreating(false);
+    if (generatedQuiz) {
+      setEditing(true);
+      // Navigate to edit page with locale
+      const currentLocale = pathname.split("/")[1]; // Get locale from current path
+      router.push(`/${currentLocale}/quizzes/edit`);
     }
   };
 
@@ -109,6 +122,13 @@ export function FileWithAnswersUploader() {
     }
   };
 
+  console.log(
+    "test ",
+    generatedQuiz,
+    hasGeneratedQuiz,
+    uploadedFiles,
+    isInitialMount,
+  );
   return (
     <div className="space-y-6 border-none">
       {/* Upload Area */}
@@ -151,14 +171,6 @@ export function FileWithAnswersUploader() {
           </Button>
         </div>
       </div>
-
-      {/* Quiz Editor Dialog */}
-      <QuizEditorDialog
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-        onSave={handleSaveQuiz}
-        initialQuiz={generatedQuiz || undefined}
-      />
     </div>
   );
 }

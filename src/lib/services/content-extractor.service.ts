@@ -16,7 +16,6 @@ export class ContentExtractor {
       const line = lines[i].trim();
 
       if (this.isQuestionLine(line)) {
-        // Save previous question if exists
         if (currentQuestion) {
           currentQuestion.question = questionTextLines.join(" ").trim();
           questions.push(
@@ -29,7 +28,7 @@ export class ContentExtractor {
           id: `q_${questionIndex}`,
           question: this.extractQuestionText(line),
           type: this.detectQuestionType(line),
-          difficulty: this.detectDifficulty(line),
+          // difficulty: this.detectDifficulty(line),
           points: 1,
           answers: [],
         };
@@ -47,7 +46,6 @@ export class ContentExtractor {
         !this.isAnswerLine(line) &&
         line.length > 0
       ) {
-        // This is continuation of question text
         questionTextLines.push(line);
       }
     }
