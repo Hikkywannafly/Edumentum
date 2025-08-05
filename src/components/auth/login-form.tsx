@@ -96,7 +96,7 @@ export default function LoginForm() {
 
       {/* Social buttons */}
       <div className="space-y-4 rounded-2xl shadow-sm">
-        <GoogleLoginButton />
+        <GoogleLoginButton className="w-full" />
       </div>
 
       {/* Footer */}
