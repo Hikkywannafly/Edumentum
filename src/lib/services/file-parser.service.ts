@@ -35,7 +35,6 @@ export class FileParserService {
       content += `${textContent.items.map((item: any) => item.str).join(" ")}\n`;
     }
 
-    console.log("pdf content", content);
     return content;
   }
 
@@ -43,8 +42,6 @@ export class FileParserService {
     const mammoth = await import("mammoth");
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
-
-    console.log("word content", result.value);
     return result.value;
   }
 

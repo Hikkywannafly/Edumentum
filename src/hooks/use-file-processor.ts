@@ -3,6 +3,7 @@ import {
   type QuestionData,
 } from "@/lib/services/content-extractor.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
+import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { useCallback, useState } from "react";
 
 export interface UploadedFile {
@@ -27,9 +28,7 @@ const contentExtractor = new ContentExtractor();
 
 export function useFileProcessor() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [generatedQuiz, setGeneratedQuiz] = useState<GeneratedQuiz | null>(
-    null,
-  );
+  const { setQuizData, updateQuizData } = useQuizEditorStore();
 
   const processFile = useCallback(
     async (fileInfo: UploadedFile, actualFile: File) => {
@@ -45,21 +44,38 @@ export function useFileProcessor() {
         const content = await fileParser.parseFile(actualFile);
         const questions = contentExtractor.extractQuestions(content);
 
-        setUploadedFiles((prev) =>
-          prev.map((file) =>
+        setUploadedFiles((prev) => {
+          const updatedFiles = prev.map((file) =>
             file.id === fileInfo.id
               ? {
                   ...file,
-                  status: "success",
+                  status: "success" as const,
                   progress: 100,
                   parsedContent: content,
                   extractedQuestions: questions,
                 }
               : file,
-          ),
-        );
+          );
 
-        generateQuizFromFiles();
+          // Generate quiz after updating files
+          const successfulFiles = updatedFiles.filter(
+            (f) => f.status === "success" && f.extractedQuestions,
+          );
+
+          if (successfulFiles.length > 0) {
+            const allQuestions = successfulFiles.flatMap(
+              (f) => f.extractedQuestions || [],
+            );
+
+            setQuizData({
+              title: `Quiz from ${successfulFiles.length} file(s)`,
+              description: "Auto-generated quiz from uploaded files",
+              questions: allQuestions,
+            });
+          }
+
+          return updatedFiles;
+        });
       } catch (error) {
         console.error("Error processing file:", error);
         setUploadedFiles((prev) =>
@@ -76,26 +92,8 @@ export function useFileProcessor() {
         );
       }
     },
-    [],
+    [setQuizData],
   );
-
-  const generateQuizFromFiles = useCallback(() => {
-    const successfulFiles = uploadedFiles.filter(
-      (f) => f.status === "success" && f.extractedQuestions,
-    );
-
-    if (successfulFiles.length === 0) return;
-
-    const allQuestions = successfulFiles.flatMap(
-      (f) => f.extractedQuestions || [],
-    );
-
-    setGeneratedQuiz({
-      title: `Quiz from ${successfulFiles.length} file(s)`,
-      description: "Auto-generated quiz from uploaded files",
-      questions: allQuestions,
-    });
-  }, [uploadedFiles]);
 
   const addFiles = useCallback(
     async (acceptedFiles: File[]) => {
@@ -118,24 +116,36 @@ export function useFileProcessor() {
 
   const removeFile = useCallback(
     (fileId: string) => {
-      setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
-      setTimeout(generateQuizFromFiles, 100);
+      setUploadedFiles((prev) => {
+        const newFiles = prev.filter((file) => file.id !== fileId);
+        if (newFiles.length === 0) {
+          setQuizData(null as any);
+        }
+
+        return newFiles;
+      });
     },
-    [generateQuizFromFiles],
+    [setQuizData],
   );
 
-  const updateQuizDetails = useCallback((updates: Partial<GeneratedQuiz>) => {
-    setGeneratedQuiz((prev) => (prev ? { ...prev, ...updates } : null));
-  }, []);
+  const updateQuizDetails = useCallback(
+    (updates: Partial<GeneratedQuiz>) => {
+      updateQuizData(updates);
+    },
+    [updateQuizData],
+  );
 
   const reset = useCallback(() => {
     setUploadedFiles([]);
-    setGeneratedQuiz(null);
-  }, []);
+    setQuizData(null as any);
+  }, [setQuizData]);
+
+  // Get current quiz data from store
+  const { quizData } = useQuizEditorStore();
 
   return {
     uploadedFiles,
-    generatedQuiz,
+    generatedQuiz: quizData,
     addFiles,
     removeFile,
     updateQuizDetails,
@@ -144,6 +154,6 @@ export function useFileProcessor() {
       (f) => f.status === "uploading" || f.status === "processing",
     ),
     hasFiles: uploadedFiles.length > 0,
-    hasGeneratedQuiz: !!generatedQuiz,
+    hasGeneratedQuiz: !!quizData,
   };
 }

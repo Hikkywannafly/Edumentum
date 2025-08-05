@@ -24,6 +24,42 @@ export interface QuizResponse {
   success: boolean;
 }
 
+export interface DraftData {
+  title: string;
+  description: string;
+  questions: any[];
+  metadata?: {
+    sourceFiles?: string[];
+    sourceType?: "FILE" | "MANUAL" | "AI_GENERATED";
+  };
+}
+
+export interface QuizDraft {
+  id: string;
+  title: string;
+  description: string;
+  draftData: DraftData;
+  sourceType?: string;
+  sourceFiles?: string[];
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
+}
+
+export interface CreateDraftRequest {
+  title: string;
+  description: string;
+  draftData: DraftData;
+  sourceType?: "FILE" | "MANUAL" | "AI_GENERATED";
+  sourceFiles?: string[];
+}
+
+export interface UpdateDraftRequest {
+  title?: string;
+  description?: string;
+  draftData?: DraftData;
+}
+
 class QuizAPI {
   private async request<T>(
     endpoint: string,
@@ -96,6 +132,58 @@ class QuizAPI {
     await this.request(`/student/quiz/${id}`, {
       method: "DELETE",
     });
+  }
+
+  // ============ DRAFT APIs ============
+
+  async createDraft(draftRequest: CreateDraftRequest): Promise<QuizDraft> {
+    const response = await this.request<QuizDraft>("/student/quiz/drafts", {
+      method: "POST",
+      body: JSON.stringify(draftRequest),
+    });
+    return response;
+  }
+
+  async getDrafts(): Promise<QuizDraft[]> {
+    const response = await this.request<QuizDraft[]>("/student/quiz/drafts");
+    return response;
+  }
+
+  async getDraftById(id: string): Promise<QuizDraft> {
+    const response = await this.request<QuizDraft>(
+      `/student/quiz/drafts/${id}`,
+    );
+    return response;
+  }
+
+  async updateDraft(
+    id: string,
+    draftRequest: UpdateDraftRequest,
+  ): Promise<QuizDraft> {
+    const response = await this.request<QuizDraft>(
+      `/student/quiz/drafts/${id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(draftRequest),
+      },
+    );
+    return response;
+  }
+
+  async deleteDraft(id: string): Promise<void> {
+    await this.request(`/student/quiz/drafts/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async createQuizFromDraft(draftId: string): Promise<QuizResponse> {
+    const response = await this.request<QuizResponse>(
+      `/student/quiz/drafts/${draftId}/publish`,
+      {
+        method: "POST",
+      },
+    );
+    return response;
   }
 }
 

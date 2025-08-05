@@ -1,8 +1,9 @@
 "use client";
 
-import { useLocale } from 'next-intl';
-import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { createLocalizedHref } from "@/lib/utils/navigation";
+import { useLocale } from "next-intl";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 interface LocalizedLinkProps {
   href: string;
@@ -10,9 +11,13 @@ interface LocalizedLinkProps {
   className?: string;
 }
 
-export function LocalizedLink({ href, children, className }: LocalizedLinkProps) {
+export function LocalizedLink({
+  href,
+  children,
+  className,
+}: LocalizedLinkProps) {
   const locale = useLocale();
-  const localizedHref = `/${locale}/${href}`;
+  const localizedHref = createLocalizedHref(href, locale);
 
   return (
     <Link href={localizedHref} className={className}>

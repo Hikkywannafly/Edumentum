@@ -272,6 +272,19 @@
         "createQuiz": "Tạo Quiz",
         "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
       }
+    },
+    "edit": {
+      "title": "Chỉnh sửa Quiz",
+      "backToQuizzes": "Quay lại Quizzes",
+      "saveDraft": "Lưu bản nháp",
+      "createQuiz": "Tạo Quiz",
+      "quizTitle": "Tiêu đề Quiz",
+      "quizDescription": "Mô tả Quiz",
+      "questions": "Câu hỏi",
+      "addQuestion": "Thêm câu hỏi",
+      "noQuestions": "Chưa có câu hỏi nào. Nhấn \"Thêm câu hỏi\" để bắt đầu.",
+      "newQuestion": "Câu hỏi mới",
+      "newAnswer": "Đáp án mới"
     }
   },
   "RoleSelector": {

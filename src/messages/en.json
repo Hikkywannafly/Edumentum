@@ -214,6 +214,19 @@
         "createQuiz": "Create Quiz",
         "guidance": "Use documents with accurate factual information for best results."
       }
+    },
+    "edit": {
+      "title": "Edit Quiz",
+      "backToQuizzes": "Back to Quizzes",
+      "saveDraft": "Save Draft",
+      "createQuiz": "Create Quiz",
+      "quizTitle": "Quiz Title",
+      "quizDescription": "Quiz Description",
+      "questions": "Questions",
+      "addQuestion": "Add Question",
+      "noQuestions": "No questions yet. Click \"Add Question\" to get started.",
+      "newQuestion": "New Question",
+      "newAnswer": "New Answer"
     }
   },
   "RoleSelector": {
