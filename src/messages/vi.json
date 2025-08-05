@@ -366,6 +366,106 @@
       }
     }
   },
+  "Flashcards": {
+    "title": "Flashcards",
+    "createFlashcard": "Tạo Flashcard",
+    "searchPlaceholder": "Tìm kiếm flashcards...",
+    "filters": "Bộ lọc",
+    "stats": {
+      "totalFlashcards": "Tổng Flashcards",
+      "totalDecks": "Tổng Bộ thẻ",
+      "averageScore": "Điểm trung bình",
+      "studyTime": "Thời gian học (phút)"
+    },
+    "yourFlashcards": "Flashcards của bạn",
+    "flashcardCard": {
+      "cards": "thẻ",
+      "studied": "đã học",
+      "averageScore": "Điểm trung bình",
+      "studyDeck": "Học bộ thẻ",
+      "lastStudied": "Lần học cuối"
+    },
+    "difficulty": {
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "createCTA": {
+      "title": "Tạo bộ flashcard đầu tiên",
+      "description": "Bắt đầu xây dựng flashcards tương tác để cải thiện trí nhớ",
+      "button": "Tạo bộ flashcard mới"
+    },
+    "create": {
+      "title": "Tạo bộ Flashcard",
+      "backToFlashcards": "Quay lại Flashcards",
+      "generateFlashcards": "Tạo Flashcards",
+      "subtitle": "Nhanh chóng tạo bộ flashcard mới từ tài liệu học tập của bạn!",
+      "tabs": {
+        "manual": "Tạo thủ công",
+        "aiGenerated": "AI tạo"
+      },
+      "settings": {
+        "title": "Cài đặt Flashcard",
+        "description": "Cấu hình cài đặt tạo flashcard",
+        "visibility": "Hiển thị",
+        "private": "Riêng tư",
+        "public": "Công khai",
+        "language": "Ngôn ngữ flashcards",
+        "autoDetect": "Tự động phát hiện",
+        "cardType": "Loại thẻ",
+        "mixed": "Hỗn hợp",
+        "questionAnswer": "Câu hỏi/Đáp án",
+        "cloze": "Điền vào chỗ trống",
+        "numberOfCards": "Số thẻ",
+        "difficulty": "Độ khó",
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó",
+        "parsingMode": "Chế độ xử lý",
+        "fast": "Nhanh",
+        "balanced": "Cân bằng",
+        "thorough": "Kỹ lưỡng",
+        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn."
+      },
+      "supportedFormats": {
+        "title": "Định dạng hỗ trợ",
+        "limit": "Tối đa 10 file, 20 MB tổng cộng"
+      },
+      "manual": {
+        "title": "Tạo Flashcard thủ công",
+        "description": "Tạo flashcards thủ công với câu hỏi và đáp án",
+        "addCard": "Thêm thẻ",
+        "question": "Câu hỏi",
+        "answer": "Đáp án",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "createDeck": "Tạo bộ thẻ",
+        "guidance": "Tạo câu hỏi rõ ràng và ngắn gọn để ghi nhớ tốt hơn."
+      },
+      "aiGenerated": {
+        "title": "Flashcards AI tạo",
+        "description": "Upload file lý thuyết và để AI tạo nội dung flashcard",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Tối đa 5 file, 50 MB tổng cộng",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "aiGenerating": "AI đang tạo...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "aiControls": "Tạo AI",
+        "aiDescription": "Nhấn nút bên dưới để bắt đầu AI tạo flashcards từ file đã upload.",
+        "startGeneration": "Bắt đầu tạo AI",
+        "createDeck": "Tạo bộ thẻ",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      }
+    }
+  },
   "Pomodoro": {
     "title": "Pomodoro",
     "start": "Bắt đầu",
