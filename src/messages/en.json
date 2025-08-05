@@ -382,6 +382,101 @@
       }
     }
   },
+  "Flashcards": {
+    "title": "Flashcards",
+    "createFlashcard": "Create Flashcard",
+    "searchPlaceholder": "Search flashcards...",
+    "filters": "Filters",
+    "stats": {
+      "totalFlashcards": "Total Flashcards",
+      "totalDecks": "Total Decks",
+      "averageScore": "Average Score",
+      "studyTime": "Study Time (min)"
+    },
+    "yourFlashcards": "Your Flashcards",
+    "flashcardCard": {
+      "cards": "cards",
+      "studied": "studied",
+      "averageScore": "Average Score",
+      "studyDeck": "Study Deck",
+      "lastStudied": "Last studied"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "createCTA": {
+      "title": "Create your first flashcard deck",
+      "description": "Start building interactive flashcards to enhance your memory",
+      "button": "Create New Flashcard Deck"
+    },
+    "create": {
+      "title": "Create Flashcard Deck",
+      "backToFlashcards": "Back to Flashcards",
+      "generateFlashcards": "Generate Flashcards",
+      "subtitle": "Quickly create a new flashcard deck from your study materials!",
+      "tabs": {
+        "manual": "Manual Creation",
+        "aiGenerated": "AI Generated"
+      },
+      "settings": {
+        "title": "Flashcard Settings",
+        "description": "Configure your flashcard generation settings",
+        "visibility": "Visibility",
+        "private": "Private",
+        "public": "Public",
+        "language": "Language of the flashcards",
+        "autoDetect": "Auto detect",
+        "cardType": "Card type",
+        "mixed": "Mixed",
+        "questionAnswer": "Question/Answer",
+        "cloze": "Cloze deletion",
+        "numberOfCards": "# Number of cards",
+        "difficulty": "Difficulty",
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard",
+        "parsingMode": "Parsing mode",
+        "fast": "Fast",
+        "balanced": "Balanced",
+        "thorough": "Thorough",
+        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer."
+      },
+      "supportedFormats": {
+        "title": "Supported Formats",
+        "limit": "Up to 10 files, 20 MB total"
+      },
+      "manual": {
+        "title": "Manual Flashcard Creation",
+        "description": "Create flashcards manually with questions and answers",
+        "addCard": "Add Card",
+        "question": "Question",
+        "answer": "Answer",
+        "createDeck": "Create Deck",
+        "guidance": "Create clear and concise questions for better retention."
+      },
+      "aiGenerated": {
+        "title": "AI Generated Flashcards",
+        "description": "Upload theory files and let AI generate flashcard content",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Up to 5 files, 50 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "aiGenerating": "AI Generating...",
+        "success": "Success",
+        "error": "Error",
+        "aiControls": "AI Generation",
+        "aiDescription": "Click the button below to start AI generation of flashcards from your uploaded files.",
+        "startGeneration": "Start AI Generation",
+        "createDeck": "Create Deck",
+        "guidance": "Use documents with accurate factual information for best results."
+      }
+    }
+  },
   "Pomodoro": {
     "title": "Pomodoro",
     "start": "Start",
