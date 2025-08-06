@@ -116,6 +116,14 @@ export function AppSidebar() {
   const [isHovered, setIsHovered] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  // Load initial state from localStorage
+  React.useEffect(() => {
+    const savedPinnedState = localStorage.getItem("sidebar-pinned");
+    if (savedPinnedState !== null) {
+      setIsPinned(JSON.parse(savedPinnedState));
+    }
+  }, []);
+
   // Suppress ResizeObserver errors
   React.useEffect(() => {
     const handleError = (e: ErrorEvent) => {
@@ -133,7 +141,12 @@ export function AppSidebar() {
   }, []);
 
   const handlePinToggle = React.useCallback(() => {
-    setIsPinned((prev) => !prev);
+    setIsPinned((prev) => {
+      const newPinned = !prev;
+      // Save to localStorage
+      localStorage.setItem("sidebar-pinned", JSON.stringify(newPinned));
+      return newPinned;
+    });
   }, []);
 
   const handleMouseEnter = React.useCallback(() => {
@@ -171,8 +184,9 @@ export function AppSidebar() {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`h-full bg-white transition-all duration-200 ease-in-out dark:bg-gray-900 ${isPinned ? "w-64" : isHovered ? "w-64" : "w-16"
-        }`}
+      className={`h-full bg-white transition-all duration-200 ease-in-out dark:bg-gray-900 ${
+        isPinned ? "w-64" : isHovered ? "w-64" : "w-16"
+      }`}
     >
       <div className="h-full border-gray-200 border-r bg-white dark:border-gray-700 dark:bg-gray-900">
         {/* Header */}
