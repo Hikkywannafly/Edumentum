@@ -1,4 +1,4 @@
-import type { QuestionData } from "@/types/quiz";
+import type { QuestionData, QuizSettings } from "@/types/quiz";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -6,6 +6,7 @@ export interface GeneratedQuiz {
   title: string;
   description: string;
   questions: QuestionData[];
+  settings?: QuizSettings;
 }
 
 interface QuizEditorState {

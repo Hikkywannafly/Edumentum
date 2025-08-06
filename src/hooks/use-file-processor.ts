@@ -1,7 +1,5 @@
-import {
-  ContentExtractor,
-  type QuestionData,
-} from "@/lib/services/content-extractor.service";
+import { ContentExtractor } from "@/lib/services/content-extractor.service";
+import type { QuestionData } from "@/lib/services/content-extractor.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { useCallback, useEffect, useState } from "react";
@@ -24,7 +22,11 @@ export interface GeneratedQuiz {
 }
 
 const fileParser = new FileParserService();
-const contentExtractor = new ContentExtractor();
+
+const extractQuestionsWithRules = (content: string): QuestionData[] => {
+  const contentExtractor = new ContentExtractor();
+  return contentExtractor.extractQuestions(content);
+};
 
 export function useFileProcessor() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -42,7 +44,6 @@ export function useFileProcessor() {
         );
 
         const content = await fileParser.parseFile(actualFile);
-        const questions = contentExtractor.extractQuestions(content);
 
         setUploadedFiles((prev) => {
           const updatedFiles = prev.map((file) =>
@@ -52,7 +53,7 @@ export function useFileProcessor() {
                   status: "success" as const,
                   progress: 100,
                   parsedContent: content,
-                  extractedQuestions: questions,
+                  extractedQuestions: [], // Don't extract yet, just parse
                 }
               : file,
           );
@@ -111,6 +112,39 @@ export function useFileProcessor() {
     [setQuizData],
   );
 
+  const extractQuestionsFromFiles = useCallback(async () => {
+    const successfulFiles = uploadedFiles.filter(
+      (f) => f.status === "success" && f.parsedContent,
+    );
+
+    if (successfulFiles.length === 0) {
+      throw new Error("No files to process");
+    }
+
+    let allQuestions: QuestionData[] = [];
+
+    for (const file of successfulFiles) {
+      if (file.parsedContent) {
+        const questions = extractQuestionsWithRules(file.parsedContent);
+        allQuestions = [...allQuestions, ...questions];
+      }
+    }
+
+    if (allQuestions.length === 0) {
+      throw new Error("No questions found in files");
+    }
+
+    // Update quiz data
+    const quizData: GeneratedQuiz = {
+      title: `Quiz from ${successfulFiles[0].name}`,
+      description: `Generated from ${successfulFiles.length} file(s)`,
+      questions: allQuestions,
+    };
+
+    setQuizData(quizData);
+    return quizData;
+  }, [uploadedFiles, setQuizData]);
+
   const updateQuizDetails = useCallback(
     (updates: Partial<GeneratedQuiz>) => {
       updateQuizData(updates);
@@ -153,6 +187,7 @@ export function useFileProcessor() {
     generatedQuiz: quizData,
     addFiles,
     removeFile,
+    extractQuestionsFromFiles,
     updateQuizDetails,
     reset,
     isProcessing: uploadedFiles.some(
