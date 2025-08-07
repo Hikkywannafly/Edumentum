@@ -37,6 +37,11 @@
   "dependencies": {
     "@biomejs/biome": "^1.9.4",
     "@hookform/resolvers": "^5.2.1",
+    "@langchain/community": "^0.3.50",
+    "@langchain/core": "^0.3.67",
+    "@langchain/langgraph": "^0.4.3",
+    "@langchain/openai": "^0.6.4",
+    "@langchain/textsplitters": "^0.1.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",

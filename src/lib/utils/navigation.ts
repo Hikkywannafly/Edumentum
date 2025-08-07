@@ -2,14 +2,14 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 
 /**
- * Hook để xử lý navigation với locale support
+ * Hook to handle navigation with locale support
  */
 export function useLocalizedNavigation() {
   const router = useRouter();
   const locale = useLocale();
 
   /**
-   * Navigate đến route với locale
+   * Navigate to route with locale
    */
   const navigate = (path: string) => {
     const localizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -17,45 +17,52 @@ export function useLocalizedNavigation() {
   };
 
   /**
-   * Navigate đến route không có locale (absolute path)
+   * Navigate to route without locale (absolute path)
    */
   const navigateAbsolute = (path: string) => {
     router.push(path);
   };
 
   /**
-   * Navigate về trang trước đó
+   * Navigate to previous page
    */
   const goBack = () => {
     router.back();
   };
 
   /**
-   * Navigate đến home page
+   * Navigate to home page
    */
   const goHome = () => {
     navigate("/");
   };
 
   /**
-   * Navigate đến dashboard
+   * Navigate to dashboard
    */
   const goDashboard = () => {
     navigate("/dashboard");
   };
 
   /**
-   * Navigate đến quizzes page
+   * Navigate to quizzes page
    */
   const goQuizzes = () => {
     navigate("/quizzes");
   };
 
   /**
-   * Navigate đến login page
+   * Navigate to login page
    */
   const goLogin = () => {
     navigate("/login");
+  };
+
+  /**
+   * Navigate to quiz edit page
+   */
+  const goQuizEdit = () => {
+    navigate("/quizzes/edit");
   };
 
   return {
@@ -66,6 +73,7 @@ export function useLocalizedNavigation() {
     goDashboard,
     goQuizzes,
     goLogin,
+    goQuizEdit,
     locale,
   };
 }
