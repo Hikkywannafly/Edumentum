@@ -28,7 +28,7 @@ interface QuizEditorState {
   reset: () => void;
 }
 
-// Zustand với Immer - viết state updates như thể mutable
+// Zustand  Immer
 export const useQuizEditorStoreWithImmer = create<QuizEditorState>()(
   immer((set) => ({
     // Initial state
@@ -36,7 +36,7 @@ export const useQuizEditorStoreWithImmer = create<QuizEditorState>()(
     isEditing: false,
     isLoading: false,
 
-    // Actions - viết như thể đang thay đổi trực tiếp state
+    // Actions
     setQuizData: (quiz) =>
       set((state) => {
         state.quizData = quiz;

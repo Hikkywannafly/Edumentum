@@ -67,20 +67,11 @@ export default function QuizEditorPage() {
                   {t("edit.backToQuizzes")}
                 </Button>
               </LocalizedLink>
-              {/* <Button onClick={handleSave} disabled={!canSave}>
-                <Save className="mr-2 h-4 w-4" />
-                {t("edit.saveDraft")}
-              </Button>
-              <Button onClick={handleCreateQuiz} disabled={!canCreate}>
-                <Save className="mr-2 h-4 w-4" />
-                {t("edit.createQuiz")}
-              </Button> */}
             </div>
           }
           showThemeToggle={true}
           showLanguageSwitcher={true}
         />
-
         {/* Main Content */}
         <QuizEditorContent />
       </div>

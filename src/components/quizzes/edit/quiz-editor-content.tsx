@@ -4,9 +4,9 @@ import ThinLayout from "@/components/layout/thin-layout";
 import { useQuizEditorSync } from "@/hooks/use-quiz-editor-sync";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { QuizDescriptionEditor } from "./quiz-description-editor";
+import { QuizEditorHeader } from "./quiz-editor-header";
 import { QuizQuestionsEditor } from "./quiz-questions-editor";
 import { QuizTitleEditor } from "./quiz-title-editor";
-
 export function QuizEditorContent() {
   const {
     quizData,
@@ -48,7 +48,13 @@ export function QuizEditorContent() {
 
   return (
     <ThinLayout>
-      <div className="space-y-6">
+      <div className="space-y-1">
+        <QuizEditorHeader
+          onSave={() => {}}
+          onCreateQuiz={() => {}}
+          canSave={false}
+          canCreate={false}
+        />
         {/* Quiz Title */}
         <QuizTitleEditor title={title} onTitleChange={updateTitle} />
 

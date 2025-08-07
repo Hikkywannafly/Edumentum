@@ -208,8 +208,8 @@
       "generateQuiz": "Tạo Quiz",
       "subtitle": "Nhanh chóng tạo quiz mới từ tài liệu học tập của bạn!",
       "tabs": {
-        "fileWithAnswers": "Tạo thủ công",
-        "aiGenerated": "AI tạo"
+        "fileWithAnswers": "Có sẵn đáp án file",
+        "aiGenerated": "AI soạn quiz"
       },
       "settings": {
         "title": "Cài đặt Quiz",
