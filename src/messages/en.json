@@ -114,6 +114,71 @@
     "submit": "Submit",
     "reset": "Reset"
   },
+  "Mindmap": {
+    "title": "Mindmaps",
+    "createMindmap": "Create Mindmap",
+    "searchPlaceholder": "Search mindmaps...",
+    "createCTA": {
+      "title": "Create your first mindmap",
+      "description": "Start organizing your thoughts with a visual mindmap",
+      "button": "Create Mindmap"
+    },
+    "editor": {
+      "backToList": "Back to List",
+      "newMindmap": "New Mindmap",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Mindmap saved successfully",
+      "saveError": "Failed to save mindmap",
+      "saveCancelled": "Mindmap save cancelled",
+      "enterName": "Enter mindmap name:",
+      "saveAs": "Save Mindmap As",
+      "saveAsDescription": "Enter a name for your mindmap",
+      "editName": "Edit Mindmap Name",
+      "editNameDescription": "Change the name of your mindmap",
+      "name": "Name",
+      "namePlaceholder": "Enter mindmap name",
+      "nameRequired": "Name is required",
+      "type": "Type",
+      "selectType": "Select type",
+      "invalidName": "Name cannot be 'New Mindmap' or 'Sơ đồ tư duy mới'",
+      "cancel": "Cancel",
+      "update": "Update",
+      "nameUpdateSuccess": "Mindmap name updated successfully",
+      "nameUpdateError": "Failed to update mindmap name",
+      "createSuccess": "New mindmap created successfully",
+      "createError": "Failed to create new mindmap",
+      "loadSuccess": "Mindmap loaded successfully",
+      "loadError": "Failed to load mindmap",
+      "deleteSuccess": "Mindmap deleted successfully",
+      "deleteError": "Failed to delete mindmap",
+      "exitConfirmationTitle": "Unsaved Changes",
+      "exitConfirmationDescription": "You have unsaved changes. Do you want to save before leaving?",
+      "discard": "Discard",
+      "connectionError": "Cannot connect to mindmap API. Please check your connection.",
+      "apiError": "Failed to connect to mindmap API."
+    },
+    "node": {
+      "newNode": "New Node",
+      "editStyle": "Edit Style",
+      "backgroundColor": "Background Color",
+      "textColor": "Text Color",
+      "close": "Close"
+    },
+    "contextMenu": {
+      "addChild": "Add Child",
+      "delete": "Delete",
+      "editStyle": "Edit Style"
+    },
+    "empty": {
+      "title": "No mindmaps found",
+      "description": "Create your first mindmap to get started"
+    },
+    "filter": {
+      "byType": "Filter by type",
+      "allTypes": "All types"
+    }
+  },
   "Quizzes": {
     "title": "Quizzes",
     "createQuiz": "Create Quiz",
