@@ -173,6 +173,71 @@
     "warning": "Cảnh báo",
     "info": "Thông tin"
   },
+  "Mindmap": {
+    "title": "Sơ đồ tư duy",
+    "createMindmap": "Tạo sơ đồ tư duy",
+    "searchPlaceholder": "Tìm kiếm sơ đồ tư duy...",
+    "createCTA": {
+      "title": "Tạo sơ đồ tư duy đầu tiên",
+      "description": "Bắt đầu tổ chức suy nghĩ của bạn với sơ đồ tư duy trực quan",
+      "button": "Tạo sơ đồ tư duy"
+    },
+    "editor": {
+      "backToList": "Quay lại danh sách",
+      "newMindmap": "Sơ đồ tư duy mới",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Lưu sơ đồ tư duy thành công",
+      "saveError": "Lưu sơ đồ tư duy thất bại",
+      "saveCancelled": "Hủy lưu sơ đồ tư duy",
+      "enterName": "Nhập tên sơ đồ tư duy:",
+      "saveAs": "Lưu sơ đồ tư duy với tên",
+      "saveAsDescription": "Nhập tên cho sơ đồ tư duy của bạn",
+      "editName": "Sửa tên sơ đồ tư duy",
+      "editNameDescription": "Thay đổi tên sơ đồ tư duy",
+      "name": "Tên",
+      "namePlaceholder": "Nhập tên sơ đồ tư duy",
+      "nameRequired": "Tên là bắt buộc",
+      "type": "Loại",
+      "selectType": "Chọn loại",
+      "invalidName": "Tên không thể là 'New Mindmap' hoặc 'Sơ đồ tư duy mới'",
+      "cancel": "Hủy",
+      "update": "Cập nhật",
+      "nameUpdateSuccess": "Cập nhật tên sơ đồ tư duy thành công",
+      "nameUpdateError": "Cập nhật tên sơ đồ tư duy thất bại",
+      "createSuccess": "Tạo sơ đồ tư duy mới thành công",
+      "createError": "Tạo sơ đồ tư duy mới thất bại",
+      "loadSuccess": "Tải sơ đồ tư duy thành công",
+      "loadError": "Tải sơ đồ tư duy thất bại",
+      "deleteSuccess": "Xóa sơ đồ tư duy thành công",
+      "deleteError": "Xóa sơ đồ tư duy thất bại",
+      "exitConfirmationTitle": "Thay đổi chưa lưu",
+      "exitConfirmationDescription": "Bạn có thay đổi chưa lưu. Bạn có muốn lưu trước khi thoát không?",
+      "discard": "Bỏ qua",
+      "connectionError": "Không thể kết nối đến API mindmap. Vui lòng kiểm tra kết nối.",
+      "apiError": "Kết nối đến API mindmap thất bại."
+    },
+    "node": {
+      "newNode": "Nút mới",
+      "editStyle": "Chỉnh sửa kiểu",
+      "backgroundColor": "Màu nền",
+      "textColor": "Màu chữ",
+      "close": "Đóng"
+    },
+    "contextMenu": {
+      "addChild": "Thêm con",
+      "delete": "Xóa",
+      "editStyle": "Chỉnh sửa kiểu"
+    },
+    "empty": {
+      "title": "Không tìm thấy sơ đồ tư duy",
+      "description": "Tạo sơ đồ tư duy đầu tiên để bắt đầu"
+    },
+    "filter": {
+      "byType": "Lọc theo loại",
+      "allTypes": "Tất cả loại"
+    }
+  },
   "Quizzes": {
     "title": "Quizzes",
     "createQuiz": "Tạo quiz",

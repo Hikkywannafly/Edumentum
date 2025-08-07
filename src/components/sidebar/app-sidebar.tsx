@@ -3,6 +3,7 @@
 import {
   BookOpen,
   BookIcon as BookReader,
+  BrainCircuit,
   Calendar,
   ChevronDown,
   Compass,
@@ -78,6 +79,11 @@ const menuData: MenuData = {
       title: "Notes",
       url: "/notes",
       icon: StickyNote,
+    },
+    {
+      title: "Mind Map",
+      url: "/mindmap",
+      icon: BrainCircuit,
     },
     {
       title: "Reader",
@@ -184,6 +190,7 @@ export function AppSidebar() {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+
       className={`h-full bg-white dark:bg-gray-900 ${
         isPinned ? "w-64" : isHovered ? "w-64" : "w-16"
       } ${!isPinned ? "transition-all duration-200 ease-in-out" : ""}`}
