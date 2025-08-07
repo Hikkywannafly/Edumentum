@@ -1,7 +1,10 @@
-import { ContentExtractor } from "@/lib/services/content-extractor.service";
-import type { QuestionData } from "@/lib/services/content-extractor.service";
+import {
+  extractQuestions,
+  generateQuestions,
+} from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
+import type { QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UploadedFile {
@@ -23,9 +26,82 @@ export interface GeneratedQuiz {
 
 const fileParser = new FileParserService();
 
-const extractQuestionsWithRules = (content: string): QuestionData[] => {
-  const contentExtractor = new ContentExtractor();
-  return contentExtractor.extractQuestions(content);
+// Extract questions from file content using AI (for files with existing questions)
+const extractQuestionsWithAI = async (
+  content: string,
+  settings?: {
+    visibility?: string;
+    language?: string;
+    questionType?: string;
+    numberOfQuestions?: number;
+    mode?: string;
+    difficulty?: string;
+    task?: string;
+    parsingMode?: string;
+  },
+): Promise<QuestionData[]> => {
+  // Get API key from environment or user settings
+  const apiKey =
+    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
+    "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";
+
+  if (!apiKey) {
+    throw new Error("OpenRouter API key not configured");
+  }
+
+  const result = await extractQuestions({
+    questionHeader: "Extract Quiz Questions",
+    questionDescription:
+      "Extract existing quiz questions with answers from the provided file content",
+    apiKey,
+    fileContent: content,
+    settings,
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to extract questions");
+  }
+
+  return result.questions || [];
+};
+
+// Generate new questions using AI (for AI-generated quizzes)
+const generateQuestionsWithAI = async (
+  content: string,
+  settings?: {
+    visibility?: string;
+    language?: string;
+    questionType?: string;
+    numberOfQuestions?: number;
+    mode?: string;
+    difficulty?: string;
+    task?: string;
+    parsingMode?: string;
+  },
+): Promise<QuestionData[]> => {
+  // Get API key from environment or user settings
+  const apiKey =
+    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
+    "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";
+
+  if (!apiKey) {
+    throw new Error("OpenRouter API key not configured");
+  }
+
+  const result = await generateQuestions({
+    questionHeader: "Generate Quiz Questions",
+    questionDescription:
+      "Generate new quiz questions from the provided content using AI",
+    apiKey,
+    fileContent: content,
+    settings,
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to generate questions");
+  }
+
+  return result.questions || [];
 };
 
 export function useFileProcessor() {
@@ -44,7 +120,7 @@ export function useFileProcessor() {
         );
 
         const content = await fileParser.parseFile(actualFile);
-
+        console.log("content", content);
         setUploadedFiles((prev) => {
           const updatedFiles = prev.map((file) =>
             file.id === fileInfo.id
@@ -112,38 +188,121 @@ export function useFileProcessor() {
     [setQuizData],
   );
 
-  const extractQuestionsFromFiles = useCallback(async () => {
-    const successfulFiles = uploadedFiles.filter(
-      (f) => f.status === "success" && f.parsedContent,
-    );
+  // Extract existing questions from files (for file-with-answers uploader)
+  const extractQuestionsFromFiles = useCallback(
+    async (settings?: {
+      visibility?: string;
+      language?: string;
+      questionType?: string;
+      numberOfQuestions?: number;
+      mode?: string;
+      difficulty?: string;
+      task?: string;
+      parsingMode?: string;
+    }) => {
+      const successfulFiles = uploadedFiles.filter(
+        (f) => f.status === "success" && f.parsedContent,
+      );
 
-    if (successfulFiles.length === 0) {
-      throw new Error("No files to process");
-    }
-
-    let allQuestions: QuestionData[] = [];
-
-    for (const file of successfulFiles) {
-      if (file.parsedContent) {
-        const questions = extractQuestionsWithRules(file.parsedContent);
-        allQuestions = [...allQuestions, ...questions];
+      if (successfulFiles.length === 0) {
+        throw new Error("No files to process");
       }
-    }
 
-    if (allQuestions.length === 0) {
-      throw new Error("No questions found in files");
-    }
+      let allQuestions: QuestionData[] = [];
 
-    // Update quiz data
-    const quizData: GeneratedQuiz = {
-      title: `Quiz from ${successfulFiles[0].name}`,
-      description: `Generated from ${successfulFiles.length} file(s)`,
-      questions: allQuestions,
-    };
+      for (const file of successfulFiles) {
+        if (file.parsedContent) {
+          try {
+            // Extract existing questions from file content using AI
+            const questions = await extractQuestionsWithAI(
+              file.parsedContent,
+              settings,
+            );
+            allQuestions = [...allQuestions, ...questions];
+          } catch (error) {
+            console.error(
+              `Error extracting questions from ${file.name}:`,
+              error,
+            );
+            // Continue with other files even if one fails
+          }
+        }
+      }
 
-    setQuizData(quizData);
-    return quizData;
-  }, [uploadedFiles, setQuizData]);
+      if (allQuestions.length === 0) {
+        throw new Error("No questions could be extracted from files");
+      }
+
+      // Update quiz data
+      const quizData: GeneratedQuiz = {
+        title: `Quiz from ${successfulFiles[0].name}`,
+        description: `Extracted from ${successfulFiles.length} file(s)`,
+        questions: allQuestions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [uploadedFiles, setQuizData],
+  );
+
+  // Generate new questions using AI (for AI-generated uploader)
+  const generateQuestionsFromFiles = useCallback(
+    async (settings?: {
+      visibility?: string;
+      language?: string;
+      questionType?: string;
+      numberOfQuestions?: number;
+      mode?: string;
+      difficulty?: string;
+      task?: string;
+      parsingMode?: string;
+    }) => {
+      const successfulFiles = uploadedFiles.filter(
+        (f) => f.status === "success" && f.parsedContent,
+      );
+
+      if (successfulFiles.length === 0) {
+        throw new Error("No files to process");
+      }
+
+      let allQuestions: QuestionData[] = [];
+
+      for (const file of successfulFiles) {
+        if (file.parsedContent) {
+          try {
+            // Generate new questions using AI
+            const questions = await generateQuestionsWithAI(
+              file.parsedContent,
+              settings,
+            );
+            allQuestions = [...allQuestions, ...questions];
+          } catch (error) {
+            console.error(
+              `Error generating questions from ${file.name}:`,
+              error,
+            );
+            // Continue with other files even if one fails
+          }
+        }
+      }
+
+      if (allQuestions.length === 0) {
+        throw new Error("No questions could be generated from files");
+      }
+
+      // Update quiz data
+      const quizData: GeneratedQuiz = {
+        title: `AI-Generated Quiz from ${successfulFiles[0].name}`,
+        description: `Generated from ${successfulFiles.length} file(s) using AI`,
+        questions: allQuestions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [uploadedFiles, setQuizData],
+  );
 
   const updateQuizDetails = useCallback(
     (updates: Partial<GeneratedQuiz>) => {
@@ -188,6 +347,7 @@ export function useFileProcessor() {
     addFiles,
     removeFile,
     extractQuestionsFromFiles,
+    generateQuestionsFromFiles,
     updateQuizDetails,
     reset,
     isProcessing: uploadedFiles.some(

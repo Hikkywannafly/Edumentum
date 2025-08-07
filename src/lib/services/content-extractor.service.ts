@@ -3,272 +3,298 @@ import type { Answer, QuestionData } from "@/types/quiz";
 // Re-export types for backward compatibility
 export type { QuestionData, Answer };
 
-export class ContentExtractor {
-  extractQuestions(content: string): QuestionData[] {
-    const questions: QuestionData[] = [];
-    const lines = content.split("\n").filter((line) => line.trim());
+interface ParsedQuestion {
+  questionLines: string[];
+  answers: ParsedAnswer[];
+  startIndex: number;
+  endIndex: number;
+}
 
-    let currentQuestion: Partial<QuestionData> | null = null;
-    let questionIndex = 0;
-    let questionTextLines: string[] = [];
-    let currentAnswerLines: string[] = [];
-    let currentAnswerKey = "";
+interface ParsedAnswer {
+  key: string;
+  lines: string[];
+  isCorrect: boolean;
+}
+
+interface QuestionMatch {
+  text: string;
+  number?: string;
+}
+
+interface AnswerMatch {
+  key: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export class ContentExtractor {
+  private readonly QUESTION_PATTERNS = [
+    // Vietnamese patterns
+    /^Câu\s+(\d+)[\.:]?\s*/i, // "Câu 1." or "Câu 1:"
+    /^Câu\s+hỏi\s+(\d+)[\.:]?\s*/i, // "Câu hỏi 1."
+    /^Ch\s+(\d+)[\.:]?\s*/i, // "Ch 1." (short form)
+    /^Kết\s+quả\s+(\d+)[\.:]?\s*/i, // "Kết quả 1."
+
+    // English patterns
+    /^Question\s+(\d+)[\.:]?\s*/i, // "Question 1." or "Question 1:"
+    /^Q[\.\s]*(\d+)[\.:]?\s*/i, // "Q.1" or "Q 1" or "Q1."
+
+    // Numeric patterns (universal)
+    /^(\d+)[\.\)\:]\s+/, // "1." or "1)" or "1:"
+    /^\((\d+)\)\s+/, // "(1)"
+
+    // Bullet patterns
+    /^[\*\-\+]\s+(\d+)[\.:]?\s*/, // "* 1." or "- 1."
+  ];
+
+  private readonly ANSWER_PATTERNS = [
+    // Standard A, B, C, D patterns
+    /^(\*?)([A-Za-z])[\.\)\:]\s*/, // "A." or "*A." or "a)" or "A:"
+
+    // Parentheses patterns
+    /^(\*?)\(([A-Za-z])\)\s*/, // "(A)" or "*(A)"
+
+    // Vietnamese specific
+    /^(\*?)([A-Za-z])\s*[-\.]\s*/, // "A -" or "A."
+
+    // Numbered answers (fallback)
+    /^(\*?)(\d+)[\.\)\:]\s*/, // "1." or "*1)"
+
+    // Inline answer patterns (for cases where answer is on same line as question)
+    /\s+(\*?)([A-Za-z])[\.\)\:]\s+/, // " ... a. ..." (embedded in text)
+  ];
+
+  private readonly CONTINUATION_INDICATORS = [
+    // Lines that likely continue previous content
+    /^\s*[a-z]/i, // Starts with lowercase (likely continuation)
+    /^\s*(và|and|or|hoặc|hay)\s+/i, // Conjunction words
+    /^\s*[\-\+\*]/, // Bullet points
+    /^\s*\(/, // Parentheses
+    /^\s*["""''']/, // Quotes
+    /^\s*\d+\s*[\.\)]/, // Numbered sub-items
+  ];
+
+  private readonly QUESTION_STOPWORDS = [
+    // Words that indicate end of question
+    "A.",
+    "B.",
+    "C.",
+    "D.",
+    "a.",
+    "b.",
+    "c.",
+    "d.",
+    "*A.",
+    "*B.",
+    "*C.",
+    "*D.",
+    "(A)",
+    "(B)",
+    "(C)",
+    "(D)",
+  ];
+
+  extractQuestions(content: string): QuestionData[] {
+    // Preprocess content
+    const preprocessed = this.preprocessContent(content);
+    const lines = preprocessed.split("\n");
+
+    // Parse structure first
+    const parsedQuestions = this.parseQuestionsStructure(lines);
+
+    // Convert to QuestionData format
+    return parsedQuestions.map((pq, index) =>
+      this.convertToQuestionData(pq, index),
+    );
+  }
+
+  private preprocessContent(content: string): string {
+    return (
+      content
+        // Normalize line breaks
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        // Remove excessive whitespace but preserve structure
+        .replace(/[ \t]+/g, " ")
+        // Normalize Vietnamese characters
+        .replace(/\u00A0/g, " ") // Non-breaking space
+        // Clean up common OCR artifacts
+        .replace(/\u200B/g, "") // Zero-width space
+        .replace(/\u200C/g, "") // Zero-width non-joiner
+        .replace(/\u200D/g, "") // Zero-width joiner
+        .replace(/\uFEFF/g, "") // Zero-width no-break space
+        // Normalize punctuation
+        .replace(/[""]/g, '"')
+        .replace(/['']/g, "'")
+        .replace(/…/g, "...")
+        // Clean up extra spaces around punctuation
+        .replace(/\s+([\.,:;!?])/g, "$1")
+        .replace(/([\.,:;!?])\s+/g, "$1 ")
+    );
+  }
+
+  private parseQuestionsStructure(lines: string[]): ParsedQuestion[] {
+    const questions: ParsedQuestion[] = [];
+    let currentQuestion: ParsedQuestion | null = null;
+    let currentAnswer: ParsedAnswer | null = null;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
+      if (!line) continue;
 
-      // Check if this is a new question (starts with number + dot)
-      if (this.isNewQuestion(line)) {
-        // Save previous question if exists
+      const questionMatch = this.matchQuestionPattern(line);
+      const answerMatch = this.matchAnswerPattern(line);
+
+      if (questionMatch) {
+        // Save previous question
         if (currentQuestion) {
-          // Save the last answer if exists
-          if (currentAnswerLines.length > 0) {
-            const lastAnswer = this.extractAnswerFromLines(
-              currentAnswerLines,
-              currentAnswerKey,
-            );
-            if (lastAnswer && currentQuestion.answers) {
-              currentQuestion.answers.push(lastAnswer);
-            }
+          if (currentAnswer) {
+            currentQuestion.answers.push(currentAnswer);
           }
-
-          currentQuestion.question = questionTextLines.join(" ").trim();
-          questions.push(
-            this.finalizeQuestion(currentQuestion, questionIndex++),
-          );
+          questions.push(currentQuestion);
         }
 
         // Start new question
-        const questionText = this.extractQuestionText(line);
         currentQuestion = {
-          id: `q_${questionIndex}`,
-          question: questionText,
-          type: this.detectQuestionType(line),
-          points: 1,
+          questionLines: [questionMatch.text],
           answers: [],
+          startIndex: i,
+          endIndex: i,
         };
-        questionTextLines = [questionText];
-        currentAnswerLines = [];
-        currentAnswerKey = "";
-      }
-      // Check if this is an answer line (starts with A. B. C. D.)
-      else if (currentQuestion && this.isAnswerLineStrict(line)) {
-        // Save previous answer if exists
-        if (currentAnswerLines.length > 0) {
-          const answer = this.extractAnswerFromLines(
-            currentAnswerLines,
-            currentAnswerKey,
-          );
-          if (answer && currentQuestion.answers) {
-            currentQuestion.answers.push(answer);
-          }
+        currentAnswer = null;
+      } else if (answerMatch && currentQuestion) {
+        // Save previous answer
+        if (currentAnswer) {
+          currentQuestion.answers.push(currentAnswer);
         }
 
         // Start new answer
-        const answerMatch = line.match(/^(\*?[A-Da-d])\.\s*(.+)$/);
-        if (answerMatch) {
-          currentAnswerKey = answerMatch[1];
-          currentAnswerLines = [answerMatch[2]];
+        currentAnswer = {
+          key: answerMatch.key,
+          lines: [answerMatch.text],
+          isCorrect: answerMatch.isCorrect,
+        };
+      } else if (line && currentQuestion) {
+        // This is a continuation line
+        if (currentAnswer) {
+          // Continue current answer
+          currentAnswer.lines.push(line);
+        } else if (
+          this.isLikelyContinuation(line, currentQuestion.questionLines)
+        ) {
+          // Continue current question
+          currentQuestion.questionLines.push(line);
         }
-      }
-      // This line is continuation of question or answer
-      else if (currentQuestion && line.length > 0) {
-        if (this.isAnswerLineStrict(line)) {
-          // This is actually an answer line (should have been caught above, but just in case)
-          if (currentAnswerLines.length > 0) {
-            const answer = this.extractAnswerFromLines(
-              currentAnswerLines,
-              currentAnswerKey,
-            );
-            if (answer && currentQuestion.answers) {
-              currentQuestion.answers.push(answer);
-            }
-          }
-
-          const answerMatch = line.match(/^(\*?[A-Da-d])\.\s*(.+)$/);
-          if (answerMatch) {
-            currentAnswerKey = answerMatch[1];
-            currentAnswerLines = [answerMatch[2]];
-          }
-        } else if (currentAnswerLines.length > 0) {
-          // This is continuation of current answer
-          currentAnswerLines.push(line);
-        } else if (this.isLikelyQuestionContinuation(line)) {
-          // This is continuation of current question
-          questionTextLines.push(line);
-        }
+        currentQuestion.endIndex = i;
       }
     }
 
-    // Save the last question
+    // Save last question
     if (currentQuestion) {
-      // Save the last answer if exists
-      if (currentAnswerLines.length > 0) {
-        const lastAnswer = this.extractAnswerFromLines(
-          currentAnswerLines,
-          currentAnswerKey,
-        );
-        if (lastAnswer && currentQuestion.answers) {
-          currentQuestion.answers.push(lastAnswer);
-        }
+      if (currentAnswer) {
+        currentQuestion.answers.push(currentAnswer);
       }
-
-      currentQuestion.question = questionTextLines.join(" ").trim();
-      questions.push(this.finalizeQuestion(currentQuestion, questionIndex));
+      questions.push(currentQuestion);
     }
 
     return questions;
   }
 
-  private isQuestionLine(line: string): boolean {
-    const questionPatterns = [
-      /^Câu\s+\d+\./i, // Câu 1. hoặc Câu 25.
-      /^Câu\s+\d+/i, // Câu 1 (không có dấu chấm)
-      /^\d+\.\s+/, // 1. Nội dung
-      /^Q\d+\.\s/, // Q1. (viết theo dạng tiếng Anh)
-      /^Question\s+\d+/i, // Question 1
-      /^\*\s/, // * Dạng bullet
-      /^-\s/, // - Dạng bullet
-    ];
-
-    // Check if line starts with a question pattern
-    const isQuestion = questionPatterns.some((pattern) => pattern.test(line));
-
-    // Also check if it's not an answer line (to avoid confusion)
-    const isAnswer = this.isAnswerLineStrict(line);
-
-    return isQuestion && !isAnswer;
+  private matchQuestionPattern(line: string): QuestionMatch | null {
+    for (const pattern of this.QUESTION_PATTERNS) {
+      const match = line.match(pattern);
+      if (match) {
+        const text = line.replace(pattern, "").trim();
+        return {
+          text,
+          number: match[1],
+        };
+      }
+    }
+    return null;
   }
 
-  private isNewQuestion(line: string): boolean {
-    // Support both "Câu 1." and "1." formats, with or without dot
-    // Also support "13." and "13" (without space after dot)
-    return /^(\d+|Câu\s+\d+)\.?\s*/.test(line);
+  private matchAnswerPattern(line: string): AnswerMatch | null {
+    for (const pattern of this.ANSWER_PATTERNS) {
+      const match = line.match(pattern);
+      if (match) {
+        const isCorrect = match[1] === "*";
+        const key = match[2];
+        const text = line.replace(pattern, "").trim();
+
+        return {
+          key,
+          text,
+          isCorrect,
+        };
+      }
+    }
+    return null;
   }
 
-  private isAnswerLine(line: string): boolean {
-    const answerPatterns = [
-      /^[A-Da-d]\.\s/, // A. Answer hoặc a. Answer
-      /^\*[A-Da-d]\.\s/, // *A. Answer hoặc *a. Answer (correct answer)
-    ];
+  private isLikelyContinuation(line: string, questionLines: string[]): boolean {
+    // Don't continue if it looks like an answer
+    if (this.matchAnswerPattern(line)) {
+      return false;
+    }
 
-    return answerPatterns.some((pattern) => pattern.test(line));
+    // Don't continue if it looks like a new question
+    if (this.matchQuestionPattern(line)) {
+      return false;
+    }
+
+    // Check continuation indicators
+    for (const indicator of this.CONTINUATION_INDICATORS) {
+      if (indicator.test(line)) {
+        return true;
+      }
+    }
+
+    // If line starts with lowercase and previous line doesn't end with punctuation
+    if (/^[a-z]/.test(line) && questionLines.length > 0) {
+      const lastLine = questionLines[questionLines.length - 1];
+      if (!/[\.!?:]$/.test(lastLine.trim())) {
+        return true;
+      }
+    }
+
+    // If line is short and doesn't start with capital (likely continuation)
+    if (line.length < 50 && !/^[A-Z]/.test(line)) {
+      return true;
+    }
+
+    return false;
   }
 
-  private isAnswerLineStrict(line: string): boolean {
-    // More strict check for answer lines
-    return /^(\*?[A-Da-d])\.\s/.test(line);
-  }
-
-  private isLikelyQuestionContinuation(line: string): boolean {
-    // Không phải đáp án, không phải dòng bắt đầu câu hỏi, và không rỗng
-    return (
-      !this.isAnswerLineStrict(line) &&
-      !this.isNewQuestion(line) &&
-      line.length > 0
-    );
-  }
-
-  private extractQuestionText(line: string): string {
-    return line
-      .replace(
-        /^(Câu\s+\d+\.?|\d+\.\s*|Q\d+\.\s*|Question\s+\d+\.?\s*|\*\s*|-\s*)/i,
-        "",
-      )
-      .trim();
-  }
-
-  private extractInlineAnswers(_line: string): Answer[] {
-    // Standard format doesn't support inline answers
-    return [];
-  }
-
-  private extractAnswer(line: string): Answer | null {
-    // Handle standard answer patterns: A. or *A. (both uppercase and lowercase)
-    const match = line.match(/^(\*?[A-Da-d])\.\s*(.+)$/);
-
-    if (!match) return null;
-
-    const answerText = match[2].trim();
-    const isCorrect = match[1].startsWith("*");
-
-    return {
-      id: `answer_${Date.now()}_${Math.random()}`,
-      text: answerText,
-      isCorrect: isCorrect,
-      order_index: 0, // Will be set by parent
-    };
-  }
-
-  private extractAnswerFromLines(
-    answerLines: string[],
-    answerKey: string,
-  ): Answer | null {
-    if (answerLines.length === 0 || !answerKey) return null;
-
-    const answerText = answerLines.join(" ").trim();
-    const isCorrect = answerKey.startsWith("*");
-
-    return {
-      id: `answer_${Date.now()}_${Math.random()}`,
-      text: answerText,
-      isCorrect: isCorrect,
-      order_index: 0, // Will be set by parent
-    };
-  }
-
-  private detectQuestionType(_line: string): QuestionData["type"] {
-    // const lowerLine = line.toLowerCase();
-
-    // if (lowerLine.includes("true") || lowerLine.includes("false") ||
-    //   lowerLine.includes("đúng") || lowerLine.includes("sai")) {
-    //   return "TRUE_FALSE";
-    // }
-
-    // if (
-    //   lowerLine.includes("fill") ||
-    //   lowerLine.includes("blank") ||
-    //   lowerLine.includes("___") ||
-    //   lowerLine.includes("...") ||
-    //   lowerLine.includes("điền") ||
-    //   lowerLine.includes("chỗ trống")
-    // ) {
-    //   return "FILL_BLANK";
-    // }
-
-    // if (
-    //   lowerLine.includes("explain") ||
-    //   lowerLine.includes("describe") ||
-    //   lowerLine.includes("why") ||
-    //   lowerLine.includes("giải thích") ||
-    //   lowerLine.includes("trình bày") ||
-    //   lowerLine.includes("phân tích")
-    // ) {
-    //   return "FREE_RESPONSE";
-    // }
-
-    return "MULTIPLE_CHOICE";
-  }
-
-  // private detectDifficulty(line: string): QuestionData["difficulty"] {
-  //   const lowerLine = line.toLowerCase();
-
-  //   if (lowerLine.includes("easy") || lowerLine.includes("basic")) {
-  //     return "EASY";
-  //   }
-  //   if (lowerLine.includes("hard") || lowerLine.includes("advanced")) {
-  //     return "HARD";
-  //   }
-
-  //   return "MEDIUM";
-  // }
-
-  private finalizeQuestion(
-    question: Partial<QuestionData>,
+  private convertToQuestionData(
+    parsedQuestion: ParsedQuestion,
     index: number,
   ): QuestionData {
-    if (!question.answers || question.answers.length === 0) {
-      question.answers = [
+    // Combine question lines into single text
+    const questionText = parsedQuestion.questionLines
+      .join(" ")
+      .trim()
+      .replace(/\s+/g, " "); // Normalize spaces
+
+    // Convert answers
+    const answers: Answer[] = parsedQuestion.answers.map((pa, answerIndex) => ({
+      id: `answer_${index}_${answerIndex}`,
+      text: pa.lines.join(" ").trim().replace(/\s+/g, " "),
+      isCorrect: pa.isCorrect,
+      order_index: answerIndex + 1,
+    }));
+
+    // Detect question type
+    const questionType = this.detectQuestionType(questionText, answers);
+
+    // Ensure at least one correct answer
+    if (answers.length > 0 && !answers.some((a) => a.isCorrect)) {
+      answers[0].isCorrect = true;
+    }
+
+    // If no answers found, create default True/False
+    if (answers.length === 0) {
+      answers.push(
         {
           id: `answer_${index}_1`,
           text: "True",
@@ -281,23 +307,62 @@ export class ContentExtractor {
           isCorrect: false,
           order_index: 2,
         },
-      ];
-      question.type = "TRUE_FALSE";
+      );
     }
 
-    // Set order_index for answers if not set
-    if (question.answers) {
-      question.answers.forEach((answer, idx) => {
-        if (answer.order_index === 0) {
-          answer.order_index = idx + 1;
-        }
-      });
-    }
+    return {
+      id: `question_${index}`,
+      question: questionText,
+      type: questionType,
+      points: 1,
+      answers,
+    };
+  }
 
-    if (question.answers && !question.answers.some((a) => a.isCorrect)) {
-      question.answers[0].isCorrect = true;
-    }
+  private detectQuestionType(
+    questionText: string,
+    answers: Answer[],
+  ): QuestionData["type"] {
+    // const lowerQuestion = questionText.toLowerCase();
+    console.log(questionText, answers);
+    // // True/False detection
+    // if (
+    //   answers.length === 2 &&
+    //   answers.some(a => /^(true|đúng|yes|có)$/i.test(a.text.trim())) &&
+    //   answers.some(a => /^(false|sai|no|không)$/i.test(a.text.trim()))
+    // ) {
+    //   return "TRUE_FALSE";
+    // }
 
-    return question as QuestionData;
+    // // Fill in the blank detection
+    // if (
+    //   lowerQuestion.includes('___') ||
+    //   lowerQuestion.includes('...') ||
+    //   lowerQuestion.includes('điền') ||
+    //   lowerQuestion.includes('fill') ||
+    //   lowerQuestion.includes('blank') ||
+    //   lowerQuestion.includes('chỗ trống')
+    // ) {
+    //   return "FILL_BLANK";
+    // }
+
+    // // Free response detection
+    // if (
+    //   lowerQuestion.includes('giải thích') ||
+    //   lowerQuestion.includes('trình bày') ||
+    //   lowerQuestion.includes('phân tích') ||
+    //   lowerQuestion.includes('explain') ||
+    //   lowerQuestion.includes('describe') ||
+    //   lowerQuestion.includes('analyze') ||
+    //   lowerQuestion.includes('why') ||
+    //   lowerQuestion.includes('how') ||
+    //   lowerQuestion.includes('tại sao') ||
+    //   lowerQuestion.includes('như thế nào')
+    // ) {
+    //   return "FREE_RESPONSE";
+    // }
+
+    // Default to multiple choice
+    return "MULTIPLE_CHOICE";
   }
 }

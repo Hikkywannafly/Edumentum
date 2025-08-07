@@ -23,8 +23,8 @@ import {
 } from "@/lib/utils/file-utils";
 import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
-import type { QuizMode, Visibility } from "@/types/quiz";
-import { CheckCircle, Loader2 } from "lucide-react";
+import type { Language, ParsingMode, QuizMode, Visibility } from "@/types/quiz";
+import { CheckCircle, FileText, Loader2, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileList } from "./file-list";
@@ -36,9 +36,11 @@ export function FileWithAnswersUploader() {
   const [isInitialMount, setIsInitialMount] = useState(true);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
 
-  // Simple settings for file upload
+  // Enhanced settings for file extraction
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
   const [mode, setMode] = useState<QuizMode>("QUIZ");
+  const [parsingMode, setParsingMode] = useState<ParsingMode>("BALANCED");
+  const [language, setLanguage] = useState<Language>("AUTO");
 
   const {
     uploadedFiles,
@@ -66,70 +68,25 @@ export function FileWithAnswersUploader() {
   }, [isInitialMount]);
 
   const handleCreateQuiz = async () => {
+    // Show processing screen immediately
     setIsCreatingQuiz(true);
-    try {
-      // Extract questions from uploaded files
-      await extractQuestionsFromFiles();
+    setTimeout(async () => {
+      try {
+        await extractQuestionsFromFiles();
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-      setEditing(true);
-      goQuizEdit();
-    } catch (error) {
-      console.error("Error creating quiz:", error);
-    } finally {
-      setIsCreatingQuiz(false);
-    }
+        setEditing(true);
+        goQuizEdit();
+      } catch (error) {
+        console.error("Error creating quiz:", error);
+
+        setIsCreatingQuiz(false);
+      }
+    }, 100);
   };
 
   return (
     <div className="space-y-6 border-none">
-      {/* Simple Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quiz Settings</CardTitle>
-          <CardDescription>Basic settings for your quiz</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="visibility">Visibility</Label>
-              <Select
-                value={visibility}
-                onValueChange={(value: Visibility) => setVisibility(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  <SelectItem value="PRIVATE">Private</SelectItem>
-                  <SelectItem value="PUBLIC">Public</SelectItem>
-                  <SelectItem value="UNLISTED">Unlisted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mode">Mode</Label>
-              <Select
-                value={mode}
-                onValueChange={(value: QuizMode) => setMode(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  <SelectItem value="QUIZ">Quiz</SelectItem>
-                  <SelectItem value="FLASHCARD">Flashcard</SelectItem>
-                  <SelectItem value="STUDY_GUIDE">Study Guide</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Upload Area */}
-      <FileUploadArea onDrop={addFiles} isDragActive={isDragActive} />
-
       {/* Show Processing Screen or File List */}
       {isCreatingQuiz ? (
         <ProcessingScreen
@@ -140,7 +97,131 @@ export function FileWithAnswersUploader() {
         />
       ) : (
         <>
-          {/* Uploaded Files */}
+          {/* Enhanced Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Quiz Settings
+              </CardTitle>
+              <CardDescription>
+                Configure your quiz extraction settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Settings */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="visibility">Visibility</Label>
+                  <Select
+                    value={visibility}
+                    onValueChange={(value: Visibility) => setVisibility(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectItem value="PRIVATE">Private</SelectItem>
+                      <SelectItem value="PUBLIC">Public</SelectItem>
+                      <SelectItem value="UNLISTED">Unlisted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mode">Mode</Label>
+                  <Select
+                    value={mode}
+                    onValueChange={(value: QuizMode) => setMode(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectItem value="QUIZ">Quiz</SelectItem>
+                      <SelectItem value="FLASHCARD">Flashcard</SelectItem>
+                      <SelectItem value="STUDY_GUIDE">Study Guide</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Extraction Settings */}
+              <div className="space-y-4">
+                <div className="border-t pt-4">
+                  <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
+                    <FileText className="h-4 w-4" />
+                    Extraction Settings
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="parsing-mode">Extraction Quality</Label>
+                      <Select
+                        value={parsingMode}
+                        onValueChange={(value: ParsingMode) =>
+                          setParsingMode(value)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="w-full">
+                          <SelectItem value="FAST">
+                            <div className="flex flex-col items-start">
+                              <span>Fast</span>
+                              <span className="text-muted-foreground text-xs">
+                                Quick extraction, basic accuracy
+                              </span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="BALANCED">
+                            <div className="flex flex-col items-start">
+                              <span>Balanced</span>
+                              <span className="text-muted-foreground text-xs">
+                                Good balance of speed and accuracy
+                              </span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="THOROUGH">
+                            <div className="flex flex-col items-start">
+                              <span>Thorough</span>
+                              <span className="text-muted-foreground text-xs">
+                                Detailed extraction, highest accuracy
+                              </span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="language">Language Detection</Label>
+                      <Select
+                        value={language}
+                        onValueChange={(value: Language) => setLanguage(value)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="w-full">
+                          <SelectItem value="AUTO">🌐 Auto Detect</SelectItem>
+                          <SelectItem value="EN">🇺🇸 English</SelectItem>
+                          <SelectItem value="VI">🇻🇳 Tiếng Việt</SelectItem>
+                          <SelectItem value="KO">🇰🇷 한국어</SelectItem>
+                          <SelectItem value="ZH">🇨🇳 中文</SelectItem>
+                          <SelectItem value="JA">🇯🇵 日本語</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upload Area */}
+          <FileUploadArea onDrop={addFiles} isDragActive={isDragActive} />
+
           <FileList files={uploadedFiles} onRemoveFile={removeFile} />
 
           {/* Action Buttons */}
