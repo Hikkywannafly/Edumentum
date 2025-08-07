@@ -79,93 +79,52 @@ function parseQuestionsFromAI(
 ): QuestionData[] {
   const questions: QuestionData[] = [];
 
+  // Clean the AI response - remove any extra text before/after JSON
+  let cleanedResponse = aiResponse.trim();
+
+  // Try to find JSON array in the response
+  const jsonMatch = cleanedResponse.match(/\[[\s\S]*\]/);
+  if (jsonMatch) {
+    cleanedResponse = jsonMatch[0];
+  }
+
   try {
     // Try to parse as JSON first
-    const parsed = JSON.parse(aiResponse);
+    const parsed = JSON.parse(cleanedResponse);
     if (Array.isArray(parsed)) {
-      return parsed.map((q, index) => ({
-        id: `q-${Date.now()}-${index}`,
-        question: q.question || q.text || "",
-        type: q.type || "MULTIPLE_CHOICE",
-        difficulty: (q.difficulty ||
-          settings?.difficulty ||
-          "EASY") as Difficulty,
-        points: q.points || 1,
-        explanation: q.explanation || "",
-        answers: q.answers || [],
-        shortAnswerText: q.shortAnswerText || "",
-      }));
-    }
-  } catch {
-    // If JSON parsing fails, try to extract questions from text
-    const lines = aiResponse.split("\n");
-    let currentQuestion: Partial<QuestionData> | null = null;
-    let questionIndex = 0;
-
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-
-      // Detect question start
-      if (trimmedLine.match(/^\d+\.|^Question \d+:|^Q\d+:/)) {
-        if (currentQuestion) {
-          questions.push({
-            id: `q-${Date.now()}-${questionIndex}`,
-            question: currentQuestion.question || "",
-            type: currentQuestion.type || "MULTIPLE_CHOICE",
-            difficulty: (currentQuestion.difficulty ||
-              settings?.difficulty ||
-              "EASY") as Difficulty,
-            explanation: currentQuestion.explanation || "",
-            answers: currentQuestion.answers || [],
-            shortAnswerText: currentQuestion.shortAnswerText || "",
-          });
-          questionIndex++;
-        }
-
-        currentQuestion = {
-          question: trimmedLine
-            .replace(/^\d+\.|^Question \d+:|^Q\d+:/, "")
-            .trim(),
-          answers: [],
+      return parsed.map((q, index) => {
+        // Ensure answers array is valid
+        const answers = Array.isArray(q.answers)
+          ? q.answers.map((a: any, i: number) => ({
+              id: a.id || `a-${Date.now()}-${index}-${i}`,
+              text: a.text || String(a) || "",
+              isCorrect: !!a.isCorrect,
+              order_index:
+                typeof a.order_index === "number" ? a.order_index : i,
+            }))
+          : [];
+        return {
+          id: q.id || `q-${Date.now()}-${index}`,
+          question: q.question || q.text || "",
+          type: q.type || "MULTIPLE_CHOICE",
+          difficulty: (q.difficulty ||
+            settings?.difficulty ||
+            "EASY") as Difficulty,
+          points: typeof q.points === "number" ? q.points : 1,
+          explanation: q.explanation || "",
+          answers,
+          shortAnswerText: q.shortAnswerText || "",
         };
-      }
-      // Detect answers
-      else if (trimmedLine.match(/^[A-D]\)|^[a-d]\)/)) {
-        if (currentQuestion) {
-          const answerText = trimmedLine.replace(/^[A-Da-d]\)/, "").trim();
-          const isCorrect =
-            trimmedLine.toLowerCase().includes("correct") ||
-            trimmedLine.includes("✓") ||
-            trimmedLine.includes("*");
-
-          currentQuestion.answers = currentQuestion.answers || [];
-          currentQuestion.answers.push({
-            id: `a-${Date.now()}-${currentQuestion.answers.length}`,
-            text: answerText,
-            isCorrect,
-            order_index: currentQuestion.answers.length,
-          });
-        }
-      }
-    }
-
-    // Add the last question
-    if (currentQuestion) {
-      questions.push({
-        id: `q-${Date.now()}-${questionIndex}`,
-        question: currentQuestion.question || "",
-        type: currentQuestion.type || "MULTIPLE_CHOICE",
-        difficulty: (currentQuestion.difficulty ||
-          settings?.difficulty ||
-          "EASY") as Difficulty,
-        points: 1,
-        explanation: currentQuestion.explanation || "",
-        answers: currentQuestion.answers || [],
-        shortAnswerText: currentQuestion.shortAnswerText || "",
       });
     }
+  } catch (jsonError) {
+    console.warn("JSON parsing failed, trying text parsing:", jsonError);
+    console.error(
+      "Failed to parse AI response as JSON:",
+      cleanedResponse.substring(0, 200),
+    );
   }
-  console.log("test,", questions);
+
   return questions;
 }
 
@@ -174,8 +133,6 @@ export async function extractQuestions(
   params: GenerateQuestionsParams,
 ): Promise<AIResponse> {
   const {
-    questionHeader,
-    questionDescription,
     apiKey,
     fileContent = "",
     modelName = DEFAULT_MODEL,
@@ -186,44 +143,21 @@ export async function extractQuestions(
 
   try {
     // Build the prompt for extraction (not generation)
-    const prompt = `
-You are an expert quiz parser. Extract and parse existing quiz questions from the provided content. DO NOT generate new questions, only extract what already exists.
+    const prompt = `Extract quiz questions from the following content and return ONLY a valid JSON array. No explanations, no extra text.
 
-Header: ${questionHeader}
-Description: ${questionDescription}
-
-Settings:
-- Language: ${settings.language || "AUTO"}
-- Parsing Mode: ${settings.parsingMode || "BALANCED"}
-
-Content to extract questions from:
+Content:
 ${fileContent}
 
-Please extract ALL existing questions and convert them to JSON format with the following structure:
-[
-  {
-    "question": "Exact question text from the content",
-    "type": "MULTIPLE_CHOICE",
-    "difficulty": "${settings.difficulty || "EASY"}",
-    "answers": [
-      {"text": "Option A text", "isCorrect": false},
-      {"text": "Option B text", "isCorrect": false},
-      {"text": "Option C text", "isCorrect": false},
-      {"text": "Option D text", "isCorrect": true}
-    ],
-    "explanation": ""
-  }
-]
+Return format (JSON array only):
+[{"question":"exact question text","type":"MULTIPLE_CHOICE","difficulty":"EASY","answers":[{"text":"answer text","isCorrect":false},{"text":"correct answer","isCorrect":true}],"explanation":""}]
 
-IMPORTANT RULES:
-1. Extract questions EXACTLY as they appear in the content
-2. Identify correct answers by looking for markers like: *, ✓, (correct), or any indication
-3. Keep original question numbering and text
-4. Do not modify or rephrase the questions
-5. If no clear correct answer is marked, make your best guess based on context
-6. Extract ALL questions found in the content
+Rules:
+- Extract questions exactly as written
+- Identify correct answers marked with *, ✓, (correct), or similar indicators
+- Return only the JSON array, nothing else
+- If no questions found, return []
 
-Return only the JSON array, no additional text.`;
+JSON:`;
 
     console.log("🔍 Extracting questions from file content...");
     console.log(

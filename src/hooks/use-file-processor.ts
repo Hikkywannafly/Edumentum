@@ -43,7 +43,7 @@ const extractQuestionsWithAI = async (
   // Get API key from environment or user settings
   const apiKey =
     process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+    "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";
 
   if (!apiKey) {
     throw new Error("OpenRouter API key not configured");
@@ -82,7 +82,7 @@ const generateQuestionsWithAI = async (
   // Get API key from environment or user settings
   const apiKey =
     process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+    "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";
 
   if (!apiKey) {
     throw new Error("OpenRouter API key not configured");
