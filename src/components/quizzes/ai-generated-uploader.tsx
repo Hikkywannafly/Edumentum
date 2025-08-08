@@ -49,6 +49,9 @@ export function AIGeneratedUploader() {
   const [generationMode, setGenerationMode] = useState<"GENERATE" | "EXTRACT">(
     "GENERATE",
   );
+  const [fileProcessingMode, setFileProcessingMode] = useState<
+    "PARSE_THEN_SEND" | "SEND_DIRECT"
+  >("PARSE_THEN_SEND");
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
   const [language, setLanguage] = useState<Language>("AUTO");
   const [questionType, setQuestionType] = useState<QuestionType | "MIXED">(
@@ -92,6 +95,7 @@ export function AIGeneratedUploader() {
       try {
         const settings = {
           generationMode,
+          fileProcessingMode,
           visibility,
           language,
           questionType: questionType === "MIXED" ? "MIXED" : questionType,
@@ -166,6 +170,44 @@ export function AIGeneratedUploader() {
                           <span className="text-muted-foreground text-xs">
                             Extract existing quiz questions from material (quiz
                             format only)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="file-processing-mode">File Processing</Label>
+                  <Select
+                    value={fileProcessingMode}
+                    onValueChange={(value: "PARSE_THEN_SEND" | "SEND_DIRECT") =>
+                      setFileProcessingMode(value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectItem value="PARSE_THEN_SEND">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">
+                            📄 Parse Then Send
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            Convert file to text first (faster, cheaper)
+                          </span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="SEND_DIRECT">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">🎯 Send Direct</span>
+                          <span className="text-muted-foreground text-xs">
+                            Send file directly to AI (preserves formatting)
+                            <br />
+                            <span className="text-[10px] opacity-75">
+                              Supports: PDF, DOCX, XLSX, images, text files
+                            </span>
                           </span>
                         </div>
                       </SelectItem>
