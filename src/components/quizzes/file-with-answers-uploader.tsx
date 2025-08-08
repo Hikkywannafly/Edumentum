@@ -72,7 +72,11 @@ export function FileWithAnswersUploader() {
     setIsCreatingQuiz(true);
     setTimeout(async () => {
       try {
-        await extractQuestionsFromFiles();
+        // Pass only extraction-related settings (language and parsing mode)
+        await extractQuestionsFromFiles({
+          language,
+          parsingMode,
+        });
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         setEditing(true);

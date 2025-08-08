@@ -1,9 +1,11 @@
 import type { Difficulty, QuestionData } from "@/types/quiz";
+import { ContentExtractor } from "./content-extractor.service";
 
-// Simplified AI service for quiz generation
+// AI service for quiz generation (NOT extraction)
 const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
 const DEFAULT_MODEL = "qwen/qwq-32b:free";
 
+// For AI-based quiz generation from content
 interface GenerateQuestionsParams {
   questionHeader: string;
   questionDescription: string;
@@ -20,6 +22,16 @@ interface GenerateQuestionsParams {
     mode?: string;
     difficulty?: string;
     task?: string;
+    parsingMode?: string;
+    promptOverride?: string;
+  };
+}
+
+// For direct extraction from files with existing questions
+interface ExtractQuestionsParams {
+  fileContent: string;
+  settings?: {
+    language?: string;
     parsingMode?: string;
   };
 }
@@ -79,23 +91,66 @@ function parseQuestionsFromAI(
 ): QuestionData[] {
   const questions: QuestionData[] = [];
 
-  // Clean the AI response - remove any extra text before/after JSON
+  console.log("🔍 Parsing AI Response, length:", aiResponse.length);
+
   let cleanedResponse = aiResponse.trim();
 
-  // Try to find JSON array in the response
-  const jsonMatch = cleanedResponse.match(/\[[\s\S]*\]/);
-  if (jsonMatch) {
-    cleanedResponse = jsonMatch[0];
+  // Remove any <think> tags if present
+  cleanedResponse = cleanedResponse
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .trim();
+
+  // Remove any markdown code blocks
+  cleanedResponse = cleanedResponse
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/gi, "")
+    .trim();
+
+  // Find JSON array in the response
+  const startIndex = cleanedResponse.indexOf("[");
+  const endIndex = cleanedResponse.lastIndexOf("]");
+
+  if (startIndex === -1 || endIndex === -1) {
+    console.error("❌ No valid JSON array found in AI response");
+    console.error("Response preview:", cleanedResponse.substring(0, 500));
+    return questions;
   }
 
+  // Extract just the JSON array part
+  cleanedResponse = cleanedResponse.substring(startIndex, endIndex + 1);
+
   try {
-    // Try to parse as JSON first
     const parsed = JSON.parse(cleanedResponse);
     if (Array.isArray(parsed)) {
+      console.log("✅ Successfully parsed JSON with", parsed.length, "items");
       return parsed.map((q, index) => {
+        // Handle both 'answers' and 'options' fields from AI
+        let answersArray = q.answers || q.options || [];
+
+        // If it's just an array of strings (options), convert to answer objects
+        if (answersArray.length > 0 && typeof answersArray[0] === "string") {
+          answersArray = answersArray.map((opt: string, _i: number) => ({
+            text: opt,
+            isCorrect: false, // Will need to be set based on correctAnswer field
+          }));
+
+          // If there's a correctAnswer field, mark the right answer
+          if (q.correctAnswer !== undefined) {
+            const correctIndex =
+              typeof q.correctAnswer === "number"
+                ? q.correctAnswer
+                : answersArray.findIndex(
+                    (a: any) => a.text === q.correctAnswer,
+                  );
+            if (correctIndex >= 0 && correctIndex < answersArray.length) {
+              answersArray[correctIndex].isCorrect = true;
+            }
+          }
+        }
+
         // Ensure answers array is valid
-        const answers = Array.isArray(q.answers)
-          ? q.answers.map((a: any, i: number) => ({
+        const answers = Array.isArray(answersArray)
+          ? answersArray.map((a: any, i: number) => ({
               id: a.id || `a-${Date.now()}-${index}-${i}`,
               text: a.text || String(a) || "",
               isCorrect: !!a.isCorrect,
@@ -128,59 +183,33 @@ function parseQuestionsFromAI(
   return questions;
 }
 
-// Function to extract existing questions from file content using AI
+// Extract questions from files with existing questions (NO AI, direct parsing)
 export async function extractQuestions(
-  params: GenerateQuestionsParams,
+  params: ExtractQuestionsParams,
 ): Promise<AIResponse> {
-  const {
-    apiKey,
-    fileContent = "",
-    modelName = DEFAULT_MODEL,
-    siteUrl,
-    siteName,
-    settings = {},
-  } = params;
+  const { fileContent } = params;
 
   try {
-    // Build the prompt for extraction (not generation)
-    const prompt = `Extract quiz questions from the following content and return ONLY a valid JSON array. No explanations, no extra text.
-
-Content:
-${fileContent}
-
-Return format (JSON array only):
-[{"question":"exact question text","type":"MULTIPLE_CHOICE","difficulty":"EASY","answers":[{"text":"answer text","isCorrect":false},{"text":"correct answer","isCorrect":true}],"explanation":""}]
-
-Rules:
-- Extract questions exactly as written
-- Identify correct answers marked with *, ✓, (correct), or similar indicators
-- Return only the JSON array, nothing else
-- If no questions found, return []
-
-JSON:`;
-
-    console.log("🔍 Extracting questions from file content...");
+    console.log(
+      "🔍 Extracting questions from file content (direct text parsing)...",
+    );
     console.log(
       "📄 File content to extract from:",
       `${fileContent.substring(0, 500)}...`,
     );
-    const aiResponse = await callOpenRouterAPI(
-      apiKey,
-      prompt,
-      modelName,
-      siteUrl,
-      siteName,
-    );
 
-    console.log("🤖 AI Response:", aiResponse);
-    console.log("📝 Parsing extracted questions...");
-    const questions = parseQuestionsFromAI(aiResponse, settings);
+    const extractor = new ContentExtractor();
+    const questions = extractor.extractQuestions(fileContent);
 
     if (questions.length === 0) {
-      throw new Error("No questions could be extracted from file content");
+      throw new Error(
+        "No questions could be extracted from file content. Please ensure the file contains properly formatted questions and answers.",
+      );
     }
 
-    console.log(`✅ Successfully extracted ${questions.length} questions`);
+    console.log(
+      `✅ Successfully extracted ${questions.length} questions without modification`,
+    );
     return {
       success: true,
       questions,
@@ -194,7 +223,7 @@ JSON:`;
   }
 }
 
-// Main function to generate questions using AI
+// Generate NEW questions using AI from content (NOT extraction)
 export async function generateQuestions(
   params: GenerateQuestionsParams,
 ): Promise<AIResponse> {
@@ -212,7 +241,9 @@ export async function generateQuestions(
   try {
     // Build the prompt based on settings
     const prompt = `
-You are an expert quiz generator. Create ${settings.numberOfQuestions || 5} high-quality questions based on the following requirements:
+You are an expert quiz generator. Your response must be ONLY a valid JSON array, nothing else.
+
+Create ${settings.numberOfQuestions || 5} high-quality questions based on the following requirements:
 
 Header: ${questionHeader}
 Description: ${questionDescription}
@@ -228,23 +259,17 @@ Settings:
 Content to generate questions from:
 ${fileContent}
 
-Please generate exactly ${settings.numberOfQuestions || 5} questions in JSON format with the following structure:
-[
-  {
-    "question": "Question text here",
-    "type": "MULTIPLE_CHOICE",
-    "difficulty": "${settings.difficulty || "EASY"}",
-    "answers": [
-      {"text": "Option A", "isCorrect": false},
-      {"text": "Option B", "isCorrect": true},
-      {"text": "Option C", "isCorrect": false},
-      {"text": "Option D", "isCorrect": false}
-    ],
-    "explanation": "Explanation for the correct answer"
-  }
-]
+IMPORTANT: Return ONLY a valid JSON array. Each question object must have:
+- "question": the question text
+- "answers": array of answer objects with "text" and "isCorrect" fields
+- "type": question type (e.g., "MULTIPLE_CHOICE")
+- "difficulty": difficulty level
+- "explanation": explanation text
 
-Ensure questions are relevant to the content and match the specified difficulty level.`;
+Example format:
+[{"question":"What is...","type":"MULTIPLE_CHOICE","answers":[{"text":"Option A","isCorrect":false},{"text":"Option B","isCorrect":true}],"difficulty":"EASY","explanation":"Because..."}]
+
+Respond with ONLY the JSON array, no other text.`.trim();
 
     console.log("🚀 Generating questions with AI...");
     const aiResponse = await callOpenRouterAPI(
@@ -256,6 +281,10 @@ Ensure questions are relevant to the content and match the specified difficulty 
     );
 
     console.log("📝 Parsing AI response...");
+
+    console.log("🔍 Full AI Response Length:", aiResponse.length, settings);
+    console.log("🔍 Full AI Response:", aiResponse);
+
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
     if (questions.length === 0) {
@@ -265,7 +294,7 @@ Ensure questions are relevant to the content and match the specified difficulty 
     console.log(`✅ Successfully generated ${questions.length} questions`);
     return {
       success: true,
-      questions,
+      questions, // Return the actual questions, not empty array!
     };
   } catch (error) {
     console.error("❌ Question generation failed:", error);
@@ -276,7 +305,6 @@ Ensure questions are relevant to the content and match the specified difficulty 
   }
 }
 
-// Legacy function for backward compatibility
 export async function createMultiAgentWorkflow() {
   throw new Error(
     "Multi-agent workflow is disabled. Use generateQuestions instead.",

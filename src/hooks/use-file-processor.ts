@@ -4,7 +4,7 @@ import {
 } from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
-import type { QuestionData } from "@/types/quiz";
+import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
 
 export interface UploadedFile {
@@ -26,46 +26,33 @@ export interface GeneratedQuiz {
 
 const fileParser = new FileParserService();
 
-// Extract questions from file content using AI (for files with existing questions)
-const extractQuestionsWithAI = async (
+// Extract questions from file content (for files with existing questions - NO AI)
+const extractQuestionsFromContent = async (
   content: string,
   settings?: {
-    visibility?: string;
-    language?: string;
-    questionType?: string;
-    numberOfQuestions?: number;
-    mode?: string;
-    difficulty?: string;
-    task?: string;
-    parsingMode?: string;
+    language?: Language;
+    parsingMode?: ParsingMode;
   },
 ): Promise<QuestionData[]> => {
-  // Get API key from environment or user settings
-  const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
-
-  if (!apiKey) {
-    throw new Error("OpenRouter API key not configured");
-  }
+  console.log(" Extracting questions from file content (direct parsing)...");
 
   const result = await extractQuestions({
-    questionHeader: "Extract Quiz Questions",
-    questionDescription:
-      "Extract existing quiz questions with answers from the provided file content",
-    apiKey,
     fileContent: content,
-    settings,
+    settings: {
+      language: settings?.language,
+      parsingMode: settings?.parsingMode,
+    },
   });
 
-  if (!result.success) {
-    throw new Error(result.error || "Failed to extract questions");
+  if (!result.success || !result.questions) {
+    throw new Error(result.error || "Failed to extract questions from content");
   }
 
-  return result.questions || [];
+  console.log(` Successfully extracted ${result.questions.length} questions`);
+  return result.questions;
 };
 
-// Generate new questions using AI (for AI-generated quizzes)
+// Generate NEW questions using AI (for AI-generated quizzes)
 const generateQuestionsWithAI = async (
   content: string,
   settings?: {
@@ -79,29 +66,31 @@ const generateQuestionsWithAI = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  // Get API key from environment or user settings
   const apiKey =
     process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+    "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";
 
   if (!apiKey) {
     throw new Error("OpenRouter API key not configured");
   }
 
+  console.log(" Generating new questions with AI...");
+
   const result = await generateQuestions({
     questionHeader: "Generate Quiz Questions",
     questionDescription:
-      "Generate new quiz questions from the provided content using AI",
+      "Generate new quiz questions from the provided content.",
     apiKey,
     fileContent: content,
     settings,
   });
 
-  if (!result.success) {
+  if (!result.success || !result.questions) {
     throw new Error(result.error || "Failed to generate questions");
   }
 
-  return result.questions || [];
+  console.log(` Successfully generated ${result.questions.length} questions`);
+  return result.questions;
 };
 
 export function useFileProcessor() {
@@ -191,14 +180,8 @@ export function useFileProcessor() {
   // Extract existing questions from files (for file-with-answers uploader)
   const extractQuestionsFromFiles = useCallback(
     async (settings?: {
-      visibility?: string;
-      language?: string;
-      questionType?: string;
-      numberOfQuestions?: number;
-      mode?: string;
-      difficulty?: string;
-      task?: string;
-      parsingMode?: string;
+      language?: Language;
+      parsingMode?: ParsingMode;
     }) => {
       const successfulFiles = uploadedFiles.filter(
         (f) => f.status === "success" && f.parsedContent,
@@ -213,8 +196,8 @@ export function useFileProcessor() {
       for (const file of successfulFiles) {
         if (file.parsedContent) {
           try {
-            // Extract existing questions from file content using AI
-            const questions = await extractQuestionsWithAI(
+            // Extract existing questions from file content (NO AI, direct parsing)
+            const questions = await extractQuestionsFromContent(
               file.parsedContent,
               settings,
             );
@@ -236,7 +219,7 @@ export function useFileProcessor() {
       // Update quiz data
       const quizData: GeneratedQuiz = {
         title: `Quiz from ${successfulFiles[0].name}`,
-        description: `Extracted from ${successfulFiles.length} file(s)`,
+        description: `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`,
         questions: allQuestions,
       };
 
