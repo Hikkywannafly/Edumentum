@@ -6,39 +6,36 @@ import { useEffect, useState } from "react";
 import { groupAPI } from "../../lib/api/group";
 import type { GroupResponse } from "../../types/group";
 import { LocalizedLink } from "../localized-link";
+import GroupDialog from "./group-dialog";
 import { StudyGroupCard } from "./study-group-card";
 
 export default function GroupContent() {
   const [groups, setGroups] = useState<GroupResponse[]>([]);
   const [myGroups, setMyGroups] = useState<GroupResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<GroupResponse | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchGroups = async () => {
-      try {
-        setLoading(true);
-        const [allGroups, myGroups] = await Promise.all([
-          groupAPI.getGroups(),
-          groupAPI.getMyGroups(),
-        ]);
-        setGroups(allGroups);
-        setMyGroups(myGroups);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load groups");
-      } finally {
-        setLoading(false);
-      }
+      const [allGroups, myGroupsData] = await Promise.all([
+        groupAPI.getGroups(),
+        groupAPI.getMyGroups(),
+      ]);
+      setGroups(allGroups);
+      setMyGroups(myGroupsData);
     };
-
     fetchGroups();
   }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
+      {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-bold text-3xl tracking-tight">Study Groups</h1>
+          <h1 className="font-bold text-3xl text-foreground tracking-tight">
+            Study Groups
+          </h1>
           <p className="mt-1 text-muted-foreground">
             Create or join study groups to compete and learn together with
             friends.
@@ -58,37 +55,50 @@ export default function GroupContent() {
         </div>
       </header>
 
-      {!loading && !error && (
-        <>
-          <section className="mb-10">
-            <h2 className="mb-4 font-semibold text-xl">My Groups</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {myGroups.map((group) => (
-                <StudyGroupCard
-                  publicHidden={false}
-                  roleHidden={false}
-                  key={group.id}
-                  iStudyGroupCard={group}
-                />
-              ))}
+      {/* My Groups */}
+      <section className="mb-10">
+        <h2 className="mb-4 font-semibold text-foreground text-xl">
+          My Groups
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {myGroups.map((group) => (
+            <div key={group.id} className="cursor-pointer">
+              <StudyGroupCard
+                publicHidden={false}
+                roleHidden={false}
+                iStudyGroupCard={group}
+              />
             </div>
-          </section>
+          ))}
+        </div>
+      </section>
 
-          <section>
-            <h2 className="mb-4 font-semibold text-xl">Discover Groups</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {groups.map((group) => (
-                <StudyGroupCard
-                  publicHidden={true}
-                  roleHidden={true}
-                  key={group.id}
-                  iStudyGroupCard={group}
-                />
-              ))}
+      {/* Discover Groups */}
+      <section>
+        <h2 className="mb-4 font-semibold text-foreground text-xl">
+          Discover Groups
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {groups.map((group) => (
+            <div
+              key={group.id}
+              onClick={() => setSelectedGroup(group)}
+              className="cursor-pointer"
+            >
+              <StudyGroupCard
+                publicHidden={true}
+                roleHidden={true}
+                iStudyGroupCard={group}
+              />
             </div>
-          </section>
-        </>
-      )}
+          ))}
+        </div>
+      </section>
+
+      <GroupDialog
+        selectedGroup={selectedGroup}
+        onClose={() => setSelectedGroup(null)}
+      />
     </div>
   );
 }
