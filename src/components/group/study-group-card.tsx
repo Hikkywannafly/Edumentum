@@ -40,40 +40,51 @@ interface StudyGroupCardProps {
   iStudyGroupCard: GroupResponse;
   roleHidden: boolean;
   publicHidden: boolean;
+  onClick?: (group: GroupResponse) => void;
 }
 
 export function StudyGroupCard({
   iStudyGroupCard,
   roleHidden,
   publicHidden,
+  onClick,
 }: StudyGroupCardProps) {
   return (
-    <Card className="w-full max-w-sm rounded-sm border border-gray-200 bg-white p-1 text-black shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800 dark:text-white">
-      <CardHeader className="pb-3">
+    <Card
+      onClick={() => onClick?.(iStudyGroupCard)}
+      className="w-full max-w-sm rounded-lg border border-gray-200 bg-gray-50 p-4 text-black shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+    >
+      <CardHeader className="px-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 font-bold text-lg tracking-tight">
+          <CardTitle
+            className="line-clamp-2 font-semibold text-base leading-snug"
+            title={iStudyGroupCard.name}
+          >
             {iStudyGroupCard.name}
           </CardTitle>
           {!publicHidden &&
             (iStudyGroupCard.public ? (
-              <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Globe className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
             ) : (
-              <Lock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <Lock className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
             ))}
         </div>
         {iStudyGroupCard.description && (
-          <CardDescription className="mt-1 text-gray-600 text-sm dark:text-gray-300">
+          <CardDescription
+            className="mt-1 line-clamp-2 text-gray-600 text-sm leading-snug dark:text-gray-300"
+            title={iStudyGroupCard.description}
+          >
             {iStudyGroupCard.description}
           </CardDescription>
         )}
       </CardHeader>
 
-      <CardContent className="flex items-center justify-between text-gray-600 text-sm dark:text-gray-300">
-        <div className="flex items-center gap-2">
+      <CardContent className="flex items-center justify-between px-0 text-gray-600 text-sm dark:text-gray-300">
+        <div className="flex items-center gap-1">
           <Users className="h-4 w-4" />
           <span className="font-medium">{iStudyGroupCard.memberCount}/50</span>
-          {!roleHidden && <CheckRole ownerId={iStudyGroupCard.ownerId} />}
         </div>
+        {!roleHidden && <CheckRole ownerId={iStudyGroupCard.ownerId} />}
       </CardContent>
     </Card>
   );

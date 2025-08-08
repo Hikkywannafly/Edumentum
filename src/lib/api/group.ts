@@ -67,6 +67,12 @@ class GroupAPI {
     console.log(response.data);
     return response.data;
   }
+
+  async joinGroup(groupId: number): Promise<void> {
+    await this.request(`/student/groups/${groupId}/join`, {
+      method: "POST",
+    });
+  }
 }
 
 export const groupAPI = new GroupAPI();
