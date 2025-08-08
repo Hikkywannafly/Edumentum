@@ -33,18 +33,19 @@ export function QuizCreator() {
           >
             <TabsList className="grid w-full grid-cols-2 border-none ">
               <TabsTrigger
-                value="file-with-answers"
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                {t("create.tabs.fileWithAnswers")}
-              </TabsTrigger>
-              <TabsTrigger
                 value="ai-generated"
                 className="flex items-center gap-2"
               >
                 <Sparkles className="h-4 w-4" />
                 {t("create.tabs.aiGenerated")}
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="file-with-answers"
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                {t("create.tabs.fileWithAnswers")}
               </TabsTrigger>
             </TabsList>
 
