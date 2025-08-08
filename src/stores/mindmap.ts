@@ -158,12 +158,32 @@ export const useMindmapStore = create<RFMindmapState>((set, get) => ({
   deleteMindmapNode: (nodeId: string) => {
     const { mindmapNodes, mindmapEdges } = get();
 
-    // Remove the node
-    const updatedNodes = mindmapNodes.filter((node) => node.id !== nodeId);
+    // Collect all descendant node ids starting from the given node id
+    const nodeIdsToDelete = new Set<string>([nodeId]);
+    const traversalQueue: string[] = [nodeId];
 
-    // Remove connected edges
+    while (traversalQueue.length > 0) {
+      const currentNodeId = traversalQueue.shift() as string;
+      for (const edge of mindmapEdges) {
+        if (
+          edge.source === currentNodeId &&
+          !nodeIdsToDelete.has(edge.target)
+        ) {
+          nodeIdsToDelete.add(edge.target);
+          traversalQueue.push(edge.target);
+        }
+      }
+    }
+
+    // Remove all nodes that are in the delete set
+    const updatedNodes = mindmapNodes.filter(
+      (node) => !nodeIdsToDelete.has(node.id),
+    );
+
+    // Remove all edges that are connected to any deleted node
     const updatedEdges = mindmapEdges.filter(
-      (edge) => edge.source !== nodeId && edge.target !== nodeId,
+      (edge) =>
+        !nodeIdsToDelete.has(edge.source) && !nodeIdsToDelete.has(edge.target),
     );
 
     set({
