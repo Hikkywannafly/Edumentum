@@ -3,4 +3,5 @@ export interface Task {
   title: string;
   description: string;
   status: "toDo" | "inProgress" | "done";
+  dueDate: Date;
 }
