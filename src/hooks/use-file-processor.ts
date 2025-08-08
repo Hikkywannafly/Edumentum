@@ -74,23 +74,90 @@ const generateQuestionsWithAI = async (
     throw new Error("OpenRouter API key not configured");
   }
 
-  console.log(" Generating new questions with AI...");
+  console.log("🚀 Generating new questions with AI...");
+  console.log("🔧 Settings:", settings);
+  console.log("📄 Content length:", content.length);
 
-  const result = await generateQuestions({
-    questionHeader: "Generate Quiz Questions",
-    questionDescription:
-      "Generate new quiz questions from the provided content.",
-    apiKey,
-    fileContent: content,
-    settings,
-  });
+  const maxRetries = 3;
+  let lastError: Error | null = null;
 
-  if (!result.success || !result.questions) {
-    throw new Error(result.error || "Failed to generate questions");
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `📡 Attempt ${attempt}/${maxRetries} - Calling AI service...`,
+      );
+
+      const result = await generateQuestions({
+        questionHeader: "Generate Quiz Questions",
+        questionDescription:
+          "Generate new quiz questions from the provided content.",
+        apiKey,
+        fileContent: content,
+        settings: {
+          ...settings,
+          numberOfQuestions: settings?.numberOfQuestions || 5, // Ensure we have a default
+        },
+        useMultiAgent: settings?.parsingMode === "THOROUGH", // Use multi-agent for thorough mode
+      });
+
+      if (result.success && result.questions && result.questions.length > 0) {
+        console.log(
+          `✅ Successfully generated ${result.questions.length} questions on attempt ${attempt}`,
+        );
+
+        // Validate questions have proper structure
+        const validQuestions = result.questions.filter(
+          (q) =>
+            q.question &&
+            q.question.trim().length > 0 &&
+            q.answers &&
+            q.answers.length > 0,
+        );
+
+        if (validQuestions.length === 0) {
+          throw new Error("Generated questions are empty or invalid");
+        }
+
+        const expectedCount = settings?.numberOfQuestions || 5;
+        if (validQuestions.length < expectedCount) {
+          console.warn(
+            `⚠️ Got ${validQuestions.length} questions but expected ${expectedCount}`,
+          );
+
+          // If we're significantly short, try again unless this is the last attempt
+          if (
+            validQuestions.length < Math.ceil(expectedCount * 0.6) &&
+            attempt < maxRetries
+          ) {
+            throw new Error(
+              `Insufficient questions: got ${validQuestions.length}, expected ${expectedCount}`,
+            );
+          }
+        }
+
+        console.log(
+          `✅ Validated ${validQuestions.length} questions (expected: ${expectedCount})`,
+        );
+        return validQuestions;
+      }
+
+      throw new Error(result.error || "AI service returned no questions");
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
+
+      if (attempt < maxRetries) {
+        const delay = attempt * 1000;
+        console.log(`🔄 Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
   }
 
-  console.log(` Successfully generated ${result.questions.length} questions`);
-  return result.questions;
+  // All attempts failed, throw the last error with more context
+  const errorMessage = `Failed to generate questions after ${maxRetries} attempts. Last error: ${lastError?.message || "Unknown error"}`;
+  console.error("❌", errorMessage);
+  throw new Error(errorMessage);
 };
 
 export function useFileProcessor() {
@@ -232,6 +299,7 @@ export function useFileProcessor() {
   // Generate new questions using AI (for AI-generated uploader)
   const generateQuestionsFromFiles = useCallback(
     async (settings?: {
+      generationMode?: "GENERATE" | "EXTRACT";
       visibility?: string;
       language?: string;
       questionType?: string;
@@ -254,15 +322,29 @@ export function useFileProcessor() {
       for (const file of successfulFiles) {
         if (file.parsedContent) {
           try {
-            // Generate new questions using AI
-            const questions = await generateQuestionsWithAI(
-              file.parsedContent,
-              settings,
-            );
+            let questions: QuestionData[] = [];
+
+            if (settings?.generationMode === "EXTRACT") {
+              // Extract existing questions from file content (NO AI, direct parsing)
+              questions = await extractQuestionsFromContent(
+                file.parsedContent,
+                {
+                  language: settings.language as Language,
+                  parsingMode: settings.parsingMode as ParsingMode,
+                },
+              );
+            } else {
+              // Generate new questions using AI (default mode)
+              questions = await generateQuestionsWithAI(
+                file.parsedContent,
+                settings,
+              );
+            }
+
             allQuestions = [...allQuestions, ...questions];
           } catch (error) {
             console.error(
-              `Error generating questions from ${file.name}:`,
+              `Error ${settings?.generationMode === "EXTRACT" ? "extracting" : "generating"} questions from ${file.name}:`,
               error,
             );
             // Continue with other files even if one fails
@@ -271,13 +353,22 @@ export function useFileProcessor() {
       }
 
       if (allQuestions.length === 0) {
-        throw new Error("No questions could be generated from files");
+        throw new Error(
+          settings?.generationMode === "EXTRACT"
+            ? "No questions could be extracted from files"
+            : "No questions could be generated from files",
+        );
       }
 
       // Update quiz data
+      const isExtractMode = settings?.generationMode === "EXTRACT";
       const quizData: GeneratedQuiz = {
-        title: `AI-Generated Quiz from ${successfulFiles[0].name}`,
-        description: `Generated from ${successfulFiles.length} file(s) using AI`,
+        title: isExtractMode
+          ? `Extracted Quiz from ${successfulFiles[0].name}`
+          : `AI-Generated Quiz from ${successfulFiles[0].name}`,
+        description: isExtractMode
+          ? `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`
+          : `Generated from ${successfulFiles.length} file(s) using AI`,
         questions: allQuestions,
       };
 

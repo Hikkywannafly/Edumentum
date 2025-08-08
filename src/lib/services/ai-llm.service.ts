@@ -85,13 +85,15 @@ async function callOpenRouterAPI(
   }
 }
 
-function parseQuestionsFromAI(
+export function parseQuestionsFromAI(
   aiResponse: string,
   settings?: GenerateQuestionsParams["settings"],
 ): QuestionData[] {
-  const questions: QuestionData[] = [];
-
   console.log("🔍 Parsing AI Response, length:", aiResponse.length);
+  console.log(
+    "🔍 Raw AI Response (first 500 chars):",
+    aiResponse.substring(0, 500),
+  );
 
   let cleanedResponse = aiResponse.trim();
 
@@ -106,78 +108,220 @@ function parseQuestionsFromAI(
     .replace(/```\s*/gi, "")
     .trim();
 
-  // Find JSON array in the response
-  const startIndex = cleanedResponse.indexOf("[");
-  const endIndex = cleanedResponse.lastIndexOf("]");
+  // Remove any extra text before the JSON
+  cleanedResponse = cleanedResponse.replace(/^[^[\{]*/, "").trim();
 
-  if (startIndex === -1 || endIndex === -1) {
-    console.error("❌ No valid JSON array found in AI response");
-    console.error("Response preview:", cleanedResponse.substring(0, 500));
-    return questions;
+  // Try multiple approaches to find valid JSON
+  const jsonExtractionMethods = [
+    // Method 1: Look for array brackets
+    () => {
+      const startIndex = cleanedResponse.indexOf("[");
+      const endIndex = cleanedResponse.lastIndexOf("]");
+      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+        return cleanedResponse.substring(startIndex, endIndex + 1);
+      }
+      return null;
+    },
+
+    // Method 2: Look for object brackets (single object)
+    () => {
+      const startIndex = cleanedResponse.indexOf("{");
+      const endIndex = cleanedResponse.lastIndexOf("}");
+      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+        const jsonContent = cleanedResponse.substring(startIndex, endIndex + 1);
+        // Wrap single object in array
+        return `[${jsonContent}]`;
+      }
+      return null;
+    },
+
+    // Method 3: Use the entire cleaned response
+    () => {
+      return cleanedResponse;
+    },
+  ];
+
+  for (const [index, method] of jsonExtractionMethods.entries()) {
+    try {
+      const jsonString = method();
+      if (!jsonString) continue;
+
+      console.log(
+        `🔍 Trying extraction method ${index + 1}:`,
+        jsonString.substring(0, 200),
+      );
+
+      const parsed = JSON.parse(jsonString);
+
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        console.log(
+          `✅ Successfully parsed JSON with method ${index + 1}, found ${parsed.length} items`,
+        );
+        return processQuestionArray(parsed, settings);
+      }
+
+      if (typeof parsed === "object" && parsed !== null) {
+        // Single question object
+        console.log(
+          `✅ Successfully parsed single question object with method ${index + 1}`,
+        );
+        return processQuestionArray([parsed], settings);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Method ${index + 1} failed:`, error);
+    }
   }
 
-  // Extract just the JSON array part
-  cleanedResponse = cleanedResponse.substring(startIndex, endIndex + 1);
-
+  // Fallback: Try to extract questions using regex patterns
+  console.log("🔧 Attempting regex fallback extraction...");
   try {
-    const parsed = JSON.parse(cleanedResponse);
-    if (Array.isArray(parsed)) {
-      console.log("✅ Successfully parsed JSON with", parsed.length, "items");
-      return parsed.map((q, index) => {
-        // Handle both 'answers' and 'options' fields from AI
-        let answersArray = q.answers || q.options || [];
-
-        // If it's just an array of strings (options), convert to answer objects
-        if (answersArray.length > 0 && typeof answersArray[0] === "string") {
-          answersArray = answersArray.map((opt: string, _i: number) => ({
-            text: opt,
-            isCorrect: false, // Will need to be set based on correctAnswer field
-          }));
-
-          // If there's a correctAnswer field, mark the right answer
-          if (q.correctAnswer !== undefined) {
-            const correctIndex =
-              typeof q.correctAnswer === "number"
-                ? q.correctAnswer
-                : answersArray.findIndex(
-                    (a: any) => a.text === q.correctAnswer,
-                  );
-            if (correctIndex >= 0 && correctIndex < answersArray.length) {
-              answersArray[correctIndex].isCorrect = true;
-            }
-          }
-        }
-
-        // Ensure answers array is valid
-        const answers = Array.isArray(answersArray)
-          ? answersArray.map((a: any, i: number) => ({
-              id: a.id || `a-${Date.now()}-${index}-${i}`,
-              text: a.text || String(a) || "",
-              isCorrect: !!a.isCorrect,
-              order_index:
-                typeof a.order_index === "number" ? a.order_index : i,
-            }))
-          : [];
-        return {
-          id: q.id || `q-${Date.now()}-${index}`,
-          question: q.question || q.text || "",
-          type: q.type || "MULTIPLE_CHOICE",
-          difficulty: (q.difficulty ||
-            settings?.difficulty ||
-            "EASY") as Difficulty,
-          points: typeof q.points === "number" ? q.points : 1,
-          explanation: q.explanation || "",
-          answers,
-          shortAnswerText: q.shortAnswerText || "",
-        };
-      });
+    const regexQuestions = extractQuestionsWithRegex(aiResponse, settings);
+    if (regexQuestions.length > 0) {
+      console.log(
+        `✅ Regex fallback extracted ${regexQuestions.length} questions`,
+      );
+      return regexQuestions;
     }
-  } catch (jsonError) {
-    console.warn("JSON parsing failed, trying text parsing:", jsonError);
-    console.error(
-      "Failed to parse AI response as JSON:",
-      cleanedResponse.substring(0, 200),
-    );
+  } catch (regexError) {
+    console.warn("❌ Regex fallback also failed:", regexError);
+  }
+
+  console.error("❌ All parsing methods failed");
+  console.error("❌ Full AI response:", aiResponse);
+  return [];
+}
+
+function processQuestionArray(
+  parsed: any[],
+  settings?: GenerateQuestionsParams["settings"],
+): QuestionData[] {
+  return parsed.map((q, index) => {
+    // Handle both 'answers' and 'options' fields from AI
+    let answersArray = q.answers || q.options || [];
+
+    // If it's just an array of strings (options), convert to answer objects
+    if (answersArray.length > 0 && typeof answersArray[0] === "string") {
+      answersArray = answersArray.map((opt: string, _i: number) => ({
+        text: opt,
+        isCorrect: false, // Will need to be set based on correctAnswer field
+      }));
+
+      // If there's a correctAnswer field, mark the right answer
+      if (q.correctAnswer !== undefined) {
+        const correctIndex =
+          typeof q.correctAnswer === "number"
+            ? q.correctAnswer
+            : answersArray.findIndex((a: any) => a.text === q.correctAnswer);
+        if (correctIndex >= 0 && correctIndex < answersArray.length) {
+          answersArray[correctIndex].isCorrect = true;
+        }
+      }
+    }
+
+    // Ensure answers array is valid and has at least one correct answer
+    const answers = Array.isArray(answersArray)
+      ? answersArray.map((a: any, i: number) => ({
+          id: a.id || `a-${Date.now()}-${index}-${i}`,
+          text: a.text || String(a) || `Option ${i + 1}`,
+          isCorrect: !!a.isCorrect,
+          order_index: typeof a.order_index === "number" ? a.order_index : i,
+        }))
+      : [];
+
+    // Ensure at least one answer is marked as correct
+    if (answers.length > 0 && !answers.some((a) => a.isCorrect)) {
+      answers[0].isCorrect = true;
+    }
+
+    // Ensure minimum number of answers for multiple choice
+    if (q.type === "MULTIPLE_CHOICE" && answers.length < 2) {
+      while (answers.length < 4) {
+        answers.push({
+          id: `a-${Date.now()}-${index}-${answers.length}`,
+          text: `Option ${answers.length + 1}`,
+          isCorrect: false,
+          order_index: answers.length,
+        });
+      }
+    }
+
+    return {
+      id: q.id || `q-${Date.now()}-${index}`,
+      question: q.question || q.text || `Question ${index + 1}`,
+      type: q.type || "MULTIPLE_CHOICE",
+      difficulty: (q.difficulty ||
+        settings?.difficulty ||
+        "EASY") as Difficulty,
+      points: typeof q.points === "number" ? q.points : 1,
+      explanation: q.explanation || "",
+      answers,
+      shortAnswerText: q.shortAnswerText || "",
+    };
+  });
+}
+
+function extractQuestionsWithRegex(
+  text: string,
+  settings?: GenerateQuestionsParams["settings"],
+): QuestionData[] {
+  const questions: QuestionData[] = [];
+
+  // Try to find question patterns
+  const questionPatterns = [
+    /(?:Question|Câu hỏi)\s*\d*[:.]\s*(.+?)(?=(?:Question|Câu hỏi)\s*\d*[:..]|$)/gi,
+    /^\d+[.)]\s*(.+?)(?=^\d+[.)]|$)/gm,
+    /\?\s*(?:\n|$)/gm,
+  ];
+
+  for (const pattern of questionPatterns) {
+    const matches = text.match(pattern);
+    if (matches && matches.length > 0) {
+      matches.forEach((match, index) => {
+        const cleanQuestion = match
+          .replace(/^(?:Question|Câu hỏi)\s*\d*[:.]\s*/, "")
+          .trim();
+        if (cleanQuestion.length > 10) {
+          // Only include substantial questions
+          questions.push({
+            id: `regex-q-${Date.now()}-${index}`,
+            question: cleanQuestion,
+            type: "MULTIPLE_CHOICE",
+            difficulty: (settings?.difficulty || "EASY") as Difficulty,
+            points: 1,
+            explanation: "",
+            answers: [
+              {
+                id: `a-${index}-0`,
+                text: "Option A",
+                isCorrect: true,
+                order_index: 0,
+              },
+              {
+                id: `a-${index}-1`,
+                text: "Option B",
+                isCorrect: false,
+                order_index: 1,
+              },
+              {
+                id: `a-${index}-2`,
+                text: "Option C",
+                isCorrect: false,
+                order_index: 2,
+              },
+              {
+                id: `a-${index}-3`,
+                text: "Option D",
+                isCorrect: false,
+                order_index: 3,
+              },
+            ],
+            shortAnswerText: "",
+          });
+        }
+      });
+
+      if (questions.length > 0) break; // Use first successful pattern
+    }
   }
 
   return questions;
@@ -225,7 +369,7 @@ export async function extractQuestions(
 
 // Generate NEW questions using AI from content (NOT extraction)
 export async function generateQuestions(
-  params: GenerateQuestionsParams,
+  params: GenerateQuestionsParams & { useMultiAgent?: boolean },
 ): Promise<AIResponse> {
   const {
     questionHeader,
@@ -236,40 +380,98 @@ export async function generateQuestions(
     siteUrl,
     siteName,
     settings = {},
+    useMultiAgent = false,
   } = params;
 
   try {
+    // Use multi-agent workflow if enabled
+    if (useMultiAgent) {
+      console.log(
+        "🤖 Using multi-agent workflow via API for question generation",
+      );
+
+      try {
+        const response = await fetch("/api/ai/multi-agent-quiz", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            questionHeader,
+            questionDescription,
+            apiKey,
+            fileContent,
+            siteUrl,
+            siteName,
+            modelName,
+            settings,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.questions) {
+            console.log(
+              `✅ Multi-agent API generated ${result.questions.length} questions`,
+            );
+            return {
+              success: true,
+              questions: result.questions,
+            };
+          }
+        }
+
+        console.log("⚠️ Multi-agent API failed, falling back to single-agent");
+      } catch (apiError) {
+        console.error("Error calling multi-agent API:", apiError);
+        console.log("⚠️ Multi-agent API error, falling back to single-agent");
+      }
+    }
+
     // Build the prompt based on settings
+    const numberOfQuestions = Math.max(
+      1,
+      Math.min(10, settings.numberOfQuestions || 5),
+    );
     const prompt = `
-You are an expert quiz generator. Your response must be ONLY a valid JSON array, nothing else.
+Bạn là một chuyên gia tạo quiz. Bạn PHẢI trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi chất lượng cao.
 
-Create ${settings.numberOfQuestions || 5} high-quality questions based on the following requirements:
+YÊU CẦU:
+- Header: ${questionHeader}
+- Description: ${questionDescription}
+- Ngôn ngữ: ${settings.language || "AUTO"}
+- Loại câu hỏi: ${settings.questionType || "MIXED"}
+- Độ khó: ${settings.difficulty || "EASY"}
+- Số câu hỏi: ${numberOfQuestions}
 
-Header: ${questionHeader}
-Description: ${questionDescription}
-
-Settings:
-- Language: ${settings.language || "AUTO"}
-- Question Type: ${settings.questionType || "MIXED"}
-- Difficulty: ${settings.difficulty || "EASY"}
-- Mode: ${settings.mode || "QUIZ"}
-- Task: ${settings.task || "GENERATE_QUIZ"}
-- Parsing Mode: ${settings.parsingMode || "BALANCED"}
-
-Content to generate questions from:
+Nội dung để tạo câu hỏi:
 ${fileContent}
 
-IMPORTANT: Return ONLY a valid JSON array. Each question object must have:
-- "question": the question text
-- "answers": array of answer objects with "text" and "isCorrect" fields
-- "type": question type (e.g., "MULTIPLE_CHOICE")
-- "difficulty": difficulty level
-- "explanation": explanation text
+QUY TẮC QUAN TRỌNG:
+1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
+2. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
+3. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
+4. Response PHẢI là JSON array hợp lệ, không có text khác
 
-Example format:
-[{"question":"What is...","type":"MULTIPLE_CHOICE","answers":[{"text":"Option A","isCorrect":false},{"text":"Option B","isCorrect":true}],"difficulty":"EASY","explanation":"Because..."}]
+FORMAT JSON:
+[
+  {
+    "id": "q1",
+    "question": "Câu hỏi của bạn?",
+    "type": "MULTIPLE_CHOICE",
+    "difficulty": "${settings.difficulty || "EASY"}",
+    "points": 1,
+    "explanation": "Giải thích tại sao đáp án này đúng",
+    "answers": [
+      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+    ]
+  }
+]
 
-Respond with ONLY the JSON array, no other text.`.trim();
+PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
 
     console.log("🚀 Generating questions with AI...");
     const aiResponse = await callOpenRouterAPI(
@@ -303,10 +505,4 @@ Respond with ONLY the JSON array, no other text.`.trim();
       error: error instanceof Error ? error.message : String(error),
     };
   }
-}
-
-export async function createMultiAgentWorkflow() {
-  throw new Error(
-    "Multi-agent workflow is disabled. Use generateQuestions instead.",
-  );
 }

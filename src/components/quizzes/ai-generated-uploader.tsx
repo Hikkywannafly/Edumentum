@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { useFileProcessor } from "@/hooks/use-file-processor";
 import {
   FILE_UPLOAD_LIMITS,
@@ -47,6 +46,9 @@ export function AIGeneratedUploader() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   // AI Generation Settings
+  const [generationMode, setGenerationMode] = useState<"GENERATE" | "EXTRACT">(
+    "GENERATE",
+  );
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
   const [language, setLanguage] = useState<Language>("AUTO");
   const [questionType, setQuestionType] = useState<QuestionType | "MIXED">(
@@ -89,6 +91,7 @@ export function AIGeneratedUploader() {
     setTimeout(async () => {
       try {
         const settings = {
+          generationMode,
           visibility,
           language,
           questionType: questionType === "MIXED" ? "MIXED" : questionType,
@@ -135,6 +138,42 @@ export function AIGeneratedUploader() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="generation-mode">Processing Mode</Label>
+                  <Select
+                    value={generationMode}
+                    onValueChange={(value: "GENERATE" | "EXTRACT") =>
+                      setGenerationMode(value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectItem value="GENERATE">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">🧠 Generate Quiz</span>
+                          <span className="text-muted-foreground text-xs">
+                            Use AI to create new quiz questions from the
+                            material
+                          </span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EXTRACT">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium">📋 Extract Quiz</span>
+                          <span className="text-muted-foreground text-xs">
+                            Extract existing quiz questions from material (quiz
+                            format only)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               {/* Basic Settings */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -175,167 +214,185 @@ export function AIGeneratedUploader() {
                 </div>
               </div>
 
-              {/* Question Settings */}
-              <div className="space-y-4">
-                <div className="border-t pt-4">
-                  <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
-                    <Brain className="h-4 w-4" />
-                    Question Configuration
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="question-type">Question Type</Label>
+              {/* Question Settings - Only show for GENERATE mode */}
+              {generationMode === "GENERATE" && (
+                <div className="space-y-4">
+                  <div className="border-t pt-4">
+                    <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
+                      <Brain className="h-4 w-4" />
+                      Question Configuration
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="question-type">Question Type</Label>
+                        <Select
+                          value={questionType}
+                          onValueChange={(value: QuestionType | "MIXED") =>
+                            setQuestionType(value)
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="w-full">
+                            <SelectItem value="MIXED">Mixed Types</SelectItem>
+                            <SelectItem value="MULTIPLE_CHOICE">
+                              Multiple Choice
+                            </SelectItem>
+                            <SelectItem value="TRUE_FALSE">
+                              True/False
+                            </SelectItem>
+                            <SelectItem value="FILL_BLANK">
+                              Fill in the Blank
+                            </SelectItem>
+                            <SelectItem value="FREE_RESPONSE">
+                              Free Response
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="difficulty">Difficulty</Label>
+                        <Select
+                          value={difficulty}
+                          onValueChange={(value: Difficulty) =>
+                            setDifficulty(value)
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="w-full">
+                            <SelectItem value="EASY">Easy</SelectItem>
+                            <SelectItem value="MEDIUM">Medium</SelectItem>
+                            <SelectItem value="HARD">Hard</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <Label htmlFor="number-of-questions">
+                        Number of Questions
+                      </Label>
                       <Select
-                        value={questionType}
-                        onValueChange={(value: QuestionType | "MIXED") =>
-                          setQuestionType(value)
+                        value={String(numberOfQuestions)}
+                        onValueChange={(val) =>
+                          setNumberOfQuestions(Number(val))
                         }
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue />
+                          <SelectValue placeholder="Select number" />
                         </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="MIXED">Mixed Types</SelectItem>
-                          <SelectItem value="MULTIPLE_CHOICE">
-                            Multiple Choice
-                          </SelectItem>
-                          <SelectItem value="TRUE_FALSE">True/False</SelectItem>
-                          <SelectItem value="FILL_BLANK">
-                            Fill in the Blank
-                          </SelectItem>
-                          <SelectItem value="FREE_RESPONSE">
-                            Free Response
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="difficulty">Difficulty</Label>
-                      <Select
-                        value={difficulty}
-                        onValueChange={(value: Difficulty) =>
-                          setDifficulty(value)
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="EASY">Easy</SelectItem>
-                          <SelectItem value="MEDIUM">Medium</SelectItem>
-                          <SelectItem value="HARD">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <Label htmlFor="number-of-questions">
-                      Number of Questions: {numberOfQuestions}
-                    </Label>
-                    <Slider
-                      value={[numberOfQuestions]}
-                      onValueChange={(value) => setNumberOfQuestions(value[0])}
-                      max={10}
-                      min={5}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Advanced Settings */}
-              <div className="space-y-4">
-                <div className="border-t pt-4">
-                  <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
-                    <Sparkles className="h-4 w-4" />
-                    Advanced Options
-                  </h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="mode">Mode</Label>
-                      <Select
-                        value={mode}
-                        onValueChange={(value: QuizMode) => setMode(value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="QUIZ">Quiz</SelectItem>
-                          <SelectItem value="FLASHCARD">Flashcard</SelectItem>
-                          <SelectItem value="STUDY_GUIDE">
-                            Study Guide
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="task">Task</Label>
-                      <Select
-                        value={task}
-                        onValueChange={(value: Task) => setTask(value)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="GENERATE_QUIZ">
-                            Generate Quiz
-                          </SelectItem>
-                          <SelectItem value="REVIEW">
-                            Review Material
-                          </SelectItem>
-                          <SelectItem value="TEST">Test Knowledge</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="parsing-mode">AI Processing</Label>
-                      <Select
-                        value={parsingMode}
-                        onValueChange={(value: ParsingMode) =>
-                          setParsingMode(value)
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="w-full">
-                          <SelectItem value="FAST">
-                            <div className="flex flex-col items-start">
-                              <span>Fast</span>
-                              <span className="text-muted-foreground text-xs">
-                                Quick generation
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="BALANCED">
-                            <div className="flex flex-col items-start">
-                              <span>Balanced</span>
-                              <span className="text-muted-foreground text-xs">
-                                Good balance
-                              </span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="THOROUGH">
-                            <div className="flex flex-col items-start">
-                              <span>Thorough</span>
-                              <span className="text-muted-foreground text-xs">
-                                Detailed analysis
-                              </span>
-                            </div>
-                          </SelectItem>
+                        <SelectContent>
+                          {Array.from({ length: 6 }, (_, i) => {
+                            const val = i + 5;
+                            return (
+                              <SelectItem key={val} value={String(val)}>
+                                {val}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Advanced Settings - Only show for GENERATE mode */}
+              {generationMode === "GENERATE" && (
+                <div className="space-y-4">
+                  <div className="border-t pt-4">
+                    <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
+                      <Sparkles className="h-4 w-4" />
+                      Advanced Options
+                    </h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="mode">Mode</Label>
+                        <Select
+                          value={mode}
+                          onValueChange={(value: QuizMode) => setMode(value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="w-full">
+                            <SelectItem value="QUIZ">Quiz</SelectItem>
+                            <SelectItem value="FLASHCARD">Flashcard</SelectItem>
+                            <SelectItem value="STUDY_GUIDE">
+                              Study Guide
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="task">Task</Label>
+                        <Select
+                          value={task}
+                          onValueChange={(value: Task) => setTask(value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="w-full">
+                            <SelectItem value="GENERATE_QUIZ">
+                              Generate Quiz
+                            </SelectItem>
+                            <SelectItem value="REVIEW">
+                              Review Material
+                            </SelectItem>
+                            <SelectItem value="TEST">Test Knowledge</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="parsing-mode">AI Processing</Label>
+                        <Select
+                          value={parsingMode}
+                          onValueChange={(value: ParsingMode) =>
+                            setParsingMode(value)
+                          }
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="w-full">
+                            <SelectItem value="FAST">
+                              <div className="flex flex-col items-start">
+                                <span>Fast</span>
+                                <span className="text-muted-foreground text-xs">
+                                  Quick generation
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="BALANCED">
+                              <div className="flex flex-col items-start">
+                                <span>Balanced</span>
+                                <span className="text-muted-foreground text-xs">
+                                  Good balance
+                                </span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="THOROUGH">
+                              <div className="flex flex-col items-start">
+                                <span>Thorough</span>
+                                <span className="text-muted-foreground text-xs">
+                                  Detailed analysis
+                                </span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -347,7 +404,9 @@ export function AIGeneratedUploader() {
           {/* Action Buttons */}
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground text-sm">
-              Upload files and AI will generate quiz questions from the content
+              {generationMode === "GENERATE"
+                ? "Upload files and AI will generate quiz questions from the content"
+                : "Upload quiz files and extract existing questions and answers"}
             </p>
             <div className="flex gap-2">
               <Button
@@ -358,12 +417,23 @@ export function AIGeneratedUploader() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating Quiz...
+                    {generationMode === "GENERATE"
+                      ? "Generating Quiz..."
+                      : "Extracting Quiz..."}
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
-                    Generate AI Quiz
+                    {generationMode === "GENERATE" ? (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Generate AI Quiz
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="h-4 w-4" />
+                        Extract Quiz
+                      </>
+                    )}
                   </>
                 )}
               </Button>
