@@ -9,7 +9,10 @@ import { fileToAIService } from "@/lib/services/file-to-ai.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
-
+const apiKeyOpenAI =
+  process.env.OPENAI_API_KEY ||
+  process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
+  "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";
 export interface UploadedFile {
   id: string;
   name: string;
@@ -72,12 +75,10 @@ const extractQuestionsWithAIHandler = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+  const apiKey = apiKeyOpenAI;
 
   if (!apiKey) {
-    throw new Error("OpenRouter API key is not configured");
+    throw new Error("OpenAI API key is not configured");
   }
 
   console.log("🔍 Extracting existing questions with AI...");
@@ -173,6 +174,19 @@ const extractQuestionsWithAIHandler = async (
         lastError.message,
       );
 
+      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      const isQuotaExhausted =
+        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("insufficient_quota");
+      const isInvalidApiKey = lastError.message.includes("Invalid API key");
+
+      if (isQuotaExhausted || isInvalidApiKey) {
+        console.error(
+          `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
+        );
+        break; // Exit retry loop immediately
+      }
+
       if (attempt < maxRetries) {
         console.log(`⏳ Retrying in ${attempt} seconds...`);
         await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
@@ -201,12 +215,10 @@ const generateQuestionsWithAI = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+  const apiKey = apiKeyOpenAI;
 
   if (!apiKey) {
-    throw new Error("OpenRouter API key not configured");
+    throw new Error("OpenAI API key not configured");
   }
 
   console.log("🚀 Generating new questions with AI...");
@@ -318,6 +330,19 @@ const generateQuestionsWithAI = async (
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
+
+      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      const isQuotaExhausted =
+        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("insufficient_quota");
+      const isInvalidApiKey = lastError.message.includes("Invalid API key");
+
+      if (isQuotaExhausted || isInvalidApiKey) {
+        console.error(
+          `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
+        );
+        break; // Exit retry loop immediately
+      }
 
       if (attempt < maxRetries) {
         const delay = attempt * 1000;

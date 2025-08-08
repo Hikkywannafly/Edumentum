@@ -1,10 +1,108 @@
 import type { Difficulty, QuestionData } from "@/types/quiz";
+import axios, { type AxiosInstance, type AxiosError } from "axios";
 import { ContentExtractor } from "./content-extractor.service";
 import type { FileForAI } from "./file-to-ai.service";
 
 // AI service for quiz generation (NOT extraction)
-const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "qwen/qwq-32b:free";
+const OPENAI_API_BASE = "https://api.openai.com/v1";
+const DEFAULT_MODEL = "gpt-3.5-turbo";
+
+// Cache axios clients to avoid recreating instances
+const clientCache = new Map<string, AxiosInstance>();
+
+// Create optimized axios instance with retry logic
+const createOpenAIClient = (apiKey: string): AxiosInstance => {
+  // Use cached client if available (performance optimization)
+  const cacheKey = apiKey.substring(0, 10); // Use partial key for caching
+  if (clientCache.has(cacheKey)) {
+    return clientCache.get(cacheKey) as AxiosInstance;
+  }
+
+  const client = axios.create({
+    baseURL: OPENAI_API_BASE,
+    timeout: 90000, // 90 seconds for longer requests
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    // Performance optimizations
+    maxRedirects: 0,
+    validateStatus: (status) => status < 500, // Don't throw on 4xx errors, handle them manually
+  });
+
+  // Add retry interceptor for rate limiting (429) and network errors
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const config = error.config as any;
+      const retryCount = config._retryCount || 0;
+      const maxRetries = 4; // Increased retries for better resilience
+
+      // Handle rate limiting (429), timeout errors, and connection resets
+      // BUT NOT quota exhaustion (insufficient_quota) - retrying won't help
+      const isQuotaExhausted =
+        (error.response?.data as any)?.error?.code === "insufficient_quota";
+      const shouldRetry =
+        ((error.response?.status === 429 && !isQuotaExhausted) ||
+          error.response?.status === 503 || // Service unavailable
+          error.code === "ECONNRESET" ||
+          error.code === "ETIMEDOUT" ||
+          error.code === "ENOTFOUND") &&
+        retryCount < maxRetries;
+
+      if (shouldRetry) {
+        config._retryCount = retryCount + 1;
+
+        // Smart delay calculation based on error type
+        let delay: number;
+        if (error.response?.status === 429) {
+          // For rate limits, check if Retry-After header is present
+          const retryAfter = error.response.headers["retry-after"];
+          delay = retryAfter
+            ? Number.parseInt(retryAfter) * 1000
+            : 2 ** retryCount * 1000;
+        } else {
+          // For other errors, use exponential backoff with jitter
+          delay = 2 ** retryCount * 1000 + Math.random() * 1000;
+        }
+
+        const errorType =
+          error.response?.status === 429
+            ? "Rate limited (429)"
+            : "Network/Server error";
+        console.warn(
+          `⚠️ ${errorType}. Retrying in ${delay}ms... (attempt ${retryCount + 1}/${maxRetries + 1})`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return client(config);
+      }
+
+      return Promise.reject(error);
+    },
+  );
+
+  // Request interceptor for logging (in development)
+  if (process.env.NODE_ENV === "development") {
+    client.interceptors.request.use((config) => {
+      console.log(
+        `🚀 OpenAI API Request: ${config.method?.toUpperCase()} ${config.url}`,
+      );
+      return config;
+    });
+  }
+
+  // Cache the client for reuse
+  clientCache.set(cacheKey, client);
+
+  return client;
+};
+
+// Utility function to clear client cache (useful for testing or when switching API keys)
+export const clearOpenAIClientCache = () => {
+  clientCache.clear();
+  console.log("🧹 OpenAI client cache cleared");
+};
 
 // For AI-based quiz generation from content
 interface GenerateQuestionsParams {
@@ -12,8 +110,6 @@ interface GenerateQuestionsParams {
   questionDescription: string;
   apiKey: string;
   fileContent?: string;
-  siteUrl?: string;
-  siteName?: string;
   modelName?: string;
   settings?: {
     visibility?: string;
@@ -43,60 +139,95 @@ interface AIResponse {
   error?: string;
 }
 
-async function callOpenRouterAPI(
+async function callOpenAIApi(
   apiKey: string,
   prompt: string,
   modelName = DEFAULT_MODEL,
-  siteUrl = "http://localhost:3000",
-  siteName = "Edumentum",
 ): Promise<string> {
   try {
-    const response = await fetch(`${OPENROUTER_API_BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": siteUrl,
-        "X-Title": siteName,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
+    const client = createOpenAIClient(apiKey);
+
+    const response = await client.post("/chat/completions", {
+      model: modelName,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
     });
 
-    if (!response.ok) {
-      throw new Error(
-        `OpenRouter API error: ${response.status} ${response.statusText}`,
-      );
+    // Handle HTTP error status codes that didn't trigger retry
+    if (response.status >= 400) {
+      const errorData = response.data;
+      console.error(`OpenAI API error ${response.status}:`, errorData);
+
+      // Provide more specific error messages
+      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      if (errorData?.error?.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data.choices[0]?.message?.content || "";
+    const responseContent = response.data.choices?.[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error("No content returned from OpenAI API");
+    }
+
+    return responseContent;
   } catch (error) {
-    console.error("OpenRouter API call failed:", error);
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const statusText = error.response?.statusText;
+      const errorData = error.response?.data;
+
+      console.error(
+        `OpenAI API call failed: ${status} ${statusText}`,
+        errorData,
+      );
+
+      // Provide helpful error messages based on status and error type
+      let userMessage = `OpenAI API error: ${status} ${statusText}`;
+      const errorCode = errorData?.error?.code;
+
+      if (status === 401) {
+        userMessage += " - Invalid API key";
+      } else if (status === 429) {
+        if (errorCode === "insufficient_quota") {
+          userMessage =
+            "🚫 OpenAI Quota Exhausted - Your OpenAI account has run out of credits. Please check your billing at https://platform.openai.com/account/billing";
+        } else {
+          userMessage += " - Rate limit exceeded (too many requests)";
+        }
+      } else if (status === 503) {
+        userMessage += " - Service temporarily unavailable";
+      } else if (errorData?.error?.message) {
+        userMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(userMessage);
+    }
+
+    console.error("OpenAI API call failed:", error);
     throw error;
   }
 }
 
-async function callOpenRouterAPIWithFile(
+async function callOpenAIApiWithFile(
   apiKey: string,
   prompt: string,
   file: FileForAI,
-  modelName = "openai/gpt-4o", // Use vision model for file support
-  siteUrl = "http://localhost:3000",
-  siteName = "Edumentum",
+  modelName = "gpt-4o", // Use vision model for file support
 ): Promise<string> {
   try {
-    // Prepare content based on file type
-    const content: any[] = [
+    const client = createOpenAIClient(apiKey);
+
+    // Prepare message content based on file type
+    const messageContent: any[] = [
       {
         type: "text",
         text: prompt,
@@ -105,7 +236,7 @@ async function callOpenRouterAPIWithFile(
 
     // Add file content based on type
     if (file.type === "image") {
-      content.push({
+      messageContent.push({
         type: "image_url",
         image_url: {
           url: `data:${file.mimeType};base64,${file.data}`,
@@ -113,43 +244,80 @@ async function callOpenRouterAPIWithFile(
       });
     } else if (file.type === "document" || file.type === "text") {
       // For documents, we'll add them as base64 data with description
-      content.push({
+      messageContent.push({
         type: "text",
         text: `File: ${file.fileName} (${file.mimeType})\nBase64 Content: data:${file.mimeType};base64,${file.data}\n\nPlease analyze this file and extract the content to generate quiz questions.`,
       });
     }
 
-    const response = await fetch(`${OPENROUTER_API_BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": siteUrl,
-        "X-Title": siteName,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          {
-            role: "user",
-            content: content,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
+    const response = await client.post("/chat/completions", {
+      model: modelName,
+      messages: [
+        {
+          role: "user",
+          content: messageContent,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
     });
 
-    if (!response.ok) {
+    // Handle HTTP error status codes
+    if (response.status >= 400) {
+      const errorData = response.data;
+      console.error(`OpenAI API file error ${response.status}:`, errorData);
+
+      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      if (errorData?.error?.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const responseContent = response.data.choices?.[0]?.message?.content;
+    if (!responseContent) {
       throw new Error(
-        `OpenRouter API error: ${response.status} ${response.statusText}`,
+        "No content returned from OpenAI API for file processing",
       );
     }
 
-    const data = await response.json();
-    return data.choices[0]?.message?.content || "";
+    return responseContent;
   } catch (error) {
-    console.error("OpenRouter API with file call failed:", error);
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const statusText = error.response?.statusText;
+      const errorData = error.response?.data;
+
+      console.error(
+        `OpenAI API with file call failed: ${status} ${statusText}`,
+        errorData,
+      );
+
+      let userMessage = `OpenAI API file processing error: ${status} ${statusText}`;
+      const errorCode = errorData?.error?.code;
+
+      if (status === 401) {
+        userMessage += " - Invalid API key";
+      } else if (status === 429) {
+        if (errorCode === "insufficient_quota") {
+          userMessage =
+            "🚫 OpenAI Quota Exhausted - Your OpenAI account has run out of credits. Please check your billing at https://platform.openai.com/account/billing";
+        } else {
+          userMessage += " - Rate limit exceeded (too many requests)";
+        }
+      } else if (status === 413) {
+        userMessage += " - File too large";
+      } else if (status === 400) {
+        userMessage += " - Invalid file format or content";
+      } else if (errorData?.error?.message) {
+        userMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(userMessage);
+    }
+
+    console.error("OpenAI API with file call failed:", error);
     throw error;
   }
 }
@@ -446,8 +614,6 @@ export async function generateQuestions(
     apiKey,
     fileContent = "",
     modelName = DEFAULT_MODEL,
-    siteUrl,
-    siteName,
     settings = {},
     useMultiAgent = false,
   } = params;
@@ -470,8 +636,6 @@ export async function generateQuestions(
             questionDescription,
             apiKey,
             fileContent,
-            siteUrl,
-            siteName,
             modelName,
             settings,
           }),
@@ -543,13 +707,7 @@ FORMAT JSON:
 PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
 
     console.log("🚀 Generating questions with AI...");
-    const aiResponse = await callOpenRouterAPI(
-      apiKey,
-      prompt,
-      modelName,
-      siteUrl,
-      siteName,
-    );
+    const aiResponse = await callOpenAIApi(apiKey, prompt, modelName);
 
     console.log("📝 Parsing AI response...");
 
@@ -589,8 +747,6 @@ export async function extractQuestionsWithAI(
     apiKey,
     fileContent,
     modelName = DEFAULT_MODEL,
-    siteUrl,
-    siteName,
     settings = {},
     file,
   } = params;
@@ -651,21 +807,17 @@ CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả v�
         file.mimeType,
         `${(file.size / 1024).toFixed(1)}KB`,
       );
-      aiResponse = await callOpenRouterAPIWithFile(
+      aiResponse = await callOpenAIApiWithFile(
         apiKey,
         prompt,
         file,
-        "openai/gpt-4o", // Use vision model for file support
-        siteUrl,
-        siteName,
+        "gpt-4o", // Use vision model for file support
       );
     } else {
-      aiResponse = await callOpenRouterAPI(
+      aiResponse = await callOpenAIApi(
         apiKey,
         `${prompt}\n\nContent to extract from:\n${fileContent}`,
         modelName,
-        siteUrl,
-        siteName,
       );
     }
 
@@ -700,9 +852,7 @@ export async function generateQuestionsFromFile(
     questionHeader,
     questionDescription,
     apiKey,
-    modelName = "openai/gpt-4o", // Use vision model for file support
-    siteUrl,
-    siteName,
+    modelName = "gpt-4o", // Use vision model for file support
     settings = {},
     file,
   } = params;
@@ -761,13 +911,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       `${(file.size / 1024).toFixed(1)}KB`,
     );
 
-    const aiResponse = await callOpenRouterAPIWithFile(
+    const aiResponse = await callOpenAIApiWithFile(
       apiKey,
       prompt,
       file,
       modelName,
-      siteUrl,
-      siteName,
     );
 
     console.log("📝 Parsing AI response from file...");
