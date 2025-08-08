@@ -401,6 +401,8 @@
       "studyDeck": "Study Deck",
       "lastStudied": "Last studied"
     },
+    "study": "Study",
+    "edit": "Edit",
     "difficulty": {
       "easy": "Easy",
       "medium": "Medium",

@@ -1,3 +1,4 @@
+"use client";
 import { Eye, EyeOff } from "lucide-react";
 import { forwardRef, useEffect } from "react";
 import { useState } from "react";
@@ -10,11 +11,25 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ label, error, showPasswordToggle = false, className = "", type = "text", id, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      showPasswordToggle = false,
+      className = "",
+      type = "text",
+      id,
+      ...props
+    },
+    ref,
+  ) => {
     const [showPassword, setShowPassword] = useState(false);
-    const inputType = showPasswordToggle && type === "password"
-      ? (showPassword ? "text" : "password")
-      : type;
+    const inputType =
+      showPasswordToggle && type === "password"
+        ? showPassword
+          ? "text"
+          : "password"
+        : type;
     const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
     // Show toast error when error prop changes
@@ -27,7 +42,10 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
     return (
       <div className="space-y-2">
         {label && (
-          <label htmlFor={inputId} className="block text-start font-medium text-foreground text-sm">
+          <label
+            htmlFor={inputId}
+            className="block text-start font-medium text-foreground text-sm"
+          >
             {label}
           </label>
         )}
@@ -36,8 +54,9 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
             ref={ref}
             id={inputId}
             type={inputType}
-            className={`w-full rounded-lg border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-200 ${error ? "border-red-500" : "border-border focus:border-blue-500"
-              } ${className}`}
+            className={`w-full rounded-lg border bg-background px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+              error ? "border-red-500" : "border-border focus:border-blue-500"
+            } ${className}`}
             {...props}
           />
           {showPasswordToggle && type === "password" && (
@@ -56,7 +75,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 FormInput.displayName = "FormInput";
