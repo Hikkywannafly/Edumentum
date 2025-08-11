@@ -77,35 +77,18 @@ export class FileToAIService {
    * Check if file is supported for direct AI sending
    */
   isSupportedForDirectSend(file: File): boolean {
-    const supportedTypes = [
-      // Images
+    // For performance and token efficiency, only allow images for direct send.
+    // Documents and text files should be parsed to text first and sent as text content.
+    const imageTypes = [
       "image/jpeg",
       "image/png",
       "image/gif",
       "image/webp",
       "image/bmp",
       "image/tiff",
-      // Documents
-      "application/pdf",
-      // Microsoft Office Documents
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
-      "application/msword", // .doc
-      "application/vnd.ms-excel", // .xls
-      "application/vnd.ms-powerpoint", // .ppt
-      // Text files
-      "text/plain",
-      "text/markdown",
-      "text/csv",
-      "application/json",
-      "application/xml",
-      "text/xml",
-      // Other formats
-      "application/rtf", // Rich Text Format
     ];
 
-    return supportedTypes.includes(file.type);
+    return imageTypes.includes(file.type);
   }
 
   /**
@@ -169,10 +152,10 @@ export class FileToAIService {
    */
   validateFileForAI(file: File): { valid: boolean; error?: string } {
     if (!this.isSupportedForDirectSend(file)) {
-      const supportedTypes = this.getSupportedFileTypes();
       return {
         valid: false,
-        error: `File type "${file.type}" not supported for direct AI processing. Supported: ${supportedTypes.description}. Auto-fallback to "Parse Then Send" mode.`,
+        error:
+          'Direct send is only supported for images to ensure speed and efficiency. Falling back to "Parse Then Send" for this file.',
       };
     }
 

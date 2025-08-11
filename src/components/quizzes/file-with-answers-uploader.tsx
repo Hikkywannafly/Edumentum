@@ -95,9 +95,7 @@ export function FileWithAnswersUploader() {
       {isCreatingQuiz ? (
         <ProcessingScreen
           fileName={uploadedFiles[0]?.name || "File"}
-          onComplete={() => {
-            // Processing complete callback
-          }}
+          label="Extracting quiz from file"
         />
       ) : (
         <>

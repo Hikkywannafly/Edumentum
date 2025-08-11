@@ -181,7 +181,7 @@ const extractQuestionsWithAIHandler = async (
         console.error(
           `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
         );
-        break; // Exit retry loop immediately
+        break;
       }
 
       if (attempt < maxRetries) {
@@ -196,7 +196,6 @@ const extractQuestionsWithAIHandler = async (
   );
 };
 
-// Generate NEW questions using AI (for AI-generated quizzes)
 const generateQuestionsWithAI = async (
   content: string,
   actualFile?: File,
@@ -306,7 +305,6 @@ const generateQuestionsWithAI = async (
             `⚠️ Got ${validQuestions.length} questions but expected ${expectedCount}`,
           );
 
-          // If we're significantly short, try again unless this is the last attempt
           if (
             validQuestions.length < Math.ceil(expectedCount * 0.6) &&
             attempt < maxRetries
@@ -348,8 +346,6 @@ const generateQuestionsWithAI = async (
       }
     }
   }
-
-  // All attempts failed, throw the last error with more context
   const errorMessage = `Failed to generate questions after ${maxRetries} attempts. Last error: ${lastError?.message || "Unknown error"}`;
   console.error("❌", errorMessage);
   throw new Error(errorMessage);
@@ -419,9 +415,10 @@ export function useFileProcessor() {
 
       setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-      for (const file of newFiles) {
-        await processFile(file, acceptedFiles[newFiles.indexOf(file)]);
-      }
+      // Process files concurrently for faster UX
+      await Promise.all(
+        newFiles.map((file, idx) => processFile(file, acceptedFiles[idx])),
+      );
     },
     [processFile],
   );
@@ -440,7 +437,6 @@ export function useFileProcessor() {
     [setQuizData],
   );
 
-  // Extract existing questions from files (for file-with-answers uploader)
   const extractQuestionsFromFiles = useCallback(
     async (settings?: {
       language?: Language;
@@ -588,7 +584,6 @@ export function useFileProcessor() {
   // Get current quiz data from store
   const { quizData } = useQuizEditorStore();
 
-  // Update quiz data when files are processed
   useEffect(() => {
     const successfulFiles = uploadedFiles.filter(
       (f) => f.status === "success" && f.extractedQuestions,
@@ -605,7 +600,6 @@ export function useFileProcessor() {
         questions: allQuestions,
       });
     } else if (uploadedFiles.length === 0) {
-      // Clear quiz data when no files
       setQuizData(null as any);
     }
   }, [uploadedFiles, setQuizData]);

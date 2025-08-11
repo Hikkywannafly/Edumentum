@@ -6,6 +6,9 @@ import type { FileForAI } from "./file-to-ai.service";
 // AI service for quiz generation (NOT extraction)
 const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
 const DEFAULT_MODEL = "openai/gpt-oss-20b:free"; // Stable model on OpenRouter
+const DEFAULT_TEMPERATURE = 0.3; // Lower for faster/more deterministic results
+// Slightly higher cap to avoid truncated JSON while still keeping latency reasonable
+const DEFAULT_MAX_TOKENS = 3500;
 
 // Cache axios clients to avoid recreating instances
 const clientCache = new Map<string, AxiosInstance>();
@@ -20,7 +23,7 @@ const createOpenAIClient = (apiKey: string): AxiosInstance => {
 
   const client = axios.create({
     baseURL: OPENROUTER_API_BASE,
-    timeout: 90000, // 90 seconds for longer requests
+    timeout: 90000,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -157,8 +160,8 @@ async function callOpenRouterApi(
           content: prompt,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 4000, // Qwen supports longer responses
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: DEFAULT_MAX_TOKENS,
     });
 
     // Handle HTTP error status codes that didn't trigger retry
@@ -166,7 +169,6 @@ async function callOpenRouterApi(
       const errorData = response.data;
       console.error(`OpenRouter API error ${response.status}:`, errorData);
 
-      // Provide more specific error messages
       let errorMessage = `OpenRouter API error: ${response.status} ${response.statusText}`;
       if (errorData?.error?.message) {
         errorMessage += ` - ${errorData.error.message}`;
@@ -260,8 +262,8 @@ async function callOpenRouterApiWithFile(
           content: messageContent,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 4000, // Qwen supports longer responses
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: DEFAULT_MAX_TOKENS,
     });
 
     // Handle HTTP error status codes
@@ -328,106 +330,34 @@ export function parseQuestionsFromAI(
   aiResponse: string,
   settings?: GenerateQuestionsParams["settings"],
 ): QuestionData[] {
-  console.log("🔍 Parsing AI Response, length:", aiResponse.length);
-  console.log(
-    "🔍 Raw AI Response (first 500 chars):",
-    aiResponse.substring(0, 500),
-  );
+  // Minimal, fast path parse: strip wrappers and parse once
+  let content = aiResponse.trim();
+  content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  // Remove any leading/trailing code fences anywhere
+  content = content.replace(/```json\s*([\s\S]*?)\s*```/i, "$1").trim();
+  content = content.replace(/```\s*([\s\S]*?)\s*```/i, "$1").trim();
 
-  let cleanedResponse = aiResponse.trim();
-
-  // Remove any <think> tags if present
-  cleanedResponse = cleanedResponse
-    .replace(/<think>[\s\S]*?<\/think>/gi, "")
-    .trim();
-
-  // Remove any markdown code blocks
-  cleanedResponse = cleanedResponse
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
-
-  // Remove any extra text before the JSON
-  cleanedResponse = cleanedResponse.replace(/^[^[\{]*/, "").trim();
-
-  // Try multiple approaches to find valid JSON
-  const jsonExtractionMethods = [
-    // Method 1: Look for array brackets
-    () => {
-      const startIndex = cleanedResponse.indexOf("[");
-      const endIndex = cleanedResponse.lastIndexOf("]");
-      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-        return cleanedResponse.substring(startIndex, endIndex + 1);
-      }
-      return null;
-    },
-
-    // Method 2: Look for object brackets (single object)
-    () => {
-      const startIndex = cleanedResponse.indexOf("{");
-      const endIndex = cleanedResponse.lastIndexOf("}");
-      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-        const jsonContent = cleanedResponse.substring(startIndex, endIndex + 1);
-        // Wrap single object in array
-        return `[${jsonContent}]`;
-      }
-      return null;
-    },
-
-    // Method 3: Use the entire cleaned response
-    () => {
-      return cleanedResponse;
-    },
-  ];
-
-  for (const [index, method] of jsonExtractionMethods.entries()) {
+  // If the model returned extra text before/after JSON, try to slice the first top-level JSON array
+  const firstBracket = content.indexOf("[");
+  const lastBracket = content.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    const sliced = content.slice(firstBracket, lastBracket + 1);
     try {
-      const jsonString = method();
-      if (!jsonString) continue;
-
-      console.log(
-        `🔍 Trying extraction method ${index + 1}:`,
-        jsonString.substring(0, 200),
-      );
-
-      const parsed = JSON.parse(jsonString);
-
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        console.log(
-          `✅ Successfully parsed JSON with method ${index + 1}, found ${parsed.length} items`,
-        );
-        return processQuestionArray(parsed, settings);
-      }
-
-      if (typeof parsed === "object" && parsed !== null) {
-        // Single question object
-        console.log(
-          `✅ Successfully parsed single question object with method ${index + 1}`,
-        );
-        return processQuestionArray([parsed], settings);
-      }
-    } catch (error) {
-      console.warn(`⚠️ Method ${index + 1} failed:`, error);
+      const parsed = JSON.parse(sliced);
+      const array = Array.isArray(parsed) ? parsed : [parsed];
+      return processQuestionArray(array, settings);
+    } catch {
+      // fallthrough to full parse attempt
     }
   }
 
-  // Fallback: Try to extract questions using regex patterns
-  console.log("🔧 Attempting regex fallback extraction...");
   try {
-    const regexQuestions = extractQuestionsWithRegex(aiResponse, settings);
-    if (regexQuestions.length > 0) {
-      console.log(
-        `✅ Regex fallback extracted ${regexQuestions.length} questions`,
-      );
-      return regexQuestions;
-    }
-  } catch (regexError) {
-    console.warn("❌ Regex fallback also failed:", regexError);
+    const parsed = JSON.parse(content);
+    const array = Array.isArray(parsed) ? parsed : [parsed];
+    return processQuestionArray(array, settings);
+  } catch {
+    return [];
   }
-
-  console.error("❌ All parsing methods failed");
-  console.error("❌ Full AI response:", aiResponse);
-  return [];
 }
 
 function processQuestionArray(
@@ -499,72 +429,7 @@ function processQuestionArray(
   });
 }
 
-function extractQuestionsWithRegex(
-  text: string,
-  settings?: GenerateQuestionsParams["settings"],
-): QuestionData[] {
-  const questions: QuestionData[] = [];
-
-  // Try to find question patterns
-  const questionPatterns = [
-    /(?:Question|Câu hỏi)\s*\d*[:.]\s*(.+?)(?=(?:Question|Câu hỏi)\s*\d*[:..]|$)/gi,
-    /^\d+[.)]\s*(.+?)(?=^\d+[.)]|$)/gm,
-    /\?\s*(?:\n|$)/gm,
-  ];
-
-  for (const pattern of questionPatterns) {
-    const matches = text.match(pattern);
-    if (matches && matches.length > 0) {
-      matches.forEach((match, index) => {
-        const cleanQuestion = match
-          .replace(/^(?:Question|Câu hỏi)\s*\d*[:.]\s*/, "")
-          .trim();
-        if (cleanQuestion.length > 10) {
-          // Only include substantial questions
-          questions.push({
-            id: `regex-q-${Date.now()}-${index}`,
-            question: cleanQuestion,
-            type: "MULTIPLE_CHOICE",
-            difficulty: (settings?.difficulty || "EASY") as Difficulty,
-            points: 1,
-            explanation: "",
-            answers: [
-              {
-                id: `a-${index}-0`,
-                text: "Option A",
-                isCorrect: true,
-                order_index: 0,
-              },
-              {
-                id: `a-${index}-1`,
-                text: "Option B",
-                isCorrect: false,
-                order_index: 1,
-              },
-              {
-                id: `a-${index}-2`,
-                text: "Option C",
-                isCorrect: false,
-                order_index: 2,
-              },
-              {
-                id: `a-${index}-3`,
-                text: "Option D",
-                isCorrect: false,
-                order_index: 3,
-              },
-            ],
-            shortAnswerText: "",
-          });
-        }
-      });
-
-      if (questions.length > 0) break; // Use first successful pattern
-    }
-  }
-
-  return questions;
-}
+// Removed regex fallback for performance and determinism
 
 // Extract questions from files with existing questions (NO AI, direct parsing)
 export async function extractQuestions(
@@ -668,6 +533,8 @@ export async function generateQuestions(
       1,
       Math.min(10, settings.numberOfQuestions || 5),
     );
+    // Truncate very long content to keep token usage reasonable
+    const limitedContent = fileContent?.slice(0, 8000) || ""; // ~8k chars
     const prompt = `
 Bạn là một chuyên gia tạo quiz. Bạn PHẢI trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi chất lượng cao.
 
@@ -679,8 +546,8 @@ YÊU CẦU:
 - Độ khó: ${settings.difficulty || "EASY"}
 - Số câu hỏi: ${numberOfQuestions}
 
-Nội dung để tạo câu hỏi:
-${fileContent}
+ Nội dung để tạo câu hỏi (truncated nếu quá dài):
+ ${limitedContent}
 
 QUY TẮC QUAN TRỌNG:
 1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
@@ -711,10 +578,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
     console.log("🚀 Generating questions with AI...");
     const aiResponse = await callOpenRouterApi(apiKey, prompt, modelName);
 
-    console.log("📝 Parsing AI response...");
-
-    console.log("🔍 Full AI Response Length:", aiResponse.length, settings);
-    console.log("🔍 Full AI Response:", aiResponse);
+    if (process.env.NODE_ENV === "development") {
+      console.log("📝 Parsing AI response...");
+      console.log("🔍 Full AI Response Length:", aiResponse.length, settings);
+      console.log("🔍 Full AI Response:", aiResponse);
+    }
 
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
@@ -816,16 +684,19 @@ CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả v�
         "openai/gpt-oss-20b:free", // Use GPT-3.5 for file support
       );
     } else {
+      const limitedExtractContent = (fileContent || "").slice(0, 8000);
       aiResponse = await callOpenRouterApi(
         apiKey,
-        `${prompt}\n\nContent to extract from:\n${fileContent}`,
+        `${prompt}\n\nContent to extract from (truncated nếu quá dài):\n${limitedExtractContent}`,
         modelName,
       );
     }
 
-    console.log("📝 Parsing AI extraction response...");
-    console.log("🔍 Full AI Response Length:", aiResponse.length);
-    console.log("🔍 Full AI Response:", aiResponse);
+    if (process.env.NODE_ENV === "development") {
+      console.log("📝 Parsing AI extraction response...");
+      console.log("🔍 Full AI Response Length:", aiResponse.length);
+      console.log("🔍 Full AI Response:", aiResponse);
+    }
 
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
@@ -920,9 +791,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       modelName,
     );
 
-    console.log("📝 Parsing AI response from file...");
-    console.log("🔍 Full AI Response Length:", aiResponse.length);
-    console.log("🔍 Full AI Response:", aiResponse);
+    if (process.env.NODE_ENV === "development") {
+      console.log("📝 Parsing AI response from file...");
+      console.log("🔍 Full AI Response Length:", aiResponse.length);
+      console.log("🔍 Full AI Response:", aiResponse);
+    }
 
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
@@ -930,9 +803,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       throw new Error("No questions could be extracted from AI response");
     }
 
-    console.log(
-      `✅ Successfully generated ${questions.length} questions from file`,
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ Successfully generated ${questions.length} questions from file`,
+      );
+    }
     return {
       success: true,
       questions,

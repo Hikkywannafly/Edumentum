@@ -28,14 +28,20 @@ export class FileParserService {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    let content = "";
+    // Extract pages concurrently for speed on large PDFs
+    const pageExtractions: Promise<string>[] = [];
     for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      content += `${textContent.items.map((item: any) => item.str).join(" ")}\n`;
+      pageExtractions.push(
+        (async () => {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          return textContent.items.map((item: any) => item.str).join(" ");
+        })(),
+      );
     }
 
-    return content;
+    const pages = await Promise.all(pageExtractions);
+    return pages.join("\n");
   }
 
   private async parseWord(file: File): Promise<string> {

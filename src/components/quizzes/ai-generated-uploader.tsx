@@ -124,9 +124,11 @@ export function AIGeneratedUploader() {
       {isGenerating ? (
         <ProcessingScreen
           fileName={uploadedFiles[0]?.name || "File"}
-          onComplete={() => {
-            // Processing complete callback
-          }}
+          label={
+            generationMode === "GENERATE"
+              ? "Generating new quiz from your materials"
+              : "Extracting existing quiz from your file"
+          }
         />
       ) : (
         <>
@@ -206,7 +208,8 @@ export function AIGeneratedUploader() {
                             Send file directly to AI (preserves formatting)
                             <br />
                             <span className="text-[10px] opacity-75">
-                              Supports: PDF, DOCX, XLSX, images, text files
+                              Images only. Other file types will be parsed to
+                              text automatically.
                             </span>
                           </span>
                         </div>
