@@ -1,0 +1,574 @@
+{
+  "HomePage": {
+    "title": "Personalized Learning",
+    "subtitle": "for the future",
+    "badge": "🚀 Smart Learning Platform",
+    "description": "EDUMENTUM - A comprehensive learning support system with personalized learning paths, interactive community, and intelligent analytics for teachers and students.",
+    "startLearning": "Start Learning Now",
+    "joinCommunity": "Join Community",
+    "featuresTitle": "Key Features",
+    "featuresSubtitle": "Discover powerful tools that make learning more effective and engaging",
+    "features": {
+      "personalized": {
+        "title": "Learning Paths",
+        "description": "Personalized learning paths from basic to advanced, with detailed progress tracking for each lesson."
+      },
+      "ai": {
+        "title": "Personalized Learning",
+        "description": "Suggest suitable lessons, create personalized quizzes and flashcards based on your learning results."
+      },
+      "exams": {
+        "title": "Smart Exam Creation",
+        "description": "Automatically create exams with appropriate difficulty levels, grade and analyze results in detail."
+      }
+    }
+  },
+  "Header": {
+    "title": "EDUMENTUM",
+    "features": "Features",
+    "courses": "Courses",
+    "community": "Community",
+    "about": "About",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "dashboard": "Dashboard"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "createQuiz": "Create Quiz",
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalCourses": "Total Courses",
+      "activeUsers": "Active Users",
+      "completionRate": "Completion Rate"
+    },
+    "quickActions": {
+      "createCourse": "Create Course",
+      "addStudent": "Add Student",
+      "generateReport": "Generate Report",
+      "sendNotification": "Send Notification"
+    }
+  },
+  "Courses": {
+    "title": "Courses",
+    "create": "Create New Course",
+    "edit": "Edit Course",
+    "delete": "Delete Course",
+    "publish": "Publish",
+    "draft": "Draft",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft"
+    }
+  },
+  "Students": {
+    "title": "Students",
+    "add": "Add Student",
+    "edit": "Edit Information",
+    "delete": "Delete Student",
+    "enroll": "Enroll Course",
+    "progress": "Learning Progress"
+  },
+  "Exams": {
+    "title": "Exams",
+    "create": "Create Exam",
+    "edit": "Edit Exam",
+    "delete": "Delete Exam",
+    "grade": "Grade",
+    "results": "Results"
+  },
+  "Navigation": {
+    "home": "Home",
+    "features": "Features",
+    "about": "About",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "students": "Students",
+    "exams": "Exams",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "Common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset"
+  },
+  "Mindmap": {
+    "title": "Mindmaps",
+    "createMindmap": "Create Mindmap",
+    "searchPlaceholder": "Search mindmaps...",
+    "createCTA": {
+      "title": "Create your first mindmap",
+      "description": "Start organizing your thoughts with a visual mindmap",
+      "button": "Create Mindmap"
+    },
+    "editor": {
+      "backToList": "Back to List",
+      "newMindmap": "New Mindmap",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Mindmap saved successfully",
+      "saveError": "Failed to save mindmap",
+      "saveCancelled": "Mindmap save cancelled",
+      "enterName": "Enter mindmap name:",
+      "saveAs": "Save Mindmap As",
+      "saveAsDescription": "Enter a name for your mindmap",
+      "editName": "Edit Mindmap Name",
+      "editNameDescription": "Change the name of your mindmap",
+      "name": "Name",
+      "namePlaceholder": "Enter mindmap name",
+      "nameRequired": "Name is required",
+      "type": "Type",
+      "selectType": "Select type",
+      "invalidName": "Name cannot be 'New Mindmap' or 'Sơ đồ tư duy mới'",
+      "cancel": "Cancel",
+      "update": "Update",
+      "nameUpdateSuccess": "Mindmap name updated successfully",
+      "nameUpdateError": "Failed to update mindmap name",
+      "createSuccess": "New mindmap created successfully",
+      "createError": "Failed to create new mindmap",
+      "loadSuccess": "Mindmap loaded successfully",
+      "loadError": "Failed to load mindmap",
+      "deleteSuccess": "Mindmap deleted successfully",
+      "deleteError": "Failed to delete mindmap",
+      "exitConfirmationTitle": "Unsaved Changes",
+      "exitConfirmationDescription": "You have unsaved changes. Do you want to save before leaving?",
+      "discard": "Discard",
+      "connectionError": "Cannot connect to mindmap API. Please check your connection.",
+      "apiError": "Failed to connect to mindmap API."
+    },
+    "node": {
+      "newNode": "New Node",
+      "editStyle": "Edit Style",
+      "backgroundColor": "Background Color",
+      "textColor": "Text Color",
+      "close": "Close"
+    },
+    "contextMenu": {
+      "addChild": "Add Child",
+      "delete": "Delete",
+      "editStyle": "Edit Style"
+    },
+    "empty": {
+      "title": "No mindmaps found",
+      "description": "Create your first mindmap to get started"
+    },
+    "filter": {
+      "byType": "Filter by type",
+      "allTypes": "All types"
+    }
+  },
+  "Quizzes": {
+    "title": "Quizzes",
+    "createQuiz": "Create Quiz",
+    "searchPlaceholder": "Search quizzes...",
+    "filters": "Filters",
+    "stats": {
+      "totalQuizzes": "Total Quizzes",
+      "totalAttempts": "Total Attempts",
+      "averageScore": "Average Score",
+      "avgDuration": "Avg. Duration (min)"
+    },
+    "yourQuizzes": "Your Quizzes",
+    "quizCard": {
+      "questions": "questions",
+      "attempts": "attempts",
+      "averageScore": "Average Score",
+      "takeQuiz": "Take Quiz",
+      "lastAttempt": "Last attempt"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "createCTA": {
+      "title": "Create your first quiz",
+      "description": "Start building interactive quizzes to test your knowledge",
+      "button": "Create New Quiz"
+    },
+    "create": {
+      "title": "Create Quiz",
+      "backToQuizzes": "Back to Quizzes",
+      "generateQuiz": "Generate Quiz",
+      "subtitle": "Quickly create a new quiz from your study materials!",
+      "tabs": {
+        "fileWithAnswers": "File with Answers",
+        "aiGenerated": "AI Generated"
+      },
+      "settings": {
+        "title": "Quiz Settings",
+        "description": "Configure your quiz generation settings",
+        "visibility": "Visibility",
+        "private": "Private",
+        "public": "Public",
+        "language": "Language of the quiz",
+        "autoDetect": "Auto detect",
+        "questionType": "Question type",
+        "mixed": "Mixed",
+        "multipleChoice": "Multiple Choice",
+        "trueFalse": "True/False",
+        "numberOfQuestions": "# Number of questions",
+        "difficulty": "Difficulty",
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard",
+        "parsingMode": "Parsing mode",
+        "fast": "Fast",
+        "balanced": "Balanced",
+        "thorough": "Thorough",
+        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer."
+      },
+      "supportedFormats": {
+        "title": "Supported Formats",
+        "limit": "Up to 10 files, 20 MB total"
+      },
+      "fileWithAnswers": {
+        "title": "Upload Files with Answers",
+        "description": "Upload files that already contain quiz questions and answers",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), JSON, MD",
+        "limits": "Up to 10 files, 20 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "success": "Success",
+        "createQuiz": "Create Quiz",
+        "editQuiz": "Edit Quiz",
+        "editQuizDescription": "Review and edit the extracted questions before creating your quiz",
+        "guidance": "Use documents with accurate factual information for best results."
+      },
+      "aiGenerated": {
+        "title": "AI Generated Quiz",
+        "description": "Upload theory files and let AI generate quiz questions",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Up to 5 files, 50 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "aiGenerating": "AI Generating...",
+        "success": "Success",
+        "error": "Error",
+        "aiControls": "AI Generation",
+        "aiDescription": "Click the button below to start AI generation of quiz questions from your uploaded files.",
+        "startGeneration": "Start AI Generation",
+        "createQuiz": "Create Quiz",
+        "guidance": "Use documents with accurate factual information for best results."
+      }
+    },
+    "edit": {
+      "title": "Edit Quiz",
+      "backToQuizzes": "Back to Quizzes",
+      "saveDraft": "Save Draft",
+      "createQuiz": "Create Quiz",
+      "quizTitle": "Quiz Title",
+      "quizDescription": "Quiz Description",
+      "questions": "Questions",
+      "addQuestion": "Add Question",
+      "noQuestions": "No questions yet. Click \"Add Question\" to get started.",
+      "newQuestion": "New Question",
+      "newAnswer": "New Answer"
+    }
+  },
+  "RoleSelector": {
+    "title": "Choose Your Role",
+    "description": "Select the role that best describes you to get started",
+    "selecting": "Selecting...",
+    "continue": "Continue",
+    "roles": {
+      "ROLE_STUDENT": {
+        "title": "Student",
+        "description": "I want to enjoy all the great learning tools of edumentum"
+      },
+      "ROLE_TEACHER": {
+        "title": "Teacher",
+        "description": "I want to create and manage courses to support students learning"
+      }
+    }
+  },
+  "LoginPage": {
+    "loggingIn": "Logging in...",
+    "loginSuccess": "Login successful!",
+    "title": "Welcome back!",
+    "subtitle": "Sign in to continue",
+    "login": "Sign In",
+    "loginDesc": "Please enter your email and password to access the system.",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "orContinueWith": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "register": "Sign Up",
+    "recaptchaNotice": "This page is protected by reCAPTCHA.",
+    "terms": "Terms of Service",
+    "feature": {
+      "roadmap": "Personalized learning roadmap for each student.",
+      "personalize": "Suggest suitable lessons and tests based on your abilities.",
+      "community": "Join a dynamic learning community."
+    },
+    "error": {
+      "invalidCredentials": "Invalid email or password."
+    }
+  },
+  "RegisterPage": {
+    "registering": "Registering...",
+    "registerSuccess": "Registration successful!",
+    "title": "Create new account",
+    "subtitle": "Sign up to start your learning journey",
+    "register": "Sign Up",
+    "registerDesc": "Fill in the information to create a free account.",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "alreadyAccount": "Already have an account?",
+    "login": "Sign In",
+    "recaptchaNotice": "This page is protected by reCAPTCHA.",
+    "terms": "Terms of Service",
+    "error": {
+      "passwordNotMatch": "Passwords do not match.",
+      "emailExists": "Email already exists."
+    }
+  },
+  "Forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Invalid email address",
+      "minLength": "Minimum {min} characters",
+      "maxLength": "Maximum {max} characters",
+      "passwordMatch": "Passwords do not match"
+    }
+  },
+  "Notifications": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "Settings": {
+    "title": "Settings",
+    "description": "Configure your preferences to personalize your experience",
+    "save": "Save & Continue",
+    "skip": "Skip",
+    "language": {
+      "title": "Language",
+      "description": "Choose your preferred language",
+      "en": "English",
+      "vi": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "Choose your preferred theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Configure notification preferences",
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "sms": "SMS Notifications"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Manage your privacy settings",
+      "profile": "Profile Visibility",
+      "data": "Data Sharing",
+      "cookies": "Cookie Preferences"
+    }
+  },
+  "Setup": {
+    "title": "Welcome to Edumentum",
+    "description": "Let's get you set up with your personalized learning experience",
+    "continue": "Continue",
+    "back": "Back",
+    "skip": "Skip",
+    "complete": "Complete Setup"
+  },
+  "Achievements": {
+    "title": "Achievements",
+    "description": "Complete challenges and unlock rewards as you progress in your learning journey",
+    "rarities": {
+      "title": "All Rarity",
+      "COMMON": "Common",
+      "UNCOMMON": "Uncommon",
+      "RARE": "Rare",
+      "EPIC": "Epic",
+      "LEGENDARY": "Legendary"
+    },
+    "status": {
+      "title": "All status",
+      "COMPLETED": "Completed",
+      "IN_PROGRESS": "In Progress",
+      "NOT_STARTED": "Not Started"
+    },
+    "searchPlaceholder": "Search achievements...",
+    "stats": {
+      "totalUnlocked": {
+        "title": "Total Unlocked",
+        "description": "0% Complete"
+      },
+      "xpEarned": {
+        "title": "XP Earned",
+        "description": "From achievements"
+      },
+      "rarestUnlocked": {
+        "title": "Rarest Unlocked",
+        "description": ""
+      },
+      "recentProgress": {
+        "title": "Recent Progress",
+        "description": "Start learning!"
+      }
+    }
+  },
+  "Flashcards": {
+    "title": "Flashcards",
+    "createFlashcard": "Create Flashcard",
+    "searchPlaceholder": "Search flashcards...",
+    "filters": "Filters",
+    "stats": {
+      "totalFlashcards": "Total Flashcards",
+      "totalDecks": "Total Decks",
+      "averageScore": "Average Score",
+      "studyTime": "Study Time (min)"
+    },
+    "yourFlashcards": "Your Flashcards",
+    "flashcardCard": {
+      "cards": "cards",
+      "studied": "studied",
+      "averageScore": "Average Score",
+      "studyDeck": "Study Deck",
+      "lastStudied": "Last studied"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "createCTA": {
+      "title": "Create your first flashcard deck",
+      "description": "Start building interactive flashcards to enhance your memory",
+      "button": "Create New Flashcard Deck"
+    },
+    "create": {
+      "title": "Create Flashcard Deck",
+      "backToFlashcards": "Back to Flashcards",
+      "generateFlashcards": "Generate Flashcards",
+      "subtitle": "Quickly create a new flashcard deck from your study materials!",
+      "tabs": {
+        "manual": "Manual Creation",
+        "aiGenerated": "AI Generated"
+      },
+      "settings": {
+        "title": "Flashcard Settings",
+        "description": "Configure your flashcard generation settings",
+        "visibility": "Visibility",
+        "private": "Private",
+        "public": "Public",
+        "language": "Language of the flashcards",
+        "autoDetect": "Auto detect",
+        "cardType": "Card type",
+        "mixed": "Mixed",
+        "questionAnswer": "Question/Answer",
+        "cloze": "Cloze deletion",
+        "numberOfCards": "# Number of cards",
+        "difficulty": "Difficulty",
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard",
+        "parsingMode": "Parsing mode",
+        "fast": "Fast",
+        "balanced": "Balanced",
+        "thorough": "Thorough",
+        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer."
+      },
+      "supportedFormats": {
+        "title": "Supported Formats",
+        "limit": "Up to 10 files, 20 MB total"
+      },
+      "manual": {
+        "title": "Manual Flashcard Creation",
+        "description": "Create flashcards manually with questions and answers",
+        "addCard": "Add Card",
+        "question": "Question",
+        "answer": "Answer",
+        "createDeck": "Create Deck",
+        "guidance": "Create clear and concise questions for better retention."
+      },
+      "aiGenerated": {
+        "title": "AI Generated Flashcards",
+        "description": "Upload theory files and let AI generate flashcard content",
+        "dropOrSelect": "Drop or select files",
+        "dropHere": "Drop files here",
+        "supportedFormats": "Currently supported: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Up to 5 files, 50 MB total",
+        "uploadedFiles": "Uploaded Files",
+        "uploading": "Uploading...",
+        "processing": "Processing...",
+        "aiGenerating": "AI Generating...",
+        "success": "Success",
+        "error": "Error",
+        "aiControls": "AI Generation",
+        "aiDescription": "Click the button below to start AI generation of flashcards from your uploaded files.",
+        "startGeneration": "Start AI Generation",
+        "createDeck": "Create Deck",
+        "guidance": "Use documents with accurate factual information for best results."
+      }
+    }
+  },
+  "Pomodoro": {
+    "title": "Pomodoro",
+    "start": "Start",
+    "pause": "Pause",
+    "notTask": "No tasks yet",
+    "advice": "Add a task to get started!",
+    "countdown": {
+      "title": "Countdown",
+      "duration": "Duration (minutes)"
+    },
+    "pomodoro": {
+      "focus": "Focus",
+      "shortBreak": "Short Break",
+      "longBreak": "Long Break"
+    },
+    "simpleTodo": {
+      "title": "Simple Todo",
+      "placeholder": "Add a task..."
+    },
+    "kanbanBoard": {
+      "title": "Kanban Board",
+      "addTask": "Add a task...",
+      "columns": {
+        "todo": "To Do",
+        "inProgress": "In Progress",
+        "done": "Done"
+      }
+    }
+  }
+}

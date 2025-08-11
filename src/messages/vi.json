@@ -1,0 +1,578 @@
+{
+  "HomePage": {
+    "title": "Học tập cá nhân hóa",
+    "subtitle": "cho tương lai",
+    "badge": "🚀 Nền tảng học tập thông minh",
+    "description": "EDUMENTUM - Hệ thống hỗ trợ học tập toàn diện với lộ trình cá nhân hóa, cộng đồng tương tác và phân tích thông minh cho giáo viên và học sinh.",
+    "startLearning": "Bắt đầu học ngay",
+    "joinCommunity": "Tham gia cộng đồng",
+    "featuresTitle": "Tính năng nổi bật",
+    "featuresSubtitle": "Khám phá những công cụ mạnh mẽ giúp việc học tập trở nên hiệu quả và thú vị hơn",
+    "features": {
+      "personalized": {
+        "title": "Học theo lộ trình",
+        "description": "Lộ trình học tập được cá nhân hóa từ cơ bản đến nâng cao, theo dõi tiến độ chi tiết cho từng bài học."
+      },
+      "ai": {
+        "title": "Cá nhân hóa học tập",
+        "description": "Gợi ý bài học phù hợp, tạo quiz và flashcard cá nhân dựa trên kết quả học tập của bạn."
+      },
+      "exams": {
+        "title": "Tạo kỳ thi thông minh",
+        "description": "Tự động tạo đề thi với độ khó phù hợp, chấm điểm và phân tích kết quả chi tiết."
+      }
+    }
+  },
+  "LoginPage": {
+    "loggingIn": "Đang đăng nhập...",
+    "loginSuccess": "Đăng nhập thành công!",
+    "title": "Chào mừng trở lại!",
+    "subtitle": "Đăng nhập để tiếp tục",
+    "login": "Đăng nhập",
+    "loginDesc": "Vui lòng nhập email và mật khẩu để truy cập hệ thống.",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "noAccount": "Chưa có tài khoản?",
+    "register": "Đăng ký",
+    "recaptchaNotice": "Trang này được bảo vệ bởi reCAPTCHA.",
+    "terms": "Điều khoản dịch vụ",
+    "feature": {
+      "roadmap": "Lộ trình học tập cá nhân hóa cho từng học sinh.",
+      "personalize": "Gợi ý bài học và kiểm tra phù hợp với năng lực.",
+      "community": "Tham gia cộng đồng học tập năng động."
+    },
+    "error": {
+      "invalidCredentials": "Email hoặc mật khẩu không đúng."
+    }
+  },
+  "RegisterPage": {
+    "registering": "Đang đăng ký...",
+    "registerSuccess": "Đăng ký thành công!",
+    "title": "Tạo tài khoản mới",
+    "subtitle": "Đăng ký để bắt đầu hành trình học tập",
+    "register": "Đăng ký",
+    "registerDesc": "Điền thông tin để tạo tài khoản miễn phí.",
+    "username": "Tên người dùng",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "alreadyAccount": "Đã có tài khoản?",
+    "login": "Đăng nhập",
+    "recaptchaNotice": "Trang này được bảo vệ bởi reCAPTCHA.",
+    "terms": "Điều khoản dịch vụ",
+    "error": {
+      "passwordNotMatch": "Mật khẩu xác nhận không khớp.",
+      "emailExists": "Email đã được sử dụng."
+    }
+  },
+  "Header": {
+    "title": "EDUMENTUM",
+    "features": "Tính năng",
+    "courses": "Khóa học",
+    "community": "Cộng đồng",
+    "about": "Về chúng tôi",
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "dashboard": "Bảng điều khiển"
+  },
+  "Dashboard": {
+    "title": "Bảng điều khiển",
+    "createQuiz": "Tạo bài kiểm tra",
+    "stats": {
+      "totalStudents": "Tổng học sinh",
+      "totalCourses": "Tổng khóa học",
+      "activeUsers": "Người dùng đang hoạt động",
+      "completionRate": "Tỷ lệ hoàn thành"
+    },
+    "quickActions": {
+      "createCourse": "Tạo khóa học",
+      "addStudent": "Thêm học sinh",
+      "generateReport": "Tạo báo cáo",
+      "sendNotification": "Gửi thông báo"
+    }
+  },
+  "Courses": {
+    "title": "Khóa học",
+    "create": "Tạo khóa học mới",
+    "edit": "Chỉnh sửa khóa học",
+    "delete": "Xóa khóa học",
+    "publish": "Xuất bản",
+    "draft": "Bản nháp",
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
+      "draft": "Bản nháp"
+    }
+  },
+  "Students": {
+    "title": "Học sinh",
+    "add": "Thêm học sinh",
+    "edit": "Chỉnh sửa thông tin",
+    "delete": "Xóa học sinh",
+    "enroll": "Ghi danh khóa học",
+    "progress": "Tiến độ học tập"
+  },
+  "Exams": {
+    "title": "Kỳ thi",
+    "create": "Tạo kỳ thi",
+    "edit": "Chỉnh sửa kỳ thi",
+    "delete": "Xóa kỳ thi",
+    "grade": "Chấm điểm",
+    "results": "Kết quả"
+  },
+  "Navigation": {
+    "home": "Trang chủ",
+    "features": "Tính năng",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ",
+    "dashboard": "Bảng điều khiển",
+    "courses": "Khóa học",
+    "students": "Học sinh",
+    "exams": "Kỳ thi",
+    "reports": "Báo cáo",
+    "settings": "Cài đặt"
+  },
+  "Common": {
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "success": "Thành công",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "export": "Xuất",
+    "import": "Nhập",
+    "yes": "Có",
+    "no": "Không",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "submit": "Gửi",
+    "reset": "Đặt lại"
+  },
+  "Forms": {
+    "validation": {
+      "required": "Trường này là bắt buộc",
+      "email": "Email không hợp lệ",
+      "minLength": "Tối thiểu {min} ký tự",
+      "maxLength": "Tối đa {max} ký tự",
+      "passwordMatch": "Mật khẩu không khớp"
+    }
+  },
+  "Notifications": {
+    "success": "Thành công",
+    "error": "Lỗi",
+    "warning": "Cảnh báo",
+    "info": "Thông tin"
+  },
+  "Mindmap": {
+    "title": "Sơ đồ tư duy",
+    "createMindmap": "Tạo sơ đồ tư duy",
+    "searchPlaceholder": "Tìm kiếm sơ đồ tư duy...",
+    "createCTA": {
+      "title": "Tạo sơ đồ tư duy đầu tiên",
+      "description": "Bắt đầu tổ chức suy nghĩ của bạn với sơ đồ tư duy trực quan",
+      "button": "Tạo sơ đồ tư duy"
+    },
+    "editor": {
+      "backToList": "Quay lại danh sách",
+      "newMindmap": "Sơ đồ tư duy mới",
+      "save": "Lưu",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Lưu sơ đồ tư duy thành công",
+      "saveError": "Lưu sơ đồ tư duy thất bại",
+      "saveCancelled": "Hủy lưu sơ đồ tư duy",
+      "enterName": "Nhập tên sơ đồ tư duy:",
+      "saveAs": "Lưu sơ đồ tư duy với tên",
+      "saveAsDescription": "Nhập tên cho sơ đồ tư duy của bạn",
+      "editName": "Sửa tên sơ đồ tư duy",
+      "editNameDescription": "Thay đổi tên sơ đồ tư duy",
+      "name": "Tên",
+      "namePlaceholder": "Nhập tên sơ đồ tư duy",
+      "nameRequired": "Tên là bắt buộc",
+      "type": "Loại",
+      "selectType": "Chọn loại",
+      "invalidName": "Tên không thể là 'New Mindmap' hoặc 'Sơ đồ tư duy mới'",
+      "cancel": "Hủy",
+      "update": "Cập nhật",
+      "nameUpdateSuccess": "Cập nhật tên sơ đồ tư duy thành công",
+      "nameUpdateError": "Cập nhật tên sơ đồ tư duy thất bại",
+      "createSuccess": "Tạo sơ đồ tư duy mới thành công",
+      "createError": "Tạo sơ đồ tư duy mới thất bại",
+      "loadSuccess": "Tải sơ đồ tư duy thành công",
+      "loadError": "Tải sơ đồ tư duy thất bại",
+      "deleteSuccess": "Xóa sơ đồ tư duy thành công",
+      "deleteError": "Xóa sơ đồ tư duy thất bại",
+      "exitConfirmationTitle": "Thay đổi chưa lưu",
+      "exitConfirmationDescription": "Bạn có thay đổi chưa lưu. Bạn có muốn lưu trước khi thoát không?",
+      "discard": "Bỏ qua",
+      "connectionError": "Không thể kết nối đến API mindmap. Vui lòng kiểm tra kết nối.",
+      "apiError": "Kết nối đến API mindmap thất bại."
+    },
+    "node": {
+      "newNode": "Nút mới",
+      "editStyle": "Chỉnh sửa kiểu",
+      "backgroundColor": "Màu nền",
+      "textColor": "Màu chữ",
+      "close": "Đóng"
+    },
+    "contextMenu": {
+      "addChild": "Thêm con",
+      "delete": "Xóa",
+      "editStyle": "Chỉnh sửa kiểu"
+    },
+    "empty": {
+      "title": "Không tìm thấy sơ đồ tư duy",
+      "description": "Tạo sơ đồ tư duy đầu tiên để bắt đầu"
+    },
+    "filter": {
+      "byType": "Lọc theo loại",
+      "allTypes": "Tất cả loại"
+    }
+  },
+  "Quizzes": {
+    "title": "Quizzes",
+    "createQuiz": "Tạo quiz",
+    "searchPlaceholder": "Tìm kiếm quiz...",
+    "filters": "Bộ lọc",
+    "stats": {
+      "totalQuizzes": "Tổng bài kiểm tra",
+      "totalAttempts": "Tổng lượt làm",
+      "averageScore": "Điểm trung bình",
+      "avgDuration": "Thời gian TB (phút)"
+    },
+    "yourQuizzes": "Bài kiểm tra của bạn",
+    "quizCard": {
+      "questions": "câu hỏi",
+      "attempts": "lượt làm",
+      "averageScore": "Điểm trung bình",
+      "takeQuiz": "Làm bài",
+      "lastAttempt": "Lần làm cuối"
+    },
+    "difficulty": {
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "createCTA": {
+      "title": "Tạo quiz đầu tiên",
+      "description": "Bắt đầu xây dựng các quiz tương tác để kiểm tra kiến thức",
+      "button": "Tạo quiz mới"
+    },
+    "create": {
+      "title": "Tạo Quiz",
+      "backToQuizzes": "Quay lại Quizzes",
+      "generateQuiz": "Tạo Quiz",
+      "subtitle": "Nhanh chóng tạo quiz mới từ tài liệu học tập của bạn!",
+      "tabs": {
+        "fileWithAnswers": "Có sẵn đáp án file",
+        "aiGenerated": "AI soạn quiz"
+      },
+      "settings": {
+        "title": "Cài đặt Quiz",
+        "description": "Cấu hình cài đặt tạo quiz",
+        "visibility": "Hiển thị",
+        "private": "Riêng tư",
+        "public": "Công khai",
+        "language": "Ngôn ngữ quiz",
+        "autoDetect": "Tự động phát hiện",
+        "questionType": "Loại câu hỏi",
+        "mixed": "Hỗn hợp",
+        "multipleChoice": "Trắc nghiệm",
+        "trueFalse": "Đúng/Sai",
+        "numberOfQuestions": "Số câu hỏi",
+        "difficulty": "Độ khó",
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó",
+        "parsingMode": "Chế độ xử lý",
+        "fast": "Nhanh",
+        "balanced": "Cân bằng",
+        "thorough": "Kỹ lưỡng",
+        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn."
+      },
+      "supportedFormats": {
+        "title": "Định dạng hỗ trợ",
+        "limit": "Tối đa 10 file, 20 MB tổng cộng"
+      },
+      "fileWithAnswers": {
+        "title": "Upload File có đáp án",
+        "description": "Upload file đã có sẵn câu hỏi và đáp án",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), JSON, MD",
+        "limits": "Tối đa 10 file, 20 MB tổng cộng",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "success": "Thành công",
+        "createQuiz": "Tạo Quiz",
+        "editQuiz": "Chỉnh sửa Quiz",
+        "editQuizDescription": "Xem lại và chỉnh sửa các câu hỏi đã trích xuất trước khi tạo quiz",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      },
+      "aiGenerated": {
+        "title": "Quiz AI tạo",
+        "description": "Upload file lý thuyết và để AI tạo câu hỏi quiz",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Tối đa 5 file, 50 MB tổng cộng",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "aiGenerating": "AI đang tạo...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "aiControls": "Tạo AI",
+        "aiDescription": "Nhấn nút bên dưới để bắt đầu AI tạo câu hỏi quiz từ file đã upload.",
+        "startGeneration": "Bắt đầu tạo AI",
+        "createQuiz": "Tạo Quiz",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      }
+    },
+    "edit": {
+      "title": "Chỉnh sửa Quiz",
+      "backToQuizzes": "Quay lại Quizzes",
+      "saveDraft": "Lưu bản nháp",
+      "createQuiz": "Tạo Quiz",
+      "quizTitle": "Tiêu đề Quiz",
+      "quizDescription": "Mô tả Quiz",
+      "questions": "Câu hỏi",
+      "addQuestion": "Thêm câu hỏi",
+      "noQuestions": "Chưa có câu hỏi nào. Nhấn \"Thêm câu hỏi\" để bắt đầu.",
+      "newQuestion": "Câu hỏi mới",
+      "newAnswer": "Đáp án mới"
+    }
+  },
+  "RoleSelector": {
+    "title": "Chọn vai trò của bạn",
+    "description": "Chọn vai trò phù hợp nhất để bắt đầu",
+    "selecting": "Đang chọn...",
+    "continue": "Tiếp tục",
+    "roles": {
+      "ROLE_STUDENT": {
+        "title": "Học sinh",
+        "description": "Tôi muốn được tận hưởng tất cả công cụ hỗ trợ học tập tuyệt vời của edumentum"
+      },
+      "ROLE_TEACHER": {
+        "title": "Giáo viên",
+        "description": "Tôi muốn được tạo và quản lý khóa học để hỗ trợ học sinh học tập"
+      }
+    }
+  },
+  "Settings": {
+    "title": "Cài đặt",
+    "description": "Cấu hình tùy chọn để cá nhân hóa trải nghiệm của bạn",
+    "save": "Lưu & Tiếp tục",
+    "skip": "Bỏ qua",
+    "language": {
+      "title": "Ngôn ngữ",
+      "description": "Chọn ngôn ngữ ưa thích của bạn",
+      "en": "English",
+      "vi": "Tiếng Việt"
+    },
+    "theme": {
+      "title": "Giao diện",
+      "description": "Chọn giao diện ưa thích của bạn",
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Hệ thống"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "description": "Cấu hình tùy chọn thông báo",
+      "email": "Thông báo qua email",
+      "push": "Thông báo đẩy",
+      "sms": "Thông báo SMS"
+    },
+    "privacy": {
+      "title": "Quyền riêng tư",
+      "description": "Quản lý cài đặt quyền riêng tư",
+      "profile": "Hiển thị hồ sơ",
+      "data": "Chia sẻ dữ liệu",
+      "cookies": "Tùy chọn cookie"
+    }
+  },
+  "Setup": {
+    "title": "Chào mừng đến với Edumentum",
+    "description": "Hãy để chúng tôi thiết lập trải nghiệm học tập cá nhân hóa cho bạn",
+    "continue": "Tiếp tục",
+    "back": "Quay lại",
+    "skip": "Bỏ qua",
+    "complete": "Hoàn thành thiết lập"
+  },
+  "Achievements": {
+    "title": "Thành tựu",
+    "description": "Hoàn thành thử thách và mở khóa phần thưởng khi bạn tiến bộ trong hành trình học tập",
+    "rarities": {
+      "title": "Tất cả độ hiếm",
+      "COMMON": "Phổ biến",
+      "UNCOMMON": "Ít phổ biến",
+      "RARE": "Hiếm",
+      "EPIC": "Sử thi",
+      "LEGENDARY": "Huyền thoại"
+    },
+    "status": {
+      "title": "Tất cả trạng thái",
+      "COMPLETED": "Đã hoàn thành",
+      "IN_PROGRESS": "Đang tiến hành",
+      "NOT_STARTED": "Chưa bắt đầu"
+    },
+    "searchPlaceholder": "Tìm kiếm thành tựu...",
+    "stats": {
+      "totalUnlocked": {
+        "title": "Đã mở khóa",
+        "description": "Hoàn thành 0%"
+      },
+      "xpEarned": {
+        "title": "XP đã nhận",
+        "description": "Từ thành tích"
+      },
+      "rarestUnlocked": {
+        "title": "Hiếm nhất đã mở",
+        "description": ""
+      },
+      "recentProgress": {
+        "title": "Tiến trình gần nhất",
+        "description": "Bắt đầu học!"
+      }
+    }
+  },
+  "Flashcards": {
+    "title": "Flashcards",
+    "createFlashcard": "Tạo Flashcard",
+    "searchPlaceholder": "Tìm kiếm flashcards...",
+    "filters": "Bộ lọc",
+    "stats": {
+      "totalFlashcards": "Tổng Flashcards",
+      "totalDecks": "Tổng Bộ thẻ",
+      "averageScore": "Điểm trung bình",
+      "studyTime": "Thời gian học (phút)"
+    },
+    "yourFlashcards": "Flashcards của bạn",
+    "flashcardCard": {
+      "cards": "thẻ",
+      "studied": "đã học",
+      "averageScore": "Điểm trung bình",
+      "studyDeck": "Học bộ thẻ",
+      "lastStudied": "Lần học cuối"
+    },
+    "difficulty": {
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "createCTA": {
+      "title": "Tạo bộ flashcard đầu tiên",
+      "description": "Bắt đầu xây dựng flashcards tương tác để cải thiện trí nhớ",
+      "button": "Tạo bộ flashcard mới"
+    },
+    "create": {
+      "title": "Tạo bộ Flashcard",
+      "backToFlashcards": "Quay lại Flashcards",
+      "generateFlashcards": "Tạo Flashcards",
+      "subtitle": "Nhanh chóng tạo bộ flashcard mới từ tài liệu học tập của bạn!",
+      "tabs": {
+        "manual": "Tạo thủ công",
+        "aiGenerated": "AI tạo"
+      },
+      "settings": {
+        "title": "Cài đặt Flashcard",
+        "description": "Cấu hình cài đặt tạo flashcard",
+        "visibility": "Hiển thị",
+        "private": "Riêng tư",
+        "public": "Công khai",
+        "language": "Ngôn ngữ flashcards",
+        "autoDetect": "Tự động phát hiện",
+        "cardType": "Loại thẻ",
+        "mixed": "Hỗn hợp",
+        "questionAnswer": "Câu hỏi/Đáp án",
+        "cloze": "Điền vào chỗ trống",
+        "numberOfCards": "Số thẻ",
+        "difficulty": "Độ khó",
+        "easy": "Dễ",
+        "medium": "Trung bình",
+        "hard": "Khó",
+        "parsingMode": "Chế độ xử lý",
+        "fast": "Nhanh",
+        "balanced": "Cân bằng",
+        "thorough": "Kỹ lưỡng",
+        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn."
+      },
+      "supportedFormats": {
+        "title": "Định dạng hỗ trợ",
+        "limit": "Tối đa 10 file, 20 MB tổng cộng"
+      },
+      "manual": {
+        "title": "Tạo Flashcard thủ công",
+        "description": "Tạo flashcards thủ công với câu hỏi và đáp án",
+        "addCard": "Thêm thẻ",
+        "question": "Câu hỏi",
+        "answer": "Đáp án",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "createDeck": "Tạo bộ thẻ",
+        "guidance": "Tạo câu hỏi rõ ràng và ngắn gọn để ghi nhớ tốt hơn."
+      },
+      "aiGenerated": {
+        "title": "Flashcards AI tạo",
+        "description": "Upload file lý thuyết và để AI tạo nội dung flashcard",
+        "dropOrSelect": "Kéo thả hoặc chọn file",
+        "dropHere": "Thả file vào đây",
+        "supportedFormats": "Hỗ trợ: PDF, DOC(X), PPT(X), XLS(X), TXT, MD",
+        "limits": "Tối đa 5 file, 50 MB tổng cộng",
+        "uploadedFiles": "File đã upload",
+        "uploading": "Đang upload...",
+        "processing": "Đang xử lý...",
+        "aiGenerating": "AI đang tạo...",
+        "success": "Thành công",
+        "error": "Lỗi",
+        "aiControls": "Tạo AI",
+        "aiDescription": "Nhấn nút bên dưới để bắt đầu AI tạo flashcards từ file đã upload.",
+        "startGeneration": "Bắt đầu tạo AI",
+        "createDeck": "Tạo bộ thẻ",
+        "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      }
+    }
+  },
+  "Pomodoro": {
+    "title": "Pomodoro",
+    "start": "Bắt đầu",
+    "pause": "Tạm dừng",
+    "notTask": "Chưa có nhiệm vụ nào",
+    "advice": "Thêm một nhiệm vụ để bắt đầu!",
+    "countdown": {
+      "title": "Đếm ngược",
+      "duration": "Thời gian (phút)"
+    },
+    "pomodoro": {
+      "focus": "Tập trung",
+      "shortBreak": "Nghỉ ngắn",
+      "longBreak": "Nghỉ dài"
+    },
+    "simpleTodo": {
+      "title": "Danh sách công việc",
+      "placeholder": "Thêm một nhiệm vụ..."
+    },
+    "kanbanBoard": {
+      "title": "Bảng Kanban",
+      "addTask": "Thêm một nhiệm vụ...",
+      "columns": {
+        "todo": "Cần làm",
+        "inProgress": "Đang tiến hành",
+        "done": "Đã hoàn thành"
+      }
+    }
+  }
+}

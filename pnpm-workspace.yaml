@@ -1,0 +1,7 @@
+packages:
+  - .
+
+ignoredBuiltDependencies:
+  - '@biomejs/biome'
+  - '@tailwindcss/oxide'
+  - sharp

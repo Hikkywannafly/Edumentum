@@ -1,0 +1,79 @@
+"use client";
+
+import ThinLayout from "@/components/layout/thin-layout";
+import { useQuizEditorSync } from "@/hooks/use-quiz-editor-sync";
+import { useQuizEditorStore } from "@/stores/quiz-editor-store";
+import { QuizDescriptionEditor } from "./quiz-description-editor";
+import { QuizEditorHeader } from "./quiz-editor-header";
+import { QuizQuestionsEditor } from "./quiz-questions-editor";
+import { QuizTitleEditor } from "./quiz-title-editor";
+export function QuizEditorContent() {
+  const {
+    quizData,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+    moveQuestion,
+  } = useQuizEditorStore();
+  const { title, description, updateTitle, updateDescription } =
+    useQuizEditorSync();
+
+  if (!quizData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-lg">
+          No quiz data found. Please go back and upload files first.
+        </div>
+      </div>
+    );
+  }
+
+  const handleUpdateQuestion = (updatedQuestion: any) => {
+    updateQuestion(updatedQuestion.id, updatedQuestion);
+  };
+
+  const handleMoveQuestionUp = (id: string) => {
+    const index = quizData.questions.findIndex((q) => q.id === id);
+    if (index > 0) {
+      moveQuestion(index, index - 1);
+    }
+  };
+
+  const handleMoveQuestionDown = (id: string) => {
+    const index = quizData.questions.findIndex((q) => q.id === id);
+    if (index < quizData.questions.length - 1) {
+      moveQuestion(index, index + 1);
+    }
+  };
+
+  return (
+    <ThinLayout>
+      <div className="space-y-1">
+        <QuizEditorHeader
+          onSave={() => {}}
+          onCreateQuiz={() => {}}
+          canSave={false}
+          canCreate={false}
+        />
+        {/* Quiz Title */}
+        <QuizTitleEditor title={title} onTitleChange={updateTitle} />
+
+        {/* Quiz Description */}
+        <QuizDescriptionEditor
+          description={description}
+          onDescriptionChange={updateDescription}
+        />
+
+        {/* Questions */}
+        <QuizQuestionsEditor
+          questions={quizData.questions}
+          onAddQuestion={addQuestion}
+          onUpdateQuestion={handleUpdateQuestion}
+          onDeleteQuestion={deleteQuestion}
+          onMoveQuestionUp={handleMoveQuestionUp}
+          onMoveQuestionDown={handleMoveQuestionDown}
+        />
+      </div>
+    </ThinLayout>
+  );
+}
