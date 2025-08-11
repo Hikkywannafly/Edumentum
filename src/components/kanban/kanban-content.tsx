@@ -77,6 +77,7 @@ export default function KanbanContent() {
       );
       const date = new Date(response.data.dueDate);
       const offset = date.getTimezoneOffset();
+
       const taskWithParsedDate = {
         ...response.data,
         dueDate: new Date(date.getTime() - offset * 60 * 1000),
@@ -119,10 +120,14 @@ export default function KanbanContent() {
         },
         accessToken,
       );
+
+      const date = new Date(response.data.dueDate);
+      const offset = date.getTimezoneOffset();
       const taskWithParsedDate = {
         ...response.data,
-        dueDate: new Date(response.data.dueDate),
+        dueDate: new Date(date.getTime() - offset * 60 * 1000),
       };
+
       setTasks((prev) =>
         prev.map((task) => (task.id === taskId ? taskWithParsedDate : task)),
       );
