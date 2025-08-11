@@ -75,7 +75,7 @@ const extractQuestionsWithAIHandler = async (
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OpenAI API key is not configured");
+    throw new Error("OpenRouter API key is not configured");
   }
 
   console.log("🔍 Extracting existing questions with AI...");
@@ -173,7 +173,7 @@ const extractQuestionsWithAIHandler = async (
 
       // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
       const isQuotaExhausted =
-        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("OpenRouter Quota Exhausted") ||
         lastError.message.includes("insufficient_quota");
       const isInvalidApiKey = lastError.message.includes("Invalid API key");
 
@@ -215,7 +215,7 @@ const generateQuestionsWithAI = async (
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OpenAI API key not configured");
+    throw new Error("OpenRouter API key not configured");
   }
 
   console.log("🚀 Generating new questions with AI...");
@@ -330,7 +330,7 @@ const generateQuestionsWithAI = async (
 
       // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
       const isQuotaExhausted =
-        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("OpenRouter Quota Exhausted") ||
         lastError.message.includes("insufficient_quota");
       const isInvalidApiKey = lastError.message.includes("Invalid API key");
 

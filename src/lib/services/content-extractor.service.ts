@@ -27,6 +27,7 @@ interface AnswerMatch {
 
 export class ContentExtractor {
   private readonly QUESTION_PATTERNS = [
+    /^(\d+)[\.\)\:\-]\s+/,
     /^Câu\s+(\d+)\.?\s+/i,
     /^Câu\s+(\d+)\.?\s*$/i,
     /^Câu\s+hỏi\s+(\d+)[\s\.\:\-\)]*/i,
@@ -37,7 +38,6 @@ export class ContentExtractor {
     /^Problem\s+(\d+)[\s\.\:\-\)]*/i,
     /^Exercise\s+(\d+)[\s\.\:\-\)]*/i,
     /^Task\s+(\d+)[\s\.\:\-\)]*/i,
-    /^(\d+)[\.\)\:\-]\s+/,
     /^\((\d+)\)[\s\.\:\-]*/,
     /^\[(\d+)\][\s\.\:\-]*/,
     /^(\d+)\s*\/\s*/,
@@ -99,52 +99,37 @@ export class ContentExtractor {
       .replace(/\n\s*\n\s*\n/g, "\n\n")
       .trim();
 
+    // Tách câu hỏi và đáp án tốt hơn
+    processed = processed.replace(/(\d+)[\.\)\:\-]\s+/g, "\n$1. ");
+    processed = processed.replace(/([A-Da-d])[\.\)\:\-]\s+/g, "\n$1. ");
+    processed = processed.replace(/\*([A-Da-d])[\.\)\:\-]\s+/g, "\n*$1. ");
+
+    // Tách các câu hỏi liên tiếp
+    processed = processed.replace(
+      /(\d+)[\.\)\:\-]\s+(\d+)[\.\)\:\-]/g,
+      "$1. \n$2. ",
+    );
+    processed = processed.replace(
+      /([A-Da-d])[\.\)\:\-]\s+(\d+)[\.\)\:\-]/g,
+      "$1. \n$2. ",
+    );
+
+    // Tách câu hỏi và đáp án trên cùng dòng
+    processed = processed.replace(
+      /([\.\?\!])\s*([A-Da-d])[\.\)\:\-]/g,
+      "$1\n$2. ",
+    );
+    processed = processed.replace(/([\.\?\!])\s*(\d+)[\.\)\:\-]/g, "$1\n$2. ");
+
     const lines = processed.split("\n");
     const normalizedLines = lines.map((line) => {
       const trimmed = line.trim();
       if (trimmed) {
-        if (/^[A-Da-d][\.\)\:\-]/.test(trimmed)) return trimmed;
-        if (line.startsWith(" ") && this.looksLikeAnswer(trimmed))
-          return trimmed;
         return trimmed;
       }
       return "";
     });
     processed = normalizedLines.join("\n");
-
-    processed = processed.replace(
-      /(\s+)(\*?\s*(?:[A-Da-d][\.\)\:\-]|\([A-Da-d]\)|\[[A-Da-d]\]|[a-d][\)\.\:\-]))/g,
-      "\n$2",
-    );
-    processed = processed.replace(
-      /([\.\?\!])(\*?[A-Da-d][\.\)\:\-])/g,
-      "$1\n$2",
-    );
-    processed = processed.replace(/([\.\?\!])\s+(Câu\s+\d+)/gi, "$1\n$2");
-    processed = processed.replace(/([^\n])\s+(Câu\s+\d+[\.\s])/gi, "$1\n$2");
-    processed = processed.replace(
-      /([A-Da-d][\.\)\:\-])\s+([A-Da-d][\.\)\:\-])/g,
-      "$1\n$2",
-    );
-
-    processed = processed
-      .replace(
-        /(^|\s)(\*?\s*[A-Da-d])\s+(?=[^\n])/gm,
-        (_m, p1, p2) => `${p1}\n${p2} `,
-      )
-      .replace(
-        /(^|\s)(\*?\s*[1-9])\s+(?=[^\n])/gm,
-        (_m, p1, p2) => `${p1}\n${p2} `,
-      );
-
-    processed = processed.replace(
-      /([^\n])\s+(\*?\s*[A-Da-d])\s+(?=\*?\s*[A-Da-d]\b)/g,
-      (_m, prev, key) => `${prev}\n${key} `,
-    );
-    processed = processed.replace(
-      /([^\n])\s+(\*?\s*[1-9])\s+(?=\*?\s*[1-9]\b)/g,
-      (_m, prev, key) => `${prev}\n${key} `,
-    );
 
     return processed;
   }
@@ -235,7 +220,8 @@ export class ContentExtractor {
         let text = cleanLine.replace(pattern, "").trim();
         const number = match[1];
         text = this.cleanQuestionText(text);
-        if (text.length < 3 || this.looksLikeAnswer(text)) continue;
+        if (text.length < 3) continue;
+        if (this.looksLikeAnswer(text)) continue;
         if (/^[\d\s\.\-\(\)\[\]]*$/.test(text)) continue;
         if (text.split(/\s+/).length <= 1 && text.length < 10) continue;
         return { text, number };
@@ -298,20 +284,25 @@ export class ContentExtractor {
     if (this.matchAnswerPattern(line)) return false;
     if (this.matchQuestionPattern(line)) return false;
     if (this.looksLikeAnswer(line)) return false;
+
     const hasPrev = questionLines.length > 0;
     const lastLine = hasPrev ? questionLines[questionLines.length - 1] : "";
+
+    // Nếu dòng trước không kết thúc bằng dấu câu, có thể là continuation
     if (hasPrev && !/[\.!?:]$/.test(lastLine.trim())) {
       return true;
     }
+
+    // Kiểm tra các indicator tiếp tục
     for (const indicator of this.CONTINUATION_INDICATORS) {
       if (indicator.test(line)) return true;
     }
+
+    // Nếu dòng ngắn và không phải đáp án, có thể là continuation
     if (line.length < 50 && !/^[A-Da-d][\.\)\:]/.test(line)) {
       return true;
     }
-    if (line.startsWith(" ") && this.looksLikeAnswer(line.trim())) {
-      return false;
-    }
+
     return false;
   }
 

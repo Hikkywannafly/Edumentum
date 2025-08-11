@@ -4,8 +4,8 @@ import { ContentExtractor } from "./content-extractor.service";
 import type { FileForAI } from "./file-to-ai.service";
 
 // AI service for quiz generation (NOT extraction)
-const OPENAI_API_BASE = "https://api.openai.com/v1";
-const DEFAULT_MODEL = "gpt-3.5-turbo";
+const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
+const DEFAULT_MODEL = "openai/gpt-oss-20b:free"; // Stable model on OpenRouter
 
 // Cache axios clients to avoid recreating instances
 const clientCache = new Map<string, AxiosInstance>();
@@ -19,11 +19,13 @@ const createOpenAIClient = (apiKey: string): AxiosInstance => {
   }
 
   const client = axios.create({
-    baseURL: OPENAI_API_BASE,
+    baseURL: OPENROUTER_API_BASE,
     timeout: 90000, // 90 seconds for longer requests
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://edumentum.vercel.app", // Required for OpenRouter
+      "X-Title": "Edumentum Quiz Generator", // Optional but recommended
     },
     // Performance optimizations
     maxRedirects: 0,
@@ -86,7 +88,7 @@ const createOpenAIClient = (apiKey: string): AxiosInstance => {
   if (process.env.NODE_ENV === "development") {
     client.interceptors.request.use((config) => {
       console.log(
-        `🚀 OpenAI API Request: ${config.method?.toUpperCase()} ${config.url}`,
+        `🚀 OpenRouter API Request: ${config.method?.toUpperCase()} ${config.url}`,
       );
       return config;
     });
@@ -101,7 +103,7 @@ const createOpenAIClient = (apiKey: string): AxiosInstance => {
 // Utility function to clear client cache (useful for testing or when switching API keys)
 export const clearOpenAIClientCache = () => {
   clientCache.clear();
-  console.log("🧹 OpenAI client cache cleared");
+  console.log("🧹 OpenRouter client cache cleared");
 };
 
 // For AI-based quiz generation from content
@@ -139,7 +141,7 @@ interface AIResponse {
   error?: string;
 }
 
-async function callOpenAIApi(
+async function callOpenRouterApi(
   apiKey: string,
   prompt: string,
   modelName = DEFAULT_MODEL,
@@ -156,16 +158,16 @@ async function callOpenAIApi(
         },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 4000, // Qwen supports longer responses
     });
 
     // Handle HTTP error status codes that didn't trigger retry
     if (response.status >= 400) {
       const errorData = response.data;
-      console.error(`OpenAI API error ${response.status}:`, errorData);
+      console.error(`OpenRouter API error ${response.status}:`, errorData);
 
       // Provide more specific error messages
-      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      let errorMessage = `OpenRouter API error: ${response.status} ${response.statusText}`;
       if (errorData?.error?.message) {
         errorMessage += ` - ${errorData.error.message}`;
       }
@@ -175,7 +177,7 @@ async function callOpenAIApi(
 
     const responseContent = response.data.choices?.[0]?.message?.content;
     if (!responseContent) {
-      throw new Error("No content returned from OpenAI API");
+      throw new Error("No content returned from OpenRouter API");
     }
 
     return responseContent;
@@ -186,12 +188,12 @@ async function callOpenAIApi(
       const errorData = error.response?.data;
 
       console.error(
-        `OpenAI API call failed: ${status} ${statusText}`,
+        `OpenRouter API call failed: ${status} ${statusText}`,
         errorData,
       );
 
       // Provide helpful error messages based on status and error type
-      let userMessage = `OpenAI API error: ${status} ${statusText}`;
+      let userMessage = `OpenRouter API error: ${status} ${statusText}`;
       const errorCode = errorData?.error?.code;
 
       if (status === 401) {
@@ -199,7 +201,7 @@ async function callOpenAIApi(
       } else if (status === 429) {
         if (errorCode === "insufficient_quota") {
           userMessage =
-            "🚫 OpenAI Quota Exhausted - Your OpenAI account has run out of credits. Please check your billing at https://platform.openai.com/account/billing";
+            "🚫 OpenRouter Quota Exhausted - Your OpenRouter account has run out of credits. Please check your billing at https://openrouter.ai/account";
         } else {
           userMessage += " - Rate limit exceeded (too many requests)";
         }
@@ -212,16 +214,16 @@ async function callOpenAIApi(
       throw new Error(userMessage);
     }
 
-    console.error("OpenAI API call failed:", error);
+    console.error("OpenRouter API call failed:", error);
     throw error;
   }
 }
 
-async function callOpenAIApiWithFile(
+async function callOpenRouterApiWithFile(
   apiKey: string,
   prompt: string,
   file: FileForAI,
-  modelName = "gpt-4o", // Use vision model for file support
+  modelName = "openai/gpt-oss-20b:free", // Use GPT-3.5 for file support
 ): Promise<string> {
   try {
     const client = createOpenAIClient(apiKey);
@@ -259,15 +261,15 @@ async function callOpenAIApiWithFile(
         },
       ],
       temperature: 0.7,
-      max_tokens: 2000,
+      max_tokens: 4000, // Qwen supports longer responses
     });
 
     // Handle HTTP error status codes
     if (response.status >= 400) {
       const errorData = response.data;
-      console.error(`OpenAI API file error ${response.status}:`, errorData);
+      console.error(`OpenRouter API file error ${response.status}:`, errorData);
 
-      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      let errorMessage = `OpenRouter API error: ${response.status} ${response.statusText}`;
       if (errorData?.error?.message) {
         errorMessage += ` - ${errorData.error.message}`;
       }
@@ -278,7 +280,7 @@ async function callOpenAIApiWithFile(
     const responseContent = response.data.choices?.[0]?.message?.content;
     if (!responseContent) {
       throw new Error(
-        "No content returned from OpenAI API for file processing",
+        "No content returned from OpenRouter API for file processing",
       );
     }
 
@@ -707,7 +709,7 @@ FORMAT JSON:
 PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
 
     console.log("🚀 Generating questions with AI...");
-    const aiResponse = await callOpenAIApi(apiKey, prompt, modelName);
+    const aiResponse = await callOpenRouterApi(apiKey, prompt, modelName);
 
     console.log("📝 Parsing AI response...");
 
@@ -807,14 +809,14 @@ CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả v�
         file.mimeType,
         `${(file.size / 1024).toFixed(1)}KB`,
       );
-      aiResponse = await callOpenAIApiWithFile(
+      aiResponse = await callOpenRouterApiWithFile(
         apiKey,
         prompt,
         file,
-        "gpt-4o", // Use vision model for file support
+        "openai/gpt-oss-20b:free", // Use GPT-3.5 for file support
       );
     } else {
-      aiResponse = await callOpenAIApi(
+      aiResponse = await callOpenRouterApi(
         apiKey,
         `${prompt}\n\nContent to extract from:\n${fileContent}`,
         modelName,
@@ -852,7 +854,7 @@ export async function generateQuestionsFromFile(
     questionHeader,
     questionDescription,
     apiKey,
-    modelName = "gpt-4o", // Use vision model for file support
+    modelName = "openai/gpt-oss-20b:free",
     settings = {},
     file,
   } = params;
@@ -911,7 +913,7 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       `${(file.size / 1024).toFixed(1)}KB`,
     );
 
-    const aiResponse = await callOpenAIApiWithFile(
+    const aiResponse = await callOpenRouterApiWithFile(
       apiKey,
       prompt,
       file,
