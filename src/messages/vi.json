@@ -465,6 +465,8 @@
       "studyDeck": "Học bộ thẻ",
       "lastStudied": "Lần học cuối"
     },
+    "study": "Học",
+    "edit": "Chỉnh sửa",
     "difficulty": {
       "easy": "Dễ",
       "medium": "Trung bình",
