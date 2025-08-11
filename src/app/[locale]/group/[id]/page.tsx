@@ -2,7 +2,14 @@ import GroupDetailContent from "../../../../components/group/detail/group-detail
 import DashboardLayout from "../../../../components/layout/dashboard-layout";
 import { PageHeaderClient } from "../../../../components/layout/page-header-client";
 
-export default function GroupDetailPage() {
+type GroupDetailPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function GroupDetailPage({
+  params,
+}: GroupDetailPageProps) {
+  const { id } = await params;
   return (
     <>
       <DashboardLayout>
@@ -13,7 +20,7 @@ export default function GroupDetailPage() {
             showThemeToggle={true}
             showLanguageSwitcher={true}
           />
-          <GroupDetailContent />
+          <GroupDetailContent id={id} />
         </div>
       </DashboardLayout>
     </>

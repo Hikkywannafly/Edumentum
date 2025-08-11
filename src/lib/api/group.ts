@@ -1,5 +1,7 @@
 import type {
   GetGroupsAPIResponse,
+  GetGroupsDetailAPIResponse,
+  GroupDetailResponse,
   GroupRequest,
   GroupResponse,
 } from "../../types/group";
@@ -58,6 +60,17 @@ class GroupAPI {
     });
 
     return response;
+  }
+
+  async getGroupDetailById(groupId: number): Promise<GroupDetailResponse> {
+    const response = await this.request<GetGroupsDetailAPIResponse>(
+      `/student/groups/${groupId}`,
+      {
+        method: "GET",
+      },
+    );
+    console.log(response);
+    return response.data;
   }
 
   async getMyGroups(): Promise<GroupResponse[]> {

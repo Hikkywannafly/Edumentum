@@ -3,115 +3,96 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar,
-  Clipboard,
   Code,
-  Copy,
   Download,
   Eye,
   FileText,
-  Plus,
   Trophy,
   Users,
-  Wifi,
   Zap,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../../contexts/auth-context";
+import { groupAPI } from "../../../lib/api/group";
+import type { GroupDetailResponse } from "../../../types/group";
+import Chat from "./chat/chat";
+import GroupHeader from "./group-header";
+import JoinCodeCard from "./join-code-card";
+import LiveActivityCard from "./live-activity-card";
+import StatsCard from "./stats-card";
 
-export default function GroupDetailContent() {
-  const joinCode = "umoEB-bp";
+export default function GroupDetailContent({ id }: { id: string }) {
+  const [groupDetail, setGroupDetail] = useState<GroupDetailResponse | null>(
+    null,
+  );
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [group] = await Promise.all([
+          groupAPI.getGroupDetailById(Number(id)),
+        ]);
+        setGroupDetail(group);
+        console.log("Group detail fetched successfully:", group);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, [id]);
 
-  const handleCopyClick = () => {
-    navigator.clipboard.writeText(joinCode);
-    // Optionally, add a toast notification here
-  };
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8 dark:bg-gray-950">
+      <div className="fixed right-6 bottom-6 z-50">
+        {open && (
+          <Chat
+            currentUserId={Number(user?.userId)}
+            currentUserName={user?.username}
+            roomId={id}
+            currentUserAvatar={
+              "https://tse4.mm.bing.net/th/id/OIP.ep74te1OIN1PMqHDf65LDwHaNK?cb=thfvnext&rs=1&pid=ImgDetMain&o=7&rm=3"
+            }
+            setClose={() => setOpen(false)}
+          />
+        )}
+        {!open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
+          >
+            💬
+          </button>
+        )}
+      </div>
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-bold text-3xl text-gray-900 dark:text-gray-50">
-              Study Challenge for Hours
-            </h1>
-            <p className="mt-1 text-gray-600 dark:text-gray-400">
-              Let&apos;s see how much hours in total can you study productively.
-            </p>
-          </div>
-          <Button className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" /> Join Group
-          </Button>
-        </header>
+        <GroupHeader
+          name={groupDetail?.name}
+          description={groupDetail?.description}
+        />
 
         <div className="grid gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="flex items-center gap-2 font-medium text-sm">
-                <Wifi className="h-4 w-4 text-green-500" /> Live Activity
-              </CardTitle>
-              <div className="flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400">
-                <Users className="h-4 w-4" /> 0 online
-                <Badge variant="secondary" className="ml-2">
-                  Members only
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="flex h-48 flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-              <Users className="mb-2 h-12 w-12" />
-              <p>No one else is online right now</p>
-              <p>Be the first to start studying!</p>
-            </CardContent>
-          </Card>
+          <LiveActivityCard />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="font-medium text-sm">Members</CardTitle>
-                <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">2/15</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="font-medium text-sm">
-                  Competition
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              </CardHeader>
-              <CardContent>
-                <div className="font-bold text-2xl">WEEKLY</div>
-                <p className="text-gray-500 text-xs dark:text-gray-400">
-                  Ends 8/10/2025
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="font-medium text-sm">Join Code</CardTitle>
-                <Clipboard className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              </CardHeader>
-              <CardContent className="flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="px-3 py-1 font-mono text-base"
-                >
-                  {joinCode}
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopyClick}
-                  aria-label="Copy join code"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
+            <StatsCard
+              title="Members"
+              icon={<Users className="h-4 w-4 text-gray-500" />}
+              value={`${groupDetail?.member}/${groupDetail?.memberCount}`}
+            />
+            <StatsCard
+              title="Competition"
+              icon={<Calendar className="h-4 w-4 text-gray-500" />}
+              value="WEEKLY"
+              description="Ends 8/10/2025"
+            />
+            <JoinCodeCard code={groupDetail?.key} />
           </div>
         </div>
 

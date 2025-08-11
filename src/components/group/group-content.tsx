@@ -63,11 +63,13 @@ export default function GroupContent() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {myGroups.map((group) => (
             <div key={group.id} className="cursor-pointer">
-              <StudyGroupCard
-                publicHidden={false}
-                roleHidden={false}
-                iStudyGroupCard={group}
-              />
+              <LocalizedLink href={`/group/${group.id}`}>
+                <StudyGroupCard
+                  publicHidden={false}
+                  roleHidden={false}
+                  iStudyGroupCard={group}
+                />
+              </LocalizedLink>
             </div>
           ))}
         </div>
