@@ -1,7 +1,7 @@
-export interface Task {
+export interface ITask {
   id: string;
   title: string;
   description: string;
-  status: "toDo" | "inProgress" | "done";
+  status: "TODO" | "IN_PROGRESS" | "DONE";
   dueDate: Date;
 }

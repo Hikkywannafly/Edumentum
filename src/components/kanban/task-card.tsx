@@ -1,6 +1,8 @@
+"use client";
+
 import { Calendar, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { Task } from ".";
+import type { ITask } from "../../types/task";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -12,66 +14,95 @@ import {
 } from "../ui/dialog";
 
 interface TaskCardProps {
-  task: Task;
-  onEdit: (task: Task) => void;
+  task: ITask;
+  onEdit: (task: ITask) => void;
   onDelete: (taskId: string) => void;
 }
 
 export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  const formatDueDateTime = (date: Date): string => {
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear().toString().slice(-2);
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  const parseDate = (dateInput: Date | string): Date => {
+    if (dateInput instanceof Date) {
+      return dateInput;
+    }
+    // Parse date directly without timezone manipulation
+    return new Date(dateInput);
   };
 
-  const isOverdue = (date: Date): boolean => {
+  const formatDueDateTime = (dateInput: Date | string): string => {
+    const date = parseDate(dateInput);
+    if (Number.isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+    // Use local time formatting (Vietnam timezone)
+    const formatter = new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Ho_Chi_Minh", // Explicit Vietnam timezone
+    });
+    return formatter.format(date);
+  };
+
+  const isOverdue = (dateInput: Date | string): boolean => {
+    const date = parseDate(dateInput);
+    if (Number.isNaN(date.getTime())) return false;
     const now = new Date();
     return date < now;
   };
 
-  const isDueToday = (date: Date): boolean => {
+  const isDueToday = (dateInput: Date | string): boolean => {
+    const date = parseDate(dateInput);
+    if (Number.isNaN(date.getTime())) return false;
     const today = new Date();
-    const dueDate = new Date(date);
+    // Compare dates in local timezone
+    const dateInLocal = new Date(
+      date.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+    );
+    const todayInLocal = new Date(
+      today.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }),
+    );
     return (
-      dueDate.getDate() === today.getDate() &&
-      dueDate.getMonth() === today.getMonth() &&
-      dueDate.getFullYear() === today.getFullYear()
+      dateInLocal.getDate() === todayInLocal.getDate() &&
+      dateInLocal.getMonth() === todayInLocal.getMonth() &&
+      dateInLocal.getFullYear() === todayInLocal.getFullYear()
     );
   };
 
-  const isDueSoon = (date: Date): boolean => {
+  const isDueSoon = (dateInput: Date | string): boolean => {
+    const date = parseDate(dateInput);
+    if (Number.isNaN(date.getTime())) return false;
     const now = new Date();
     const timeDiff = date.getTime() - now.getTime();
     const hoursDiff = timeDiff / (1000 * 3600);
-    return hoursDiff > 0 && hoursDiff <= 2; // Due within 2 hours
+    return hoursDiff > 0 && hoursDiff <= 2;
   };
 
-  const getDueDateStyle = (date: Date): string => {
-    if (isOverdue(date)) {
-      return "text-red-500 bg-red-50";
+  const getDueDateStyle = (dateInput: Date | string): string => {
+    if (isOverdue(dateInput)) {
+      return "bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-400";
     }
-    if (isDueSoon(date)) {
-      return "text-amber-600 bg-amber-50";
+    if (isDueSoon(dateInput)) {
+      return "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400";
     }
-    if (isDueToday(date)) {
-      return "text-orange-600 bg-orange-50";
+    if (isDueToday(dateInput)) {
+      return "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400";
     }
-    return "text-gray-600 bg-gray-50";
+    return "bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
   };
 
-  const getDueDateLabel = (date: Date): string => {
-    if (isOverdue(date)) {
+  const getDueDateLabel = (dateInput: Date | string): string => {
+    if (isOverdue(dateInput)) {
       return "Overdue";
     }
-    if (isDueSoon(date)) {
+    if (isDueSoon(dateInput)) {
       return "Due soon";
     }
-    if (isDueToday(date)) {
+    if (isDueToday(dateInput)) {
       return "Due today";
     }
     return "";
@@ -83,15 +114,18 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-3 shadow-sm dark:bg-gray-800">
+    <div className="rounded-lg border bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-2 flex items-start justify-between">
-        <h3 className="font-medium text-sm">{task.title}</h3>
-        <div className="flex gap-1">
+        <h3 className="mr-2 flex-1 font-medium text-sm leading-tight">
+          {task.title}
+        </h3>
+        <div className="flex flex-shrink-0 gap-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => onEdit(task)}
+            title="Edit task"
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -100,17 +134,18 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-red-500 hover:text-red-600"
+                className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                title="Delete task"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Confirm deletion</DialogTitle>
+                <DialogTitle>Confirm Deletion</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete this action? This action
-                  cannot be undone.{" "}
+                  Are you sure you want to delete "{task.title}"? This action
+                  cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex justify-end gap-2">
@@ -121,37 +156,35 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDeleteConfirm}>
-                  Delete forever
+                  Delete
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
         </div>
       </div>
-
       {task.description && (
-        <p className="mb-2 text-gray-500 text-sm dark:text-gray-400">
+        <p className="mb-3 text-gray-500 text-sm leading-relaxed dark:text-gray-400">
           {task.description}
         </p>
       )}
-
       {/* Due Date & Time Display */}
       {task.dueDate && (
-        <div className="mt-2 flex items-center justify-between">
+        <div className="mt-2 flex items-center justify-between gap-2">
           <div
             className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-medium text-xs ${getDueDateStyle(task.dueDate)}`}
           >
-            <Calendar className="h-3 w-3" />
-            <span>{formatDueDateTime(task.dueDate)}</span>
+            <Calendar className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">{formatDueDateTime(task.dueDate)}</span>
           </div>
           {getDueDateLabel(task.dueDate) && (
             <span
-              className={`font-medium text-xs ${
+              className={`flex-shrink-0 font-medium text-xs ${
                 isOverdue(task.dueDate)
-                  ? "text-red-500"
+                  ? "text-red-500 dark:text-red-400"
                   : isDueSoon(task.dueDate)
-                    ? "text-amber-600"
-                    : "text-orange-600"
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-orange-600 dark:text-orange-400"
               }`}
             >
               {getDueDateLabel(task.dueDate)}
