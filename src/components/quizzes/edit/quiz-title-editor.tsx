@@ -18,12 +18,15 @@ export function QuizTitleEditor({
         <CardTitle>Quiz Title</CardTitle>
       </CardHeader>
       <CardContent>
-        <TiptapEditor
-          content={title}
-          onChange={onTitleChange}
-          placeholder="Enter quiz title"
-          showToolbar={true}
-        />
+        <div className=" items-start gap-2 rounded-md border border-gray-200 transition-all duration-200 hover:border-gray-300">
+          <TiptapEditor
+            content={title}
+            onChange={onTitleChange}
+            placeholder="Enter quiz title"
+            showToolbar={true}
+            className="w-full"
+          />
+        </div>
       </CardContent>
     </Card>
   );

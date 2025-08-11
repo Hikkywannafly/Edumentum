@@ -11,6 +11,7 @@ export function QuizEditorContent() {
   const {
     quizData,
     addQuestion,
+    addQuestionAfter,
     updateQuestion,
     deleteQuestion,
     moveQuestion,
@@ -46,6 +47,25 @@ export function QuizEditorContent() {
     }
   };
 
+  const handleAddQuestionAfter = (afterIndex: number) => {
+    const newQuestion = {
+      id: crypto.randomUUID(),
+      question: "<p>New Question</p>",
+      type: "MULTIPLE_CHOICE" as const,
+      points: 1,
+      answers: [
+        {
+          id: crypto.randomUUID(),
+          text: "<p>New Answer</p>",
+          isCorrect: false,
+          order_index: 1,
+        },
+      ],
+    };
+
+    addQuestionAfter(afterIndex, newQuestion);
+  };
+
   return (
     <ThinLayout>
       <div className="space-y-1">
@@ -68,6 +88,7 @@ export function QuizEditorContent() {
         <QuizQuestionsEditor
           questions={quizData.questions}
           onAddQuestion={addQuestion}
+          onAddQuestionAfter={handleAddQuestionAfter}
           onUpdateQuestion={handleUpdateQuestion}
           onDeleteQuestion={deleteQuestion}
           onMoveQuestionUp={handleMoveQuestionUp}
