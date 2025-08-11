@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Archive,
   BookOpen,
   BookIcon as BookReader,
   BrainCircuit,
@@ -9,6 +10,7 @@ import {
   Compass,
   CreditCard,
   FolderOpen,
+  Group,
   HelpCircle,
   LayoutDashboard,
   Pin,
@@ -115,6 +117,18 @@ const menuData: MenuData = {
       icon: Trello,
     },
   ],
+  socialprogress: [
+    {
+      title: "Study Group",
+      url: "/group",
+      icon: Group,
+    },
+    {
+      title: "Achievements",
+      url: "/achievements",
+      icon: Archive,
+    },
+  ],
 };
 
 export function AppSidebar() {
@@ -190,7 +204,6 @@ export function AppSidebar() {
     <div
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-
       className={`h-full bg-white dark:bg-gray-900 ${
         isPinned ? "w-64" : isHovered ? "w-64" : "w-16"
       } ${!isPinned ? "transition-all duration-200 ease-in-out" : ""}`}
@@ -238,6 +251,7 @@ export function AppSidebar() {
                     {key === "contentCreation" && "CONTENT CREATION"}
                     {key === "studyTools" && "STUDY TOOLS"}
                     {key === "planning" && "PLANNING & ORGANIZATION"}
+                    {key === "socialprogress" && "SOCIAL PROGRESS"}
                   </span>
                   <ChevronDown
                     className={`h-3 w-3 transition-all duration-200 group-data-[state=open]/collapsible:rotate-180 ${textVisibility}`}
