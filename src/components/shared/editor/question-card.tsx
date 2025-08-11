@@ -114,7 +114,6 @@ export default function QuestionCard({
     <div>
       <Card className="broder-none mb-6">
         <CardContent className="p-6">
-          {/* Top bar: tiêu đề trái, setting phải */}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="font-medium text-gray-700 text-sm">
