@@ -10,9 +10,7 @@ import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
 const apiKeyOpenAI =
-  process.env.OPENAI_API_KEY ||
-  process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-  "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";
+  process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 export interface UploadedFile {
   id: string;
   name: string;

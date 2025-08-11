@@ -23,8 +23,8 @@ import {
 } from "@/lib/utils/file-utils";
 import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
-import type { Language, ParsingMode, QuizMode, Visibility } from "@/types/quiz";
-import { CheckCircle, FileText, Loader2, Settings } from "lucide-react";
+import type { QuizMode, Visibility } from "@/types/quiz";
+import { CheckCircle, Loader2, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileList } from "./file-list";
@@ -39,8 +39,8 @@ export function FileWithAnswersUploader() {
   // Enhanced settings for file extraction
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
   const [mode, setMode] = useState<QuizMode>("QUIZ");
-  const [parsingMode, setParsingMode] = useState<ParsingMode>("BALANCED");
-  const [language, setLanguage] = useState<Language>("AUTO");
+  // const [parsingMode, setParsingMode] = useState<ParsingMode>("BALANCED");
+  // const [language, setLanguage] = useState<Language>("AUTO");
 
   const {
     uploadedFiles,
@@ -74,8 +74,8 @@ export function FileWithAnswersUploader() {
       try {
         // Pass only extraction-related settings (language and parsing mode)
         await extractQuestionsFromFiles({
-          language,
-          parsingMode,
+          language: "AUTO",
+          parsingMode: "BALANCED",
         });
         await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -151,7 +151,7 @@ export function FileWithAnswersUploader() {
               </div>
 
               {/* Extraction Settings */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <div className="border-t pt-4">
                   <h4 className="mb-3 flex items-center gap-2 font-medium text-sm">
                     <FileText className="h-4 w-4" />
@@ -219,7 +219,7 @@ export function FileWithAnswersUploader() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
 
