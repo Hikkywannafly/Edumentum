@@ -73,10 +73,6 @@ class FlashcardService {
       }
 
       const apiResponse: FlashcardSetApiResponse = await response.json();
-      console.log(
-        "🔍 FlashcardService.getFlashcardById: Raw API response:",
-        apiResponse,
-      );
 
       // Extract data from the wrapper object
       const data: FlashcardSet = apiResponse.data;
@@ -91,6 +87,46 @@ class FlashcardService {
       return data;
     } catch (error) {
       console.error("Error fetching flashcard:", error);
+      throw error;
+    }
+  }
+
+  async updateFlashcardSet(
+    id: number,
+    flashcardSet: Partial<FlashcardSet>,
+    accessToken?: string,
+  ): Promise<FlashcardSet> {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
+      const response = await fetch(`/api/flashcards/${id}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(flashcardSet),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: FlashcardSetApiResponse = await response.json();
+      console.log(
+        "🔄 FlashcardService.updateFlashcardSet: API response:",
+        apiResponse,
+      );
+
+      return apiResponse.data;
+    } catch (error) {
+      console.error(
+        "❌ FlashcardService: Error updating flashcard set:",
+        error,
+      );
       throw error;
     }
   }

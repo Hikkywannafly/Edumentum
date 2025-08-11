@@ -109,12 +109,6 @@ export function FlashcardsContent() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-xl">{t("yourFlashcards")}</h2>
-            <LocalizedLink href="flashcards/create">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("createFlashcard")}
-              </Button>
-            </LocalizedLink>
           </div>
           <FlashcardGrid flashcardSets={flashcardSets} />
         </div>

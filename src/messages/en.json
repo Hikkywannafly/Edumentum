@@ -542,6 +542,23 @@
         "createDeck": "Create Deck",
         "guidance": "Use documents with accurate factual information for best results."
       }
+    },
+    "editPage": {
+      "title": "Edit Flashcard Set",
+      "backToFlashcards": "Back to Flashcards",
+      "saveChanges": "Save Changes",
+      "saveDraft": "Save Draft",
+      "flashcardSetTitle": "Flashcard Set Title",
+      "description": "Description",
+      "addFlashcard": "Add Flashcard",
+      "deleteFlashcard": "Delete Flashcard",
+      "question": "Question",
+      "answerChoices": "Answer Choices",
+      "correctAnswer": "Correct Answer",
+      "explanation": "Explanation (Optional)",
+      "noFlashcards": "No flashcards yet. Click \"Add Flashcard\" to get started.",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down"
     }
   },
   "Pomodoro": {
