@@ -46,7 +46,12 @@ export default function RootLayout({
             </LocaleProvider>
           </GoogleOAuthProvider>
         </ThemeProvider>
-        <Toaster position="top-right" richColors closeButton duration={4000} />
+        <Toaster
+          position="bottom-right"
+          richColors
+          closeButton
+          duration={4000}
+        />
       </body>
     </html>
   );

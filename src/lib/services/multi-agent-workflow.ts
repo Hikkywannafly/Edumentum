@@ -14,8 +14,7 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "qwen/qwq-32b:free";
+const DEFAULT_MODEL = "gpt-4o";
 
 // Multi-agent workflow interfaces
 interface MultiAgentGenerateParams {
@@ -62,50 +61,6 @@ const AgentState = Annotation.Root({
 });
 
 /**
- * Create a custom LLM client that uses OpenRouter instead of OpenAI directly
- */
-class OpenRouterLLM extends ChatOpenAI {
-  private siteUrl: string;
-  private siteName: string;
-
-  constructor(options: {
-    openRouterApiKey: string;
-    modelName?: string;
-    temperature?: number;
-    siteUrl?: string;
-    siteName?: string;
-  }) {
-    super({
-      modelName: options.modelName || DEFAULT_MODEL,
-      openAIApiKey: options.openRouterApiKey,
-      temperature: options.temperature ?? 0.2,
-      configuration: {
-        baseURL: OPENROUTER_API_BASE,
-      },
-    });
-
-    this.siteUrl = options.siteUrl || "http://localhost:3000";
-    this.siteName = options.siteName || "Edumentum";
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async _generate(messages: any[], options?: any, runManager?: any) {
-    // Add custom headers for OpenRouter
-    const customHeaders = {
-      "HTTP-Referer": this.siteUrl,
-      "X-Title": this.siteName,
-    };
-
-    // Merge headers with any existing ones
-    const updatedOptions = options || {};
-    if (!updatedOptions.headers) updatedOptions.headers = {};
-    updatedOptions.headers = { ...updatedOptions.headers, ...customHeaders };
-
-    return super._generate(messages, updatedOptions, runManager);
-  }
-}
-
-/**
  * Create an agent from a prompt template
  */
 async function createAgentWithPrompt(
@@ -150,12 +105,10 @@ export async function createMultiAgentWorkflow(
     modelName?: string;
   },
 ) {
-  const llm = new OpenRouterLLM({
-    openRouterApiKey: apiKey,
+  const llm = new ChatOpenAI({
     modelName: options?.modelName || DEFAULT_MODEL,
+    apiKey,
     temperature: 0.6,
-    siteUrl: options?.siteUrl,
-    siteName: options?.siteName,
   });
 
   // Create agents with appropriate system prompts

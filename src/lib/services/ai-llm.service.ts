@@ -1,9 +1,108 @@
 import type { Difficulty, QuestionData } from "@/types/quiz";
+import axios, { type AxiosInstance, type AxiosError } from "axios";
 import { ContentExtractor } from "./content-extractor.service";
+import type { FileForAI } from "./file-to-ai.service";
 
 // AI service for quiz generation (NOT extraction)
-const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "qwen/qwq-32b:free";
+const OPENAI_API_BASE = "https://api.openai.com/v1";
+const DEFAULT_MODEL = "gpt-3.5-turbo";
+
+// Cache axios clients to avoid recreating instances
+const clientCache = new Map<string, AxiosInstance>();
+
+// Create optimized axios instance with retry logic
+const createOpenAIClient = (apiKey: string): AxiosInstance => {
+  // Use cached client if available (performance optimization)
+  const cacheKey = apiKey.substring(0, 10); // Use partial key for caching
+  if (clientCache.has(cacheKey)) {
+    return clientCache.get(cacheKey) as AxiosInstance;
+  }
+
+  const client = axios.create({
+    baseURL: OPENAI_API_BASE,
+    timeout: 90000, // 90 seconds for longer requests
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    // Performance optimizations
+    maxRedirects: 0,
+    validateStatus: (status) => status < 500, // Don't throw on 4xx errors, handle them manually
+  });
+
+  // Add retry interceptor for rate limiting (429) and network errors
+  client.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      const config = error.config as any;
+      const retryCount = config._retryCount || 0;
+      const maxRetries = 4; // Increased retries for better resilience
+
+      // Handle rate limiting (429), timeout errors, and connection resets
+      // BUT NOT quota exhaustion (insufficient_quota) - retrying won't help
+      const isQuotaExhausted =
+        (error.response?.data as any)?.error?.code === "insufficient_quota";
+      const shouldRetry =
+        ((error.response?.status === 429 && !isQuotaExhausted) ||
+          error.response?.status === 503 || // Service unavailable
+          error.code === "ECONNRESET" ||
+          error.code === "ETIMEDOUT" ||
+          error.code === "ENOTFOUND") &&
+        retryCount < maxRetries;
+
+      if (shouldRetry) {
+        config._retryCount = retryCount + 1;
+
+        // Smart delay calculation based on error type
+        let delay: number;
+        if (error.response?.status === 429) {
+          // For rate limits, check if Retry-After header is present
+          const retryAfter = error.response.headers["retry-after"];
+          delay = retryAfter
+            ? Number.parseInt(retryAfter) * 1000
+            : 2 ** retryCount * 1000;
+        } else {
+          // For other errors, use exponential backoff with jitter
+          delay = 2 ** retryCount * 1000 + Math.random() * 1000;
+        }
+
+        const errorType =
+          error.response?.status === 429
+            ? "Rate limited (429)"
+            : "Network/Server error";
+        console.warn(
+          `⚠️ ${errorType}. Retrying in ${delay}ms... (attempt ${retryCount + 1}/${maxRetries + 1})`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return client(config);
+      }
+
+      return Promise.reject(error);
+    },
+  );
+
+  // Request interceptor for logging (in development)
+  if (process.env.NODE_ENV === "development") {
+    client.interceptors.request.use((config) => {
+      console.log(
+        `🚀 OpenAI API Request: ${config.method?.toUpperCase()} ${config.url}`,
+      );
+      return config;
+    });
+  }
+
+  // Cache the client for reuse
+  clientCache.set(cacheKey, client);
+
+  return client;
+};
+
+// Utility function to clear client cache (useful for testing or when switching API keys)
+export const clearOpenAIClientCache = () => {
+  clientCache.clear();
+  console.log("🧹 OpenAI client cache cleared");
+};
 
 // For AI-based quiz generation from content
 interface GenerateQuestionsParams {
@@ -11,8 +110,6 @@ interface GenerateQuestionsParams {
   questionDescription: string;
   apiKey: string;
   fileContent?: string;
-  siteUrl?: string;
-  siteName?: string;
   modelName?: string;
   settings?: {
     visibility?: string;
@@ -42,45 +139,185 @@ interface AIResponse {
   error?: string;
 }
 
-async function callOpenRouterAPI(
+async function callOpenAIApi(
   apiKey: string,
   prompt: string,
   modelName = DEFAULT_MODEL,
-  siteUrl = "http://localhost:3000",
-  siteName = "Edumentum",
 ): Promise<string> {
   try {
-    const response = await fetch(`${OPENROUTER_API_BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": siteUrl,
-        "X-Title": siteName,
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
+    const client = createOpenAIClient(apiKey);
+
+    const response = await client.post("/chat/completions", {
+      model: modelName,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
     });
 
-    if (!response.ok) {
+    // Handle HTTP error status codes that didn't trigger retry
+    if (response.status >= 400) {
+      const errorData = response.data;
+      console.error(`OpenAI API error ${response.status}:`, errorData);
+
+      // Provide more specific error messages
+      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      if (errorData?.error?.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const responseContent = response.data.choices?.[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error("No content returned from OpenAI API");
+    }
+
+    return responseContent;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const statusText = error.response?.statusText;
+      const errorData = error.response?.data;
+
+      console.error(
+        `OpenAI API call failed: ${status} ${statusText}`,
+        errorData,
+      );
+
+      // Provide helpful error messages based on status and error type
+      let userMessage = `OpenAI API error: ${status} ${statusText}`;
+      const errorCode = errorData?.error?.code;
+
+      if (status === 401) {
+        userMessage += " - Invalid API key";
+      } else if (status === 429) {
+        if (errorCode === "insufficient_quota") {
+          userMessage =
+            "🚫 OpenAI Quota Exhausted - Your OpenAI account has run out of credits. Please check your billing at https://platform.openai.com/account/billing";
+        } else {
+          userMessage += " - Rate limit exceeded (too many requests)";
+        }
+      } else if (status === 503) {
+        userMessage += " - Service temporarily unavailable";
+      } else if (errorData?.error?.message) {
+        userMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(userMessage);
+    }
+
+    console.error("OpenAI API call failed:", error);
+    throw error;
+  }
+}
+
+async function callOpenAIApiWithFile(
+  apiKey: string,
+  prompt: string,
+  file: FileForAI,
+  modelName = "gpt-4o", // Use vision model for file support
+): Promise<string> {
+  try {
+    const client = createOpenAIClient(apiKey);
+
+    // Prepare message content based on file type
+    const messageContent: any[] = [
+      {
+        type: "text",
+        text: prompt,
+      },
+    ];
+
+    // Add file content based on type
+    if (file.type === "image") {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: `data:${file.mimeType};base64,${file.data}`,
+        },
+      });
+    } else if (file.type === "document" || file.type === "text") {
+      // For documents, we'll add them as base64 data with description
+      messageContent.push({
+        type: "text",
+        text: `File: ${file.fileName} (${file.mimeType})\nBase64 Content: data:${file.mimeType};base64,${file.data}\n\nPlease analyze this file and extract the content to generate quiz questions.`,
+      });
+    }
+
+    const response = await client.post("/chat/completions", {
+      model: modelName,
+      messages: [
+        {
+          role: "user",
+          content: messageContent,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    // Handle HTTP error status codes
+    if (response.status >= 400) {
+      const errorData = response.data;
+      console.error(`OpenAI API file error ${response.status}:`, errorData);
+
+      let errorMessage = `OpenAI API error: ${response.status} ${response.statusText}`;
+      if (errorData?.error?.message) {
+        errorMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const responseContent = response.data.choices?.[0]?.message?.content;
+    if (!responseContent) {
       throw new Error(
-        `OpenRouter API error: ${response.status} ${response.statusText}`,
+        "No content returned from OpenAI API for file processing",
       );
     }
 
-    const data = await response.json();
-    return data.choices[0]?.message?.content || "";
+    return responseContent;
   } catch (error) {
-    console.error("OpenRouter API call failed:", error);
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      const statusText = error.response?.statusText;
+      const errorData = error.response?.data;
+
+      console.error(
+        `OpenAI API with file call failed: ${status} ${statusText}`,
+        errorData,
+      );
+
+      let userMessage = `OpenAI API file processing error: ${status} ${statusText}`;
+      const errorCode = errorData?.error?.code;
+
+      if (status === 401) {
+        userMessage += " - Invalid API key";
+      } else if (status === 429) {
+        if (errorCode === "insufficient_quota") {
+          userMessage =
+            "🚫 OpenAI Quota Exhausted - Your OpenAI account has run out of credits. Please check your billing at https://platform.openai.com/account/billing";
+        } else {
+          userMessage += " - Rate limit exceeded (too many requests)";
+        }
+      } else if (status === 413) {
+        userMessage += " - File too large";
+      } else if (status === 400) {
+        userMessage += " - Invalid file format or content";
+      } else if (errorData?.error?.message) {
+        userMessage += ` - ${errorData.error.message}`;
+      }
+
+      throw new Error(userMessage);
+    }
+
+    console.error("OpenAI API with file call failed:", error);
     throw error;
   }
 }
@@ -377,8 +614,6 @@ export async function generateQuestions(
     apiKey,
     fileContent = "",
     modelName = DEFAULT_MODEL,
-    siteUrl,
-    siteName,
     settings = {},
     useMultiAgent = false,
   } = params;
@@ -401,8 +636,6 @@ export async function generateQuestions(
             questionDescription,
             apiKey,
             fileContent,
-            siteUrl,
-            siteName,
             modelName,
             settings,
           }),
@@ -474,13 +707,7 @@ FORMAT JSON:
 PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
 
     console.log("🚀 Generating questions with AI...");
-    const aiResponse = await callOpenRouterAPI(
-      apiKey,
-      prompt,
-      modelName,
-      siteUrl,
-      siteName,
-    );
+    const aiResponse = await callOpenAIApi(apiKey, prompt, modelName);
 
     console.log("📝 Parsing AI response...");
 
@@ -500,6 +727,216 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
     };
   } catch (error) {
     console.error("❌ Question generation failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+// Extract questions using AI (for content that already has quiz format)
+export async function extractQuestionsWithAI(
+  params: GenerateQuestionsParams & {
+    useMultiAgent?: boolean;
+    file?: FileForAI;
+  },
+): Promise<AIResponse> {
+  const {
+    questionHeader,
+    questionDescription,
+    apiKey,
+    fileContent,
+    modelName = DEFAULT_MODEL,
+    settings = {},
+    file,
+  } = params;
+
+  try {
+    const numberOfQuestions = Math.max(
+      1,
+      Math.min(10, settings.numberOfQuestions || 10), // Higher default for extraction
+    );
+
+    const prompt = `
+Bạn là một chuyên gia trích xuất quiz. Bạn cần TRÍCH XUẤT tất cả câu hỏi có sẵn từ nội dung được cung cấp.
+
+YÊU CẦU:
+- Header: ${questionHeader}
+- Description: ${questionDescription}
+- Ngôn ngữ: ${settings.language || "AUTO"}
+- Tối đa: ${numberOfQuestions} câu hỏi
+
+NHIỆM VỤ: TRÍCH XUẤT (không tạo mới) các câu hỏi và đáp án có sẵn trong nội dung.
+
+QUY TẮC QUAN TRỌNG:
+1. CHỈ trích xuất câu hỏi có SẴN, KHÔNG tạo ra câu hỏi mới
+2. Giữ nguyên nội dung câu hỏi và đáp án từ nguồn
+3. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
+4. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
+5. Response PHẢI là JSON array hợp lệ, không có text khác
+6. Nếu không tìm thấy câu hỏi có sẵn, trả về array rỗng []
+
+FORMAT JSON:
+[
+  {
+    "id": "q1",
+    "question": "Câu hỏi được trích xuất nguyên văn",
+    "type": "MULTIPLE_CHOICE",
+    "difficulty": "${settings.difficulty || "EASY"}",
+    "points": 1,
+    "explanation": "Giải thích nếu có sẵn trong nguồn",
+    "answers": [
+      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+    ]
+  }
+]
+
+CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả về [].`.trim();
+
+    console.log("🔍 Extracting questions with AI...");
+
+    let aiResponse: string;
+
+    if (file) {
+      console.log(
+        "📄 File:",
+        file.fileName,
+        file.mimeType,
+        `${(file.size / 1024).toFixed(1)}KB`,
+      );
+      aiResponse = await callOpenAIApiWithFile(
+        apiKey,
+        prompt,
+        file,
+        "gpt-4o", // Use vision model for file support
+      );
+    } else {
+      aiResponse = await callOpenAIApi(
+        apiKey,
+        `${prompt}\n\nContent to extract from:\n${fileContent}`,
+        modelName,
+      );
+    }
+
+    console.log("📝 Parsing AI extraction response...");
+    console.log("🔍 Full AI Response Length:", aiResponse.length);
+    console.log("🔍 Full AI Response:", aiResponse);
+
+    const questions = parseQuestionsFromAI(aiResponse, settings);
+
+    console.log(`✅ Successfully extracted ${questions.length} questions`);
+    return {
+      success: true,
+      questions,
+    };
+  } catch (error) {
+    console.error("❌ Question extraction failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+// Generate questions directly from file (no parsing)
+export async function generateQuestionsFromFile(
+  params: GenerateQuestionsParams & {
+    useMultiAgent?: boolean;
+    file: FileForAI;
+  },
+): Promise<AIResponse> {
+  const {
+    questionHeader,
+    questionDescription,
+    apiKey,
+    modelName = "gpt-4o", // Use vision model for file support
+    settings = {},
+    file,
+  } = params;
+
+  try {
+    const numberOfQuestions = Math.max(
+      1,
+      Math.min(10, settings.numberOfQuestions || 5),
+    );
+
+    const prompt = `
+Bạn là một chuyên gia tạo quiz. Bạn PHẢI trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi chất lượng cao từ file được cung cấp.
+
+YÊU CẦU:
+- Header: ${questionHeader}
+- Description: ${questionDescription}
+- Ngôn ngữ: ${settings.language || "AUTO"}
+- Loại câu hỏi: ${settings.questionType || "MIXED"}
+- Độ khó: ${settings.difficulty || "EASY"}
+- Số câu hỏi: ${numberOfQuestions}
+
+File đính kèm: ${file.fileName}
+
+QUY TẮC QUAN TRỌNG:
+1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
+2. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
+3. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
+4. Response PHẢI là JSON array hợp lệ, không có text khác
+5. Phân tích toàn bộ nội dung file để tạo câu hỏi chính xác
+
+FORMAT JSON:
+[
+  {
+    "id": "q1",
+    "question": "Câu hỏi của bạn?",
+    "type": "MULTIPLE_CHOICE",
+    "difficulty": "${settings.difficulty || "EASY"}",
+    "points": 1,
+    "explanation": "Giải thích tại sao đáp án này đúng",
+    "answers": [
+      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+    ]
+  }
+]
+
+PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
+
+    console.log("🚀 Generating questions from file with AI...");
+    console.log(
+      "📄 File:",
+      file.fileName,
+      file.mimeType,
+      `${(file.size / 1024).toFixed(1)}KB`,
+    );
+
+    const aiResponse = await callOpenAIApiWithFile(
+      apiKey,
+      prompt,
+      file,
+      modelName,
+    );
+
+    console.log("📝 Parsing AI response from file...");
+    console.log("🔍 Full AI Response Length:", aiResponse.length);
+    console.log("🔍 Full AI Response:", aiResponse);
+
+    const questions = parseQuestionsFromAI(aiResponse, settings);
+
+    if (questions.length === 0) {
+      throw new Error("No questions could be extracted from AI response");
+    }
+
+    console.log(
+      `✅ Successfully generated ${questions.length} questions from file`,
+    );
+    return {
+      success: true,
+      questions,
+    };
+  } catch (error) {
+    console.error("❌ Question generation from file failed:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),

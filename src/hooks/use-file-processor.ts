@@ -1,12 +1,14 @@
 import {
   extractQuestions,
+  extractQuestionsWithAI,
   generateQuestions,
+  generateQuestionsFromFile,
 } from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
+import { fileToAIService } from "@/lib/services/file-to-ai.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
-
 export interface UploadedFile {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export interface UploadedFile {
   error?: string;
   parsedContent?: string;
   extractedQuestions?: QuestionData[];
+  actualFile?: File; // Store actual file for direct sending
 }
 
 export interface GeneratedQuiz {
@@ -32,6 +35,7 @@ const extractQuestionsFromContent = async (
   settings?: {
     language?: Language;
     parsingMode?: ParsingMode;
+    fileProcessingMode?: "PARSE_THEN_SEND" | "SEND_DIRECT";
   },
 ): Promise<QuestionData[]> => {
   console.log(" Extracting questions from file content (direct parsing)...");
@@ -52,10 +56,12 @@ const extractQuestionsFromContent = async (
   return result.questions;
 };
 
-// Generate NEW questions using AI (for AI-generated quizzes)
-const generateQuestionsWithAI = async (
+// Extract EXISTING questions using AI (for quiz extraction)
+const extractQuestionsWithAIHandler = async (
   content: string,
+  actualFile?: File,
   settings?: {
+    fileProcessingMode?: "PARSE_THEN_SEND" | "SEND_DIRECT";
     visibility?: string;
     language?: string;
     questionType?: string;
@@ -66,12 +72,150 @@ const generateQuestionsWithAI = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OpenRouter API key not configured");
+    throw new Error("OpenAI API key is not configured");
+  }
+
+  console.log("🔍 Extracting existing questions with AI...");
+  console.log("🔧 Settings:", settings);
+  console.log("📄 Content length:", content.length);
+
+  const maxRetries = 3;
+  let lastError: Error | null = null;
+  const isDirectMode = settings?.fileProcessingMode === "SEND_DIRECT";
+
+  // Validate file for direct sending if needed, auto-fallback to parse mode
+  let actualMode = isDirectMode;
+  if (isDirectMode && actualFile) {
+    const validation = fileToAIService.validateFileForAI(actualFile);
+    if (!validation.valid) {
+      console.warn(
+        `⚠️ File not supported for direct sending: ${validation.error}`,
+      );
+      console.log("🔄 Auto-fallback to 'Parse Then Send' mode for extraction");
+      actualMode = false; // Fallback to parse mode
+    } else {
+      console.log("✅ File validated for direct AI extraction");
+    }
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `📡 Attempt ${attempt}/${maxRetries} - Calling AI extraction service (${actualMode ? "DIRECT" : "PARSED"} mode)...`,
+      );
+
+      let result: any;
+
+      if (actualMode && actualFile) {
+        // Convert file to AI format and send directly
+        console.log("🎯 Converting file for direct AI extraction...");
+        const fileForAI = await fileToAIService.convertFileToAI(actualFile);
+
+        result = await extractQuestionsWithAI({
+          questionHeader: "Extract Quiz Questions",
+          questionDescription:
+            "Extract existing quiz questions from the provided file.",
+          apiKey,
+          file: fileForAI,
+          settings: {
+            ...settings,
+            numberOfQuestions: settings?.numberOfQuestions || 10, // Higher default for extraction
+          },
+          useMultiAgent: settings?.parsingMode === "THOROUGH",
+        });
+      } else {
+        // Use traditional text-based approach
+        result = await extractQuestionsWithAI({
+          questionHeader: "Extract Quiz Questions",
+          questionDescription:
+            "Extract existing quiz questions from the provided content.",
+          apiKey,
+          fileContent: content,
+          settings: {
+            ...settings,
+            numberOfQuestions: settings?.numberOfQuestions || 10,
+          },
+          useMultiAgent: settings?.parsingMode === "THOROUGH",
+        });
+      }
+
+      if (result.success && result.questions && result.questions.length > 0) {
+        console.log(
+          `✅ Successfully extracted ${result.questions.length} questions on attempt ${attempt}`,
+        );
+
+        // Validate questions have proper structure
+        const validQuestions = result.questions.filter(
+          (q: QuestionData) =>
+            q.question &&
+            q.question.trim().length > 0 &&
+            q.answers &&
+            q.answers.length > 0,
+        );
+
+        if (validQuestions.length === 0) {
+          throw new Error("Extracted questions are empty or invalid");
+        }
+
+        return validQuestions;
+      }
+
+      throw new Error(result.error || "AI service returned no questions");
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(
+        `❌ Extraction attempt ${attempt}/${maxRetries} failed:`,
+        lastError.message,
+      );
+
+      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      const isQuotaExhausted =
+        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("insufficient_quota");
+      const isInvalidApiKey = lastError.message.includes("Invalid API key");
+
+      if (isQuotaExhausted || isInvalidApiKey) {
+        console.error(
+          `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
+        );
+        break; // Exit retry loop immediately
+      }
+
+      if (attempt < maxRetries) {
+        console.log(`⏳ Retrying in ${attempt} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+      }
+    }
+  }
+
+  throw new Error(
+    `Failed to extract questions after ${maxRetries} attempts. Last error: ${lastError?.message || "Unknown error"}`,
+  );
+};
+
+// Generate NEW questions using AI (for AI-generated quizzes)
+const generateQuestionsWithAI = async (
+  content: string,
+  actualFile?: File,
+  settings?: {
+    fileProcessingMode?: "PARSE_THEN_SEND" | "SEND_DIRECT";
+    visibility?: string;
+    language?: string;
+    questionType?: string;
+    numberOfQuestions?: number;
+    mode?: string;
+    difficulty?: string;
+    task?: string;
+    parsingMode?: string;
+  },
+): Promise<QuestionData[]> => {
+  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("OpenAI API key not configured");
   }
 
   console.log("🚀 Generating new questions with AI...");
@@ -80,25 +224,63 @@ const generateQuestionsWithAI = async (
 
   const maxRetries = 3;
   let lastError: Error | null = null;
+  const isDirectMode = settings?.fileProcessingMode === "SEND_DIRECT";
+
+  // Validate file for direct sending if needed, auto-fallback to parse mode
+  let actualMode = isDirectMode;
+  if (isDirectMode && actualFile) {
+    const validation = fileToAIService.validateFileForAI(actualFile);
+    if (!validation.valid) {
+      console.warn(
+        `⚠️ File not supported for direct sending: ${validation.error}`,
+      );
+      console.log("🔄 Auto-fallback to 'Parse Then Send' mode for generation");
+      actualMode = false; // Fallback to parse mode
+    } else {
+      console.log("✅ File validated for direct AI generation");
+    }
+  }
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(
-        `📡 Attempt ${attempt}/${maxRetries} - Calling AI service...`,
+        `📡 Attempt ${attempt}/${maxRetries} - Calling AI service (${actualMode ? "DIRECT" : "PARSED"} mode)...`,
       );
 
-      const result = await generateQuestions({
-        questionHeader: "Generate Quiz Questions",
-        questionDescription:
-          "Generate new quiz questions from the provided content.",
-        apiKey,
-        fileContent: content,
-        settings: {
-          ...settings,
-          numberOfQuestions: settings?.numberOfQuestions || 5, // Ensure we have a default
-        },
-        useMultiAgent: settings?.parsingMode === "THOROUGH", // Use multi-agent for thorough mode
-      });
+      let result: any;
+
+      if (actualMode && actualFile) {
+        // Convert file to AI format and send directly
+        console.log("🎯 Converting file for direct AI processing...");
+        const fileForAI = await fileToAIService.convertFileToAI(actualFile);
+
+        result = await generateQuestionsFromFile({
+          questionHeader: "Generate Quiz Questions",
+          questionDescription:
+            "Generate new quiz questions from the provided file.",
+          apiKey,
+          file: fileForAI,
+          settings: {
+            ...settings,
+            numberOfQuestions: settings?.numberOfQuestions || 5,
+          },
+          useMultiAgent: settings?.parsingMode === "THOROUGH",
+        });
+      } else {
+        // Use traditional text-based approach
+        result = await generateQuestions({
+          questionHeader: "Generate Quiz Questions",
+          questionDescription:
+            "Generate new quiz questions from the provided content.",
+          apiKey,
+          fileContent: content,
+          settings: {
+            ...settings,
+            numberOfQuestions: settings?.numberOfQuestions || 5, // Ensure we have a default
+          },
+          useMultiAgent: settings?.parsingMode === "THOROUGH", // Use multi-agent for thorough mode
+        });
+      }
 
       if (result.success && result.questions && result.questions.length > 0) {
         console.log(
@@ -107,7 +289,7 @@ const generateQuestionsWithAI = async (
 
         // Validate questions have proper structure
         const validQuestions = result.questions.filter(
-          (q) =>
+          (q: QuestionData) =>
             q.question &&
             q.question.trim().length > 0 &&
             q.answers &&
@@ -145,6 +327,19 @@ const generateQuestionsWithAI = async (
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
+
+      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      const isQuotaExhausted =
+        lastError.message.includes("OpenAI Quota Exhausted") ||
+        lastError.message.includes("insufficient_quota");
+      const isInvalidApiKey = lastError.message.includes("Invalid API key");
+
+      if (isQuotaExhausted || isInvalidApiKey) {
+        console.error(
+          `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
+        );
+        break; // Exit retry loop immediately
+      }
 
       if (attempt < maxRetries) {
         const delay = attempt * 1000;
@@ -186,6 +381,7 @@ export function useFileProcessor() {
                   progress: 100,
                   parsedContent: content,
                   extractedQuestions: [], // Don't extract yet, just parse
+                  actualFile, // Store the actual file for direct sending
                 }
               : file,
           );
@@ -325,18 +521,17 @@ export function useFileProcessor() {
             let questions: QuestionData[] = [];
 
             if (settings?.generationMode === "EXTRACT") {
-              // Extract existing questions from file content (NO AI, direct parsing)
-              questions = await extractQuestionsFromContent(
+              // Extract existing questions using AI (not regex)
+              questions = await extractQuestionsWithAIHandler(
                 file.parsedContent,
-                {
-                  language: settings.language as Language,
-                  parsingMode: settings.parsingMode as ParsingMode,
-                },
+                file.actualFile, // Pass the actual file for direct sending option
+                settings,
               );
             } else {
               // Generate new questions using AI (default mode)
               questions = await generateQuestionsWithAI(
                 file.parsedContent,
+                file.actualFile, // Pass the actual file for direct sending option
                 settings,
               );
             }

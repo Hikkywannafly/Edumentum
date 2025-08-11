@@ -26,9 +26,9 @@ interface AnswerMatch {
 }
 
 export class ContentExtractor {
-  // Pattern nhận diện câu hỏi
   private readonly QUESTION_PATTERNS = [
-    /^Câu\s+(\d+)[\s\.\:\-\)]*/i,
+    /^Câu\s+(\d+)\.?\s+/i,
+    /^Câu\s+(\d+)\.?\s*$/i,
     /^Câu\s+hỏi\s+(\d+)[\s\.\:\-\)]*/i,
     /^Ch\s+(\d+)[\s\.\:\-\)]*/i,
     /^Bài\s+(\d+)[\s\.\:\-\)]*/i,
@@ -42,28 +42,28 @@ export class ContentExtractor {
     /^\[(\d+)\][\s\.\:\-]*/,
     /^(\d+)\s*\/\s*/,
     /^#(\d+)[\s\.\:\-]*/,
-    /^[IVXLCDM]+[\.\)\:\-]\s+/i,
+    /^[IVXLCDM]{2,}[\.\)\:\-]\s+/i, // La Mã >= 2 ký tự
     /^[\*\-\+\•\▪\►]\s*(\d+)?[\.\:\-]?\s*/,
   ];
 
-  // Pattern nhận diện đáp án
   private readonly ANSWER_PATTERNS = [
-    /^(\*?\s*)([A-Da-d])[\.\)\:\-]\s*/,
-    /^(\*?\s*)\(([A-Da-d])\)[\s\.\:\-]*/,
-    /^(\*?\s*)\[([A-Da-d])\][\s\.\:\-]*/,
-    /^(✓\s*|✔\s*|☑\s*|√\s*)([A-Da-d])[\.\)\:\-]*/,
-    /^(\*?\s*)([A-Da-d])\s*\*\s*/,
-    /^(\*?\s*)([1-4])[\.\)\:\-]\s*/,
-    /^(\*?\s*)\(([1-4])\)[\s\.\:\-]*/,
-    /^(\*?\s*)Đáp\s*án\s*([A-Da-d])[\.\:\-]?/i,
-    /^(\*?\s*)ĐA\s*([A-Da-d])[\.\:\-]?/i,
-    /^→\s*([A-Da-d])[\.\)\:\-]?/,
-    /^=>\s*([A-Da-d])[\.\)\:\-]?/,
-    /^>>\s*([A-Da-d])[\.\)\:\-]?/,
-    /^(\*?\s*)\(?Đúng\)?\s*([A-Da-d])?/i,
+    /^(\*?\s*)([A-Za-z])[\.\)\:\-]\s*/,
+    /^(\*?\s*)([A-Za-z])\s+/,
+    /^(\*?\s*)\(([A-Za-z])\)[\s\.\:\-]*/,
+    /^(\*?\s*)\[([A-Za-z])\][\s\.\:\-]*/,
+    /^(✓\s*|✔\s*|☑\s*|√\s*)([A-Za-z])[\.\)\:\-]*/,
+    /^(\*?\s*)([A-Za-z])\s*\*\s*/,
+    /^(\*?\s*)([1-9])[\.\)\:\-]\s*/,
+    /^(\*?\s*)\(([1-9])\)[\s\.\:\-]*/,
+    /^(\*?\s*)(Answer|Option|Choice)\s*([A-Za-z1-9])/i,
+    /^(\*?\s*)Đáp\s*án\s*([A-Za-z1-9])[\.\:\-]?/i,
+    /^(\*?\s*)ĐA\s*([A-Za-z1-9])[\.\:\-]?/i,
+    /^→\s*([A-Za-z1-9])[\.\)\:\-]?/,
+    /^=>\s*([A-Za-z1-9])[\.\)\:\-]?/,
+    /^>>\s*([A-Za-z1-9])[\.\)\:\-]?/,
+    /^(\*?\s*)\(?Đúng\)?\s*([A-Za-z1-9])?/i,
   ];
 
-  // Các trường hợp xuống dòng vẫn là nội dung của câu hỏi/đáp án
   private readonly CONTINUATION_INDICATORS = [
     /^\s*[a-zàáảãạâầấẩẫậăằắẳẵặ]/i,
     /^\s*(và|and|or|hoặc|hay)\s+/i,
@@ -76,8 +76,8 @@ export class ContentExtractor {
   extractQuestions(content: string): QuestionData[] {
     const preprocessed = this.preprocessContent(content);
     const lines = preprocessed.split("\n");
-    const parsedQuestions = this.parseQuestionsStructure(lines);
 
+    const parsedQuestions = this.parseQuestionsStructure(lines);
     return parsedQuestions.map((pq, index) =>
       this.convertToQuestionData(pq, index),
     );
@@ -87,7 +87,6 @@ export class ContentExtractor {
     let processed = content
       .replace(/\r\n/g, "\n")
       .replace(/\r/g, "\n")
-      .replace(/[ \t]+/g, " ")
       .replace(/\u00A0/g, " ")
       .replace(/[\u2000-\u200F]/g, " ")
       .replace(/[\u2028-\u2029]/g, "\n")
@@ -97,14 +96,54 @@ export class ContentExtractor {
       .replace(/\s+([\.,;:!?\)\]\}])/g, "$1")
       .replace(/([\(\[\{])\s+/g, "$1")
       .replace(/([\.,;:!?])\s+/g, "$1 ")
-      .replace(/[ \t]{2,}/g, " ")
       .replace(/\n\s*\n\s*\n/g, "\n\n")
       .trim();
 
-    // Tách đáp án trong cùng dòng câu hỏi
+    const lines = processed.split("\n");
+    const normalizedLines = lines.map((line) => {
+      const trimmed = line.trim();
+      if (trimmed) {
+        if (/^[A-Da-d][\.\)\:\-]/.test(trimmed)) return trimmed;
+        if (line.startsWith(" ") && this.looksLikeAnswer(trimmed))
+          return trimmed;
+        return trimmed;
+      }
+      return "";
+    });
+    processed = normalizedLines.join("\n");
+
     processed = processed.replace(
-      /(\s+)(\*?\s*(?:[A-Da-d]|\([A-Da-d]\)|\[[A-Da-d]\]))\s+/g,
-      "\n$2 ",
+      /(\s+)(\*?\s*(?:[A-Da-d][\.\)\:\-]|\([A-Da-d]\)|\[[A-Da-d]\]|[a-d][\)\.\:\-]))/g,
+      "\n$2",
+    );
+    processed = processed.replace(
+      /([\.\?\!])(\*?[A-Da-d][\.\)\:\-])/g,
+      "$1\n$2",
+    );
+    processed = processed.replace(/([\.\?\!])\s+(Câu\s+\d+)/gi, "$1\n$2");
+    processed = processed.replace(/([^\n])\s+(Câu\s+\d+[\.\s])/gi, "$1\n$2");
+    processed = processed.replace(
+      /([A-Da-d][\.\)\:\-])\s+([A-Da-d][\.\)\:\-])/g,
+      "$1\n$2",
+    );
+
+    processed = processed
+      .replace(
+        /(^|\s)(\*?\s*[A-Da-d])\s+(?=[^\n])/gm,
+        (_m, p1, p2) => `${p1}\n${p2} `,
+      )
+      .replace(
+        /(^|\s)(\*?\s*[1-9])\s+(?=[^\n])/gm,
+        (_m, p1, p2) => `${p1}\n${p2} `,
+      );
+
+    processed = processed.replace(
+      /([^\n])\s+(\*?\s*[A-Da-d])\s+(?=\*?\s*[A-Da-d]\b)/g,
+      (_m, prev, key) => `${prev}\n${key} `,
+    );
+    processed = processed.replace(
+      /([^\n])\s+(\*?\s*[1-9])\s+(?=\*?\s*[1-9]\b)/g,
+      (_m, prev, key) => `${prev}\n${key} `,
     );
 
     return processed;
@@ -148,6 +187,16 @@ export class ContentExtractor {
           this.isLikelyContinuation(line, currentQuestion.questionLines)
         ) {
           currentQuestion.questionLines.push(line);
+        } else if (this.looksLikeAnswer(line)) {
+          const answerKey = this.extractAnswerKeyFromText(line);
+          if (answerKey) {
+            if (currentAnswer) currentQuestion.answers.push(currentAnswer);
+            currentAnswer = {
+              key: answerKey,
+              lines: [line],
+              isCorrect: line.startsWith("*"),
+            };
+          }
         }
         currentQuestion.endIndex = i;
       }
@@ -160,10 +209,26 @@ export class ContentExtractor {
     return questions;
   }
 
+  private extractAnswerKeyFromText(text: string): string | null {
+    const patterns = [
+      /^(\*?)\s*([A-Za-z])/,
+      /^(\*?)\s*([1-9])/,
+      /^(\*?)\s*\(([A-Za-z1-9])\)/,
+      /^(\*?)\s*\[([A-Za-z1-9])\]/,
+    ];
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) return match[2].toUpperCase();
+    }
+    return null;
+  }
+
   private matchQuestionPattern(line: string): QuestionMatch | null {
     const cleanLine = line.trim();
     if (!cleanLine) return null;
-
+    if (this.matchAnswerPattern(cleanLine) || this.looksLikeAnswer(cleanLine)) {
+      return null;
+    }
     for (const pattern of this.QUESTION_PATTERNS) {
       const match = cleanLine.match(pattern);
       if (match) {
@@ -171,6 +236,8 @@ export class ContentExtractor {
         const number = match[1];
         text = this.cleanQuestionText(text);
         if (text.length < 3 || this.looksLikeAnswer(text)) continue;
+        if (/^[\d\s\.\-\(\)\[\]]*$/.test(text)) continue;
+        if (text.split(/\s+/).length <= 1 && text.length < 10) continue;
         return { text, number };
       }
     }
@@ -185,27 +252,35 @@ export class ContentExtractor {
   }
 
   private looksLikeAnswer(text: string): boolean {
-    return (
-      /^[A-Da-d][\.:)\-]/.test(text) ||
-      /^\([A-Da-d]\)/.test(text) ||
-      /^[1-4][\.:)\-]/.test(text)
-    );
+    const t = text.trim();
+    if (
+      /^[A-Za-z][\.:)\-]/.test(t) ||
+      /^\([A-Za-z]\)/.test(t) ||
+      /^\[[A-Za-z]\]/.test(t) ||
+      /^[1-9][\.:)\-]/.test(t) ||
+      /^\([1-9]\)/.test(t) ||
+      /^(Số|Đáp|ĐA|Answer|Option|Choice)/i.test(t) ||
+      /^\*[A-Za-z1-9][\.:)\-]?/.test(t)
+    ) {
+      return true;
+    }
+    return false;
   }
 
   private matchAnswerPattern(line: string): AnswerMatch | null {
     const cleanLine = line.trim();
     if (!cleanLine) return null;
-
     for (const pattern of this.ANSWER_PATTERNS) {
       const match = cleanLine.match(pattern);
       if (match) {
         let isCorrect = false;
         const markerGroup = match[1] || "";
         if (/[*✓✔☑√]|Đúng|Correct/i.test(markerGroup)) isCorrect = true;
-        const key = (match[2] || "").toUpperCase();
+        if (cleanLine.startsWith("*")) isCorrect = true;
+        const key = (match[2] || match[3] || "").toUpperCase();
         let text = cleanLine.replace(pattern, "").trim();
         text = this.cleanAnswerText(text);
-        if (!text) continue;
+        if (!text || text.length < 1) continue;
         return { key, text, isCorrect };
       }
     }
@@ -222,14 +297,21 @@ export class ContentExtractor {
   private isLikelyContinuation(line: string, questionLines: string[]): boolean {
     if (this.matchAnswerPattern(line)) return false;
     if (this.matchQuestionPattern(line)) return false;
+    if (this.looksLikeAnswer(line)) return false;
+    const hasPrev = questionLines.length > 0;
+    const lastLine = hasPrev ? questionLines[questionLines.length - 1] : "";
+    if (hasPrev && !/[\.!?:]$/.test(lastLine.trim())) {
+      return true;
+    }
     for (const indicator of this.CONTINUATION_INDICATORS) {
       if (indicator.test(line)) return true;
     }
-    if (/^[a-zàáảãạâầấẩẫậăằắẳẵặ]/i.test(line) && questionLines.length > 0) {
-      const lastLine = questionLines[questionLines.length - 1];
-      if (!/[\.!?:]$/.test(lastLine.trim())) return true;
+    if (line.length < 50 && !/^[A-Da-d][\.\)\:]/.test(line)) {
+      return true;
     }
-    if (line.length < 50 && !/^[A-Z]/.test(line)) return true;
+    if (line.startsWith(" ") && this.looksLikeAnswer(line.trim())) {
+      return false;
+    }
     return false;
   }
 
@@ -247,14 +329,10 @@ export class ContentExtractor {
       isCorrect: pa.isCorrect,
       order_index: answerIndex + 1,
     }));
-
-    const questionType: QuestionData["type"] =
-      answers.length > 0 ? "MULTIPLE_CHOICE" : "FREE_RESPONSE";
-
     return {
       id: `question_${index}`,
       question: questionText,
-      type: questionType,
+      type: "MULTIPLE_CHOICE",
       points: 1,
       answers,
     };
