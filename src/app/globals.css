@@ -111,3 +111,6 @@
     @apply bg-background text-foreground;
   }
 }
+.tiptap-editor {
+  background-color: transparent; /* bỏ nền trắng */
+}

@@ -92,13 +92,13 @@ export default function TiptapEditor({
   return (
     <div
       className={
-        "relative rounded-md border bg-background transition-all duration-200"
+        "relative rounded-md bg-background transition-all duration-200"
       }
     >
       {/* Fixed Toolbar - Only show when focused */}
       {showToolbar && (isFocused || isToolbarInteracting) && (
         <div
-          className="border-b bg-muted/50 p-2"
+          className=" bg-muted/50 p-2"
           data-toolbar
           onMouseEnter={() => setIsToolbarInteracting(true)}
           onMouseLeave={() => setIsToolbarInteracting(false)}

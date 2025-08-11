@@ -21,12 +21,15 @@ export function QuizDescriptionEditor({
         <CardTitle>{t("quizDescription")}</CardTitle>
       </CardHeader>
       <CardContent>
-        <TiptapEditor
-          content={description}
-          onChange={onDescriptionChange}
-          placeholder={t("quizDescription")}
-          showToolbar={true}
-        />
+        <div className=" items-start gap-2 rounded-md border border-gray-200 transition-all duration-200 hover:border-gray-300">
+          <TiptapEditor
+            content={description}
+            onChange={onDescriptionChange}
+            placeholder={t("quizDescription")}
+            showToolbar={true}
+            className="w-full"
+          />
+        </div>
       </CardContent>
     </Card>
   );

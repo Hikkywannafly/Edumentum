@@ -18,6 +18,7 @@ interface QuizEditorState {
   setQuizData: (quiz: GeneratedQuiz) => void;
   updateQuizData: (updates: Partial<GeneratedQuiz>) => void;
   addQuestion: (question: QuestionData) => void;
+  addQuestionAfter: (afterIndex: number, question: QuestionData) => void;
   updateQuestion: (questionId: string, updates: Partial<QuestionData>) => void;
   deleteQuestion: (questionId: string) => void;
   moveQuestion: (fromIndex: number, toIndex: number) => void;
@@ -50,6 +51,21 @@ export const useQuizEditorStore = create<QuizEditorState>()(
               }
             : null,
         })),
+
+      addQuestionAfter: (afterIndex, question) =>
+        set((state) => {
+          if (!state.quizData) return state;
+
+          const questions = [...state.quizData.questions];
+          questions.splice(afterIndex + 1, 0, question);
+
+          return {
+            quizData: {
+              ...state.quizData,
+              questions,
+            },
+          };
+        }),
 
       updateQuestion: (questionId, updates) =>
         set((state) => ({

@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 interface QuizQuestionsEditorProps {
   questions: QuestionData[];
   onAddQuestion: (question: QuestionData) => void;
+  onAddQuestionAfter: (afterIndex: number) => void;
   onUpdateQuestion: (question: QuestionData) => void;
   onDeleteQuestion: (id: string) => void;
   onMoveQuestionUp: (id: string) => void;
@@ -20,6 +21,7 @@ interface QuizQuestionsEditorProps {
 export function QuizQuestionsEditor({
   questions,
   onAddQuestion,
+  onAddQuestionAfter,
   onUpdateQuestion,
   onDeleteQuestion,
   onMoveQuestionUp,
@@ -68,6 +70,7 @@ export function QuizQuestionsEditor({
               onDelete={onDeleteQuestion}
               onMoveUp={onMoveQuestionUp}
               onMoveDown={onMoveQuestionDown}
+              onAddQuestion={onAddQuestionAfter}
               canMoveUp={index > 0}
               canMoveDown={index < questions.length - 1}
               questionIndex={index}
