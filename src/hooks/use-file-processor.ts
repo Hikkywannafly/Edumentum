@@ -73,8 +73,7 @@ const extractQuestionsWithAIHandler = async (
   },
 ): Promise<QuestionData[]> => {
   const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
 
   if (!apiKey) {
     throw new Error("OpenRouter API key is not configured");
@@ -202,8 +201,7 @@ const generateQuestionsWithAI = async (
   },
 ): Promise<QuestionData[]> => {
   const apiKey =
-    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY ||
-    "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";
+    process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
 
   if (!apiKey) {
     throw new Error("OpenRouter API key not configured");
