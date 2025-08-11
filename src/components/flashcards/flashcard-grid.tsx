@@ -1,3 +1,4 @@
+"use client";
 import type { FlashcardSet } from "@/types/flashcard";
 import { FlashcardCard } from "./flashcard-card";
 

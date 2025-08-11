@@ -1,3 +1,4 @@
+"use client";
 import { LocalizedLink } from "@/components/localized-link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
