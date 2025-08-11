@@ -9,8 +9,6 @@ import { fileToAIService } from "@/lib/services/file-to-ai.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
-const apiKeyOpenAI =
-  process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 export interface UploadedFile {
   id: string;
   name: string;
@@ -37,6 +35,7 @@ const extractQuestionsFromContent = async (
   settings?: {
     language?: Language;
     parsingMode?: ParsingMode;
+    fileProcessingMode?: "PARSE_THEN_SEND" | "SEND_DIRECT";
   },
 ): Promise<QuestionData[]> => {
   console.log(" Extracting questions from file content (direct parsing)...");
@@ -73,7 +72,7 @@ const extractQuestionsWithAIHandler = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  const apiKey = apiKeyOpenAI;
+  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   if (!apiKey) {
     throw new Error("OpenAI API key is not configured");
@@ -213,7 +212,7 @@ const generateQuestionsWithAI = async (
     parsingMode?: string;
   },
 ): Promise<QuestionData[]> => {
-  const apiKey = apiKeyOpenAI;
+  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
   if (!apiKey) {
     throw new Error("OpenAI API key not configured");
