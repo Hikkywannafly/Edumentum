@@ -257,6 +257,7 @@ export function FlashcardEditorContent({
           onUpdateFlashcard={updateFlashcard}
           onDeleteFlashcard={deleteFlashcard}
           onMoveFlashcard={moveFlashcard}
+          onAddFlashcard={addFlashcard}
         />
       </div>
 

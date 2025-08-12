@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { htmlToText } from "@/lib/utils/text";
 import type { FlashcardSet } from "@/types/flashcard";
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useState } from "react";
@@ -38,8 +39,12 @@ export function FlashcardNavigator({ flashcardSet }: FlashcardNavigatorProps) {
       {/* Header */}
       <div className="flex items-center justify-center">
         <div className="text-center">
-          <h1 className="font-bold text-2xl">{flashcardSet.title}</h1>
-          <p className="text-muted-foreground">{flashcardSet.description}</p>
+          <h1 className="font-bold text-2xl">
+            {htmlToText(flashcardSet.title)}
+          </h1>
+          <p className="text-muted-foreground">
+            {htmlToText(flashcardSet.description)}
+          </p>
         </div>
       </div>
 
