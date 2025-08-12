@@ -17,7 +17,6 @@ import { AddTaskModal } from "./add-task-modal";
 import { TaskCard } from "./task-card";
 import { UpdateTaskModal } from "./update-task-modal";
 
-// Import drag and drop libraries
 import {
   DndContext,
   type DragEndEvent,
@@ -39,7 +38,6 @@ export default function KanbanContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
 
-  // Drag and drop states
   const [activeTask, setActiveTask] = useState<ITask | null>(null);
   const [draggedTaskOriginalStatus, setDraggedTaskOriginalStatus] = useState<
     ITask["status"] | null
@@ -49,7 +47,7 @@ export default function KanbanContent() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3, // 3px movement required to start drag
+        distance: 5,
       },
     }),
   );
@@ -430,7 +428,6 @@ interface DroppableColumnProps {
   onDelete: (taskId: string) => void;
 }
 
-// Import the DraggableTaskCard component
 import { DraggableTaskCard } from "./draggable-task-card";
 
 function DroppableColumn({
