@@ -540,6 +540,7 @@ function processQuestionArray(
         "EASY") as Difficulty,
       points: typeof q.points === "number" ? q.points : 1,
       explanation: q.explanation || "",
+      tags: Array.isArray(q.tags) ? q.tags : [],
       answers,
       shortAnswerText: q.shortAnswerText || "",
     };
@@ -683,7 +684,9 @@ QUY TẮC QUAN TRỌNG:
 1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
 2. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
 3. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
-4. Response PHẢI là MỘT OBJECT JSON hợp lệ có dạng {"questions": [...]}, không có text nào khác
+4. BẮT BUỘC có explanation chi tiết cho mỗi câu hỏi
+5. Tự động tạo tags phù hợp dựa trên nội dung câu hỏi
+6. Response PHẢI là MỘT OBJECT JSON hợp lệ có dạng {"questions": [...]}, không có text nào khác
 
 FORMAT JSON:
 {
@@ -694,7 +697,8 @@ FORMAT JSON:
       "type": "MULTIPLE_CHOICE",
       "difficulty": "${settings.difficulty || "EASY"}",
       "points": 1,
-      "explanation": "Giải thích tại sao đáp án này đúng",
+      "explanation": "Giải thích chi tiết tại sao đáp án này đúng và các đáp án khác sai",
+      "tags": ["tag1", "tag2", "tag3"],
       "answers": [
         {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
         {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
@@ -803,7 +807,8 @@ FORMAT JSON:
       "type": "MULTIPLE_CHOICE",
       "difficulty": "${settings.difficulty || "EASY"}",
       "points": 1,
-      "explanation": "Giải thích nếu có sẵn trong nguồn",
+      "explanation": "Giải thích nếu có sẵn trong nguồn, hoặc tạo giải thích ngắn gọn",
+      "tags": ["tag1", "tag2"],
       "answers": [
         {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
         {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
@@ -915,7 +920,8 @@ FORMAT JSON:
       "type": "MULTIPLE_CHOICE",
       "difficulty": "${settings.difficulty || "EASY"}",
       "points": 1,
-      "explanation": "Giải thích tại sao đáp án này đúng",
+      "explanation": "Giải thích chi tiết tại sao đáp án này đúng và các đáp án khác sai",
+      "tags": ["tag1", "tag2", "tag3"],
       "answers": [
         {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
         {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},

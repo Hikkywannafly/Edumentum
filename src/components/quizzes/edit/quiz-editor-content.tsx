@@ -6,6 +6,7 @@ import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { QuizDescriptionEditor } from "./quiz-description-editor";
 import { QuizEditorHeader } from "./quiz-editor-header";
 import { QuizQuestionsEditor } from "./quiz-questions-editor";
+import { QuizTagsCategoriesEditor } from "./quiz-tags-categories-editor";
 import { QuizTitleEditor } from "./quiz-title-editor";
 export function QuizEditorContent() {
   const {
@@ -15,6 +16,7 @@ export function QuizEditorContent() {
     updateQuestion,
     deleteQuestion,
     moveQuestion,
+    updateQuizData,
   } = useQuizEditorStore();
   const { title, description, updateTitle, updateDescription } =
     useQuizEditorSync();
@@ -66,6 +68,48 @@ export function QuizEditorContent() {
     addQuestionAfter(afterIndex, newQuestion);
   };
 
+  const handleCategoryChange = (category: string) => {
+    if (quizData) {
+      const currentMetadata = quizData.metadata || {
+        total_questions: quizData.questions.length,
+        total_points: quizData.questions.reduce(
+          (sum, q) => sum + (q.points || 1),
+          0,
+        ),
+        estimated_time: Math.ceil(quizData.questions.length * 1.5), // 1.5 minutes per question
+        tags: [],
+      };
+
+      updateQuizData({
+        metadata: {
+          ...currentMetadata,
+          category,
+        },
+      });
+    }
+  };
+
+  const handleTagsChange = (tags: string[]) => {
+    if (quizData) {
+      const currentMetadata = quizData.metadata || {
+        total_questions: quizData.questions.length,
+        total_points: quizData.questions.reduce(
+          (sum, q) => sum + (q.points || 1),
+          0,
+        ),
+        estimated_time: Math.ceil(quizData.questions.length * 1.5), // 1.5 minutes per question
+        tags: [],
+      };
+
+      updateQuizData({
+        metadata: {
+          ...currentMetadata,
+          tags,
+        },
+      });
+    }
+  };
+
   return (
     <ThinLayout>
       <div className="space-y-1">
@@ -82,6 +126,14 @@ export function QuizEditorContent() {
         <QuizDescriptionEditor
           description={description}
           onDescriptionChange={updateDescription}
+        />
+
+        {/* Quiz Tags & Categories */}
+        <QuizTagsCategoriesEditor
+          category={quizData.metadata?.category || ""}
+          onCategoryChange={handleCategoryChange}
+          tags={quizData.metadata?.tags || []}
+          onTagsChange={handleTagsChange}
         />
 
         {/* Questions */}

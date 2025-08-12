@@ -143,9 +143,8 @@ export function FileWithAnswersUploader({
           </div>
         </div>
 
-        {/* Sidebar cài đặt */}
         <div>
-          <Card>
+          <Card className="border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5" /> {t("create.settings.title")}
@@ -154,7 +153,7 @@ export function FileWithAnswersUploader({
                 {t("create.settings.description")}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-5 border-none">
               <div className="space-y-2">
                 <Label>{t("create.settings.visibility")}</Label>
                 <Select
