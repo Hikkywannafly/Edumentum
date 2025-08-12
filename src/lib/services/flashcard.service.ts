@@ -6,8 +6,7 @@ import type {
 } from "@/types/flashcard";
 
 class FlashcardService {
-  private baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  private baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   async getAllFlashcards(accessToken?: string): Promise<FlashcardApiResponse> {
     try {
@@ -26,13 +25,10 @@ class FlashcardService {
         headers.Authorization = `Bearer ${accessToken}`;
       }
 
-      const response = await fetch(
-        `${this.baseUrl}/api/v1/student/flashcards`,
-        {
-          method: "GET",
-          headers,
-        },
-      );
+      const response = await fetch(`${this.baseUrl}/student/flashcards`, {
+        method: "GET",
+        headers,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,13 +56,10 @@ class FlashcardService {
         headers.Authorization = `Bearer ${accessToken}`;
       }
 
-      const response = await fetch(
-        `${this.baseUrl}/api/v1/student/flashcards/${id}`,
-        {
-          method: "GET",
-          headers,
-        },
-      );
+      const response = await fetch(`${this.baseUrl}/student/flashcards/${id}`, {
+        method: "GET",
+        headers,
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
