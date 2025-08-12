@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
 export async function PATCH(
   request: NextRequest,
@@ -21,14 +21,11 @@ export async function PATCH(
       headers.Authorization = authHeader;
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/student/flashcards/${id}`,
-      {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify(body),
-      },
-    );
+    const response = await fetch(`${API_BASE_URL}/student/flashcards/${id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(body),
+    });
 
     if (!response.ok) {
       throw new Error(`Backend error: ${response.status}`);

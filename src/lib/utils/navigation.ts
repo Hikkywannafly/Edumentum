@@ -65,6 +65,13 @@ export function useLocalizedNavigation() {
     navigate("/quizzes/edit");
   };
 
+  /**
+   * Navigate to flashcards page
+   */
+  const goFlashcards = () => {
+    navigate("/flashcards");
+  };
+
   return {
     navigate,
     navigateAbsolute,
@@ -74,6 +81,7 @@ export function useLocalizedNavigation() {
     goQuizzes,
     goLogin,
     goQuizEdit,
+    goFlashcards,
     locale,
   };
 }

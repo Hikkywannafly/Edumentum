@@ -9,7 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { FlashcardData, FlashcardSet } from "@/types/flashcard";
-import { CheckCircle, Globe, Loader2, Lock, Plus, Save } from "lucide-react";
+import {
+  CheckCircle,
+  Globe,
+  Loader2,
+  Lock,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { CardHeader, CardTitle } from "../../ui";
 
 interface FlashcardEditorHeaderProps {
@@ -21,6 +29,7 @@ interface FlashcardEditorHeaderProps {
   isSaving?: boolean;
   onSave?: () => void;
   onPublish?: () => void;
+  onDelete?: () => void;
   onAddFlashcard?: () => void;
   onPrivacyChange?: (isPublic: boolean) => void;
 }
@@ -34,6 +43,7 @@ export function FlashcardEditorHeader({
   isSaving = false,
   onSave,
   onPublish,
+  onDelete,
   onAddFlashcard,
   onPrivacyChange,
 }: FlashcardEditorHeaderProps) {
@@ -99,6 +109,15 @@ export function FlashcardEditorHeader({
             </Button>
             <Button
               variant="outline"
+              onClick={onDelete}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-red-500 text-white transition-colors duration-200 hover:bg-red-600 hover:text-white dark:bg-red-500 dark:hover:bg-red-600"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Flashcard
+            </Button>
+            <Button
+              variant="outline"
               onClick={onSave}
               disabled={!canSave || isSaving}
               className="flex items-center gap-2"
@@ -113,7 +132,7 @@ export function FlashcardEditorHeader({
             <Button
               onClick={onPublish}
               disabled={!canPublish || isSaving}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-500 text-white transition-colors duration-200 hover:bg-blue-600 hover:text-white dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

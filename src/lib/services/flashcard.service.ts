@@ -6,17 +6,11 @@ import type {
 } from "@/types/flashcard";
 
 class FlashcardService {
-  private baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  private baseUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
   async getAllFlashcards(accessToken?: string): Promise<FlashcardApiResponse> {
     try {
-      console.log("🚀 FlashcardService: getAllFlashcards called");
-      console.log("🔗 FlashcardService: baseUrl:", this.baseUrl);
-      console.log(
-        "🔑 FlashcardService: accessToken:",
-        accessToken ? "✅ Provided" : "❌ Not provided",
-      );
-
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
@@ -69,14 +63,6 @@ class FlashcardService {
 
       // Extract data from the wrapper object
       const data: FlashcardSet = apiResponse.data;
-      console.log(
-        "🔍 FlashcardService.getFlashcardById: Extracted data:",
-        data,
-      );
-      console.log(
-        "🔍 FlashcardService.getFlashcardById: data.flashcards:",
-        data.flashcards,
-      );
       return data;
     } catch (error) {
       console.error("Error fetching flashcard:", error);
@@ -109,15 +95,40 @@ class FlashcardService {
       }
 
       const apiResponse: FlashcardSetApiResponse = await response.json();
-      console.log(
-        "🔄 FlashcardService.updateFlashcardSet: API response:",
-        apiResponse,
-      );
 
       return apiResponse.data;
     } catch (error) {
       console.error(
         "❌ FlashcardService: Error updating flashcard set:",
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async deleteFlashcardSet(id: number, accessToken?: string): Promise<void> {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/student/flashcards/${id}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log("✅ Flashcard set deleted successfully");
+    } catch (error) {
+      console.error(
+        "❌ FlashcardService: Error deleting flashcard set:",
         error,
       );
       throw error;
