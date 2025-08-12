@@ -11,6 +11,7 @@ import {
   Download,
   Eye,
   FileText,
+  MessageCircle,
   Trophy,
   Users,
   Zap,
@@ -65,9 +66,9 @@ export default function GroupDetailContent({ id }: { id: string }) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg"
           >
-            💬
+            <MessageCircle size={12} />
           </button>
         )}
       </div>
@@ -84,7 +85,7 @@ export default function GroupDetailContent({ id }: { id: string }) {
             <StatsCard
               title="Members"
               icon={<Users className="h-4 w-4 text-gray-500" />}
-              value={`${groupDetail?.member}/${groupDetail?.memberCount}`}
+              value={`${groupDetail?.memberCount}/${groupDetail?.memberLimit}`}
             />
             <StatsCard
               title="Competition"

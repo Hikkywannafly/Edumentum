@@ -18,11 +18,13 @@ import type { GroupResponse } from "../../types/group";
 interface GroupDialogProps {
   selectedGroup: GroupResponse | null;
   onClose: () => void;
+  onJoinSuccess: (group: GroupResponse) => void;
 }
 
 export default function GroupDialog({
   selectedGroup,
   onClose,
+  onJoinSuccess,
 }: GroupDialogProps) {
   const [joinLoading, setJoinLoading] = useState(false);
 
@@ -31,6 +33,7 @@ export default function GroupDialog({
     try {
       setJoinLoading(true);
       await groupAPI.joinGroup(selectedGroup.id);
+      onJoinSuccess(selectedGroup);
       onClose();
     } finally {
       setJoinLoading(false);

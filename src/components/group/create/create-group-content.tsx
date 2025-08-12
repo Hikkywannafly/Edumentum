@@ -38,7 +38,7 @@ export function CreateGroupContent() {
     defaultValues: {
       name: "",
       description: "",
-      memberCount: 20,
+      memberLimit: 20,
       public: false,
     },
   });
@@ -48,7 +48,7 @@ export function CreateGroupContent() {
       const payload: GroupRequest = {
         name: values.name,
         description: values.description,
-        memberCount: values.memberCount,
+        memberLimit: values.memberLimit,
         public: values.public,
       };
 
@@ -129,7 +129,7 @@ export function CreateGroupContent() {
 
               <FormField
                 control={form.control}
-                name="memberCount"
+                name="memberLimit"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Maximum Members</FormLabel>

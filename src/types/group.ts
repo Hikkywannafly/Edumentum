@@ -2,6 +2,7 @@ export interface GroupResponse {
   id: number;
   name: string;
   description: string;
+  memberLimit: number;
   ownerId: number;
   ownerName: string;
   memberCount: number;
@@ -13,7 +14,7 @@ export interface GroupResponse {
 export interface GroupRequest {
   name: string;
   description: string;
-  memberCount: number;
+  memberLimit: number;
   public: boolean;
 }
 
@@ -31,7 +32,7 @@ export interface UserGroupResponse {
 
 export interface GroupDetailResponse {
   id: number;
-  member: number;
+  memberLimit: number;
   ownerId: number;
   ownerName: string;
   memberCount: number;
