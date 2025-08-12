@@ -138,13 +138,6 @@ export function AIGeneratedUploader({
         await generateQuestionsFromFiles(settings);
       }
 
-      // mark as ready so ProcessingScreen shows completion state
-      onProcessingDone?.(true);
-
-      // brief delay so users can see the completed state
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // Parent will auto-hide overlay after completion
-
       setEditing(true);
       goQuizEdit();
     } catch (error) {

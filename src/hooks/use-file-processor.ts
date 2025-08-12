@@ -18,7 +18,7 @@ export interface UploadedFile {
   error?: string;
   parsedContent?: string;
   extractedQuestions?: QuestionData[];
-  actualFile?: File; // Store actual file for direct sending
+  actualFile?: File;
 }
 
 export interface GeneratedQuiz {
@@ -299,20 +299,12 @@ const generateQuestionsWithAI = async (
           throw new Error("Generated questions are empty or invalid");
         }
 
+        // ✅ OPTIMIZATION: Don't throw if we have partial results - return what we have
         const expectedCount = settings?.numberOfQuestions || 5;
         if (validQuestions.length < expectedCount) {
           console.warn(
-            `⚠️ Got ${validQuestions.length} questions but expected ${expectedCount}`,
+            `⚠️ Got ${validQuestions.length}/${expectedCount} questions. Returning partial results without retry.`,
           );
-
-          if (
-            validQuestions.length < Math.ceil(expectedCount * 0.6) &&
-            attempt < maxRetries
-          ) {
-            throw new Error(
-              `Insufficient questions: got ${validQuestions.length}, expected ${expectedCount}`,
-            );
-          }
         }
 
         console.log(
@@ -326,23 +318,36 @@ const generateQuestionsWithAI = async (
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
 
-      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      // ✅ OPTIMIZATION: Only retry on network/5xx/429 errors, not content/parse errors
       const isQuotaExhausted =
         lastError.message.includes("OpenRouter Quota Exhausted") ||
         lastError.message.includes("insufficient_quota");
       const isInvalidApiKey = lastError.message.includes("Invalid API key");
+      const isNetworkError =
+        lastError.message.includes("ECONNRESET") ||
+        lastError.message.includes("ETIMEDOUT") ||
+        lastError.message.includes("ENOTFOUND") ||
+        lastError.message.includes("503") ||
+        lastError.message.includes("502");
+      const isRateLimit =
+        lastError.message.includes("429") && !isQuotaExhausted;
 
+      // Only retry for network/server errors, not for quota/auth/content issues
       if (isQuotaExhausted || isInvalidApiKey) {
         console.error(
           `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
         );
-        break; // Exit retry loop immediately
+        break;
       }
 
-      if (attempt < maxRetries) {
+      // Only retry for network/server errors
+      if ((isNetworkError || isRateLimit) && attempt < maxRetries) {
         const delay = attempt * 1000;
-        console.log(`🔄 Retrying in ${delay}ms...`);
+        console.log(`🔄 Retrying network error in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
+      } else if (attempt < maxRetries) {
+        console.warn(`⚠️ Non-retryable error: ${lastError.message}`);
+        break; // Don't retry content/parse errors
       }
     }
   }
@@ -650,7 +655,6 @@ export function useFileProcessor() {
     setQuizData(null as any);
   }, [setQuizData]);
 
-  // Get current quiz data from store
   const { quizData } = useQuizEditorStore();
 
   useEffect(() => {

@@ -1,8 +1,7 @@
 "use client";
 
 import ThinLayout from "@/components/layout/thin-layout";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Sparkles, Type } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -10,6 +9,7 @@ import { useState } from "react";
 import { AIGeneratedUploader } from "./ai-generated-uploader";
 import { FileWithAnswersUploader } from "./file-with-answers-uploader";
 import { ProcessingScreen } from "./processing-screen";
+import { TextContentUploader } from "./text-content-uploader";
 
 export function QuizCreator() {
   const t = useTranslations("Quizzes");
@@ -31,7 +31,6 @@ export function QuizCreator() {
   const handleProcessingDone = (done: boolean) => {
     setProcessingDone(done);
     if (done) {
-      // Show completion state briefly, then auto-hide
       setTimeout(() => {
         setIsProcessing(false);
         setProcessingDone(false);
@@ -49,7 +48,7 @@ export function QuizCreator() {
 
   return (
     <ThinLayout maxWidth="6xl" classNames="py-6">
-      <div className="mb-8 text-center">
+      <div className={`mb-8 text-center ${isProcessing ? "invisible" : ""}`}>
         <h1 className="font-bold text-3xl tracking-tight">
           {t("create.generateQuiz")}
         </h1>
@@ -57,7 +56,6 @@ export function QuizCreator() {
       </div>
 
       <div className="relative">
-        {/* Processing Overlay */}
         {isProcessing && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
             <ProcessingScreen
@@ -68,7 +66,12 @@ export function QuizCreator() {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div
+          className={`grid gap-6 lg:grid-cols-3 ${
+            isProcessing ? "invisible overflow-hidden" : ""
+          }`}
+          aria-busy={isProcessing}
+        >
           <div className="lg:col-span-2">
             <Tabs
               value={activeTab}
@@ -119,43 +122,12 @@ export function QuizCreator() {
               </TabsContent>
 
               <TabsContent value="text-content" className="mt-6 border-none">
-                {activeTab === "text-content" && (
-                  <FileWithAnswersUploader
-                    defaultMode="TEXT"
-                    onProcessingStart={handleProcessingStart}
-                    onProcessingDone={handleProcessingDone}
-                  />
-                )}
+                <TextContentUploader
+                  onProcessingStart={handleProcessingStart}
+                  onProcessingDone={handleProcessingDone}
+                />
               </TabsContent>
             </Tabs>
-          </div>
-
-          <div className="space-y-6">
-            {/* Supported Formats */}
-            <Card className="border-none">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {t("create.supportedFormats.title")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">PDF</Badge>
-                    <Badge variant="secondary">DOC(X)</Badge>
-                    <Badge variant="secondary">PPT(X)</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">XLS(X)</Badge>
-                    <Badge variant="secondary">JSON</Badge>
-                    <Badge variant="secondary">MD</Badge>
-                  </div>
-                  <p className="mt-2 text-muted-foreground text-xs">
-                    {t("create.supportedFormats.limit")}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
