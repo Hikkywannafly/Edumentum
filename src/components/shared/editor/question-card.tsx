@@ -127,7 +127,7 @@ export default function QuestionCard({
         <CardContent className="p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="font-medium text-gray-700 text-md">
+              <div className="font-medium text-md">
                 Question {questionIndex + 1}
               </div>
             </div>
@@ -256,7 +256,7 @@ export default function QuestionCard({
                             }
                             placeholder={`Answer ${index + 1}`}
                             showToolbar={true}
-                            className={`w-full ${isCorrect ? "border-none bg-green-100 dark:bg-green-900/30" : ""}`}
+                            className={`w-full ${isCorrect ? "border-none bg-green-100 dark:bg-green-900/20" : ""}`}
                           />
                         </div>
                         {isCorrect && (
@@ -324,7 +324,7 @@ export default function QuestionCard({
                             answer.text === "True" ? "True" : "False"
                           }
                           showToolbar={true}
-                          className={`w-full ${isCorrect ? "border-none bg-green-100 dark:bg-green-900/30" : ""}`}
+                          className={`w-full ${isCorrect ? "border-none bg-green-100 dark:bg-green-900/20" : ""}`}
                         />
                       </div>
                       {isCorrect && (
@@ -377,41 +377,44 @@ export default function QuestionCard({
           {/* Advanced Settings */}
           <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
             <CollapsibleContent className="mt-4 space-y-4 border-t pt-4">
-              {/* Explanation */}
-              <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                    <svg
-                      className="h-3.5 w-3.5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+              {/* Explanation - Only show if there's content or user is actively editing */}
+              {(question.explanation && question.explanation.trim() !== "") ||
+              isAdvancedOpen ? (
+                <div className="space-y-3 rounded-lg border border-sky-200 bg-sky-50/50 p-4 dark:border-sky-700 dark:bg-sky-900/20">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-800">
+                      <svg
+                        className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <Label
+                      htmlFor="explanation"
+                      className="font-medium text-sky-700 text-sm dark:text-sky-300"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                      Explanation (Optional)
+                    </Label>
                   </div>
-                  <Label
-                    htmlFor="explanation"
-                    className="bg-emerald-50/50 font-medium text-sm"
-                  >
-                    Explanation (Optional)
-                  </Label>
+                  <div className="rounded-md border-sky-50/50 border-none bg-sky-50/50 dark:border-sky-900/20 dark:bg-sky-900/20 ">
+                    <TiptapEditor
+                      content={question.explanation || ""}
+                      onChange={handleExplanationChange}
+                      placeholder="Explain why this answer is correct..."
+                      showToolbar={true}
+                      className="min-h-[100px] border-none bg-sky-50/50 dark:bg-sky-900/20"
+                    />
+                  </div>
                 </div>
-                <div className="rounded-md border-emerald-200 bg-white">
-                  <TiptapEditor
-                    content={question.explanation || ""}
-                    onChange={handleExplanationChange}
-                    placeholder="Explain why this answer is correct..."
-                    showToolbar={true}
-                    className="min-h-[100px] border-none bg-blue-50"
-                  />
-                </div>
-              </div>
+              ) : null}
             </CollapsibleContent>
           </Collapsible>
         </CardContent>
