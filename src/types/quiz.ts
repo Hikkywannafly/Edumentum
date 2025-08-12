@@ -160,6 +160,7 @@ export interface QuestionData {
   difficulty?: Difficulty;
   points?: number;
   explanation?: string;
+  tags?: string[];
   answers: Answer[];
   shortAnswerText?: string;
 }

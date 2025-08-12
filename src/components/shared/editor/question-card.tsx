@@ -1,6 +1,10 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -15,8 +19,10 @@ import {
   ChevronUp,
   GripVertical,
   Plus,
+  Settings,
   Trash2,
 } from "lucide-react";
+import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import TiptapEditor from "./tiptap-editor";
 
@@ -43,6 +49,7 @@ export default function QuestionCard({
   canMoveDown,
   questionIndex,
 }: QuestionCardProps) {
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(true);
   const handleQuestionTextChange = (html: string) => {
     onUpdate({ ...question, question: html });
   };
@@ -107,16 +114,20 @@ export default function QuestionCard({
     onUpdate(updatedQuestion);
   };
 
+  const handleExplanationChange = (html: string) => {
+    onUpdate({ ...question, explanation: html });
+  };
+
   const currentCorrectAnswerId =
     question.answers.find((ans) => ans.isCorrect)?.id || "";
 
   return (
     <div>
-      <Card className="broder-none mb-6">
+      <Card className="mb-6 border">
         <CardContent className="p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="font-medium text-gray-700 text-sm">
+              <div className="font-medium text-gray-700 text-md">
                 Question {questionIndex + 1}
               </div>
             </div>
@@ -149,6 +160,16 @@ export default function QuestionCard({
                   <Plus className="mr-2 h-4 w-4" /> Add Answer
                 </Button>
               )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                className="whitespace-nowrap"
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Advanced
+              </Button>
 
               {/* Actions */}
               <Button
@@ -307,7 +328,7 @@ export default function QuestionCard({
                         />
                       </div>
                       {isCorrect && (
-                        <div className=" -right-1 absolute flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white shadow-sm dark:bg-green-400 dark:text-gray-900">
+                        <div className="-right-1 absolute flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white shadow-sm dark:bg-green-400 dark:text-gray-900">
                           <svg
                             className="h-4 w-4"
                             fill="currentColor"
@@ -352,6 +373,47 @@ export default function QuestionCard({
               />
             </div>
           )}
+
+          {/* Advanced Settings */}
+          <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
+            <CollapsibleContent className="mt-4 space-y-4 border-t pt-4">
+              {/* Explanation */}
+              <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
+                    <svg
+                      className="h-3.5 w-3.5 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <Label
+                    htmlFor="explanation"
+                    className="bg-emerald-50/50 font-medium text-sm"
+                  >
+                    Explanation (Optional)
+                  </Label>
+                </div>
+                <div className="rounded-md border-emerald-200 bg-white">
+                  <TiptapEditor
+                    content={question.explanation || ""}
+                    onChange={handleExplanationChange}
+                    placeholder="Explain why this answer is correct..."
+                    showToolbar={true}
+                    className="min-h-[100px] border-none bg-blue-50"
+                  />
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
       {onAddQuestion && (

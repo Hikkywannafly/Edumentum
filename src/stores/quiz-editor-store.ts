@@ -7,6 +7,15 @@ export interface GeneratedQuiz {
   description: string;
   questions: QuestionData[];
   settings?: QuizSettings;
+  metadata?: {
+    total_questions: number;
+    total_points: number;
+    estimated_time: number; // minutes
+    tags: string[];
+    category?: string;
+    subject?: string;
+    grade_level?: string;
+  };
 }
 
 interface QuizEditorState {

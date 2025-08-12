@@ -35,6 +35,7 @@ export function QuizQuestionsEditor({
       question: `<p>${t("newQuestion")}</p>`,
       type: "MULTIPLE_CHOICE",
       points: 1,
+      explanation: "",
       answers: [
         {
           id: uuidv4(),
