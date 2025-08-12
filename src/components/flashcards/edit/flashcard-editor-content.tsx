@@ -1,8 +1,19 @@
 "use client";
 
 import ThinLayout from "@/components/layout/thin-layout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { flashcardService } from "@/lib/services/flashcard.service";
+import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import type { FlashcardData, FlashcardSet } from "@/types/flashcard";
 import { useEffect, useState } from "react";
 import { FlashcardCardsEditor } from "./flashcard-cards-editor";
@@ -21,6 +32,7 @@ export function FlashcardEditorContent({
   const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { goFlashcards } = useLocalizedNavigation();
 
   // Local state for editing
   const [title, setTitle] = useState("");
@@ -28,6 +40,7 @@ export function FlashcardEditorContent({
   const [flashcards, setFlashcards] = useState<FlashcardData[]>([]);
   const [isPublic, setIsPublic] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     const fetchFlashcardSet = async () => {
@@ -156,6 +169,31 @@ export function FlashcardEditorContent({
     }
   };
 
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!flashcardSet || !accessToken) return;
+
+    try {
+      setIsSaving(true);
+      setShowDeleteDialog(false);
+
+      await flashcardService.deleteFlashcardSet(flashcardSet.id, accessToken);
+
+      // Redirect to flashcards page after successful deletion
+      goFlashcards();
+    } catch (err) {
+      console.error("❌ Error deleting flashcard set:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to delete flashcard set",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <ThinLayout>
@@ -201,6 +239,7 @@ export function FlashcardEditorContent({
           onAddFlashcard={addFlashcard}
           onSave={handleSave}
           onPublish={handlePublish}
+          onDelete={handleDelete}
           onPrivacyChange={setIsPublic}
         />
 
@@ -220,6 +259,30 @@ export function FlashcardEditorContent({
           onMoveFlashcard={moveFlashcard}
         />
       </div>
+
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Flashcard Set</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this flashcard set? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ThinLayout>
   );
 }
