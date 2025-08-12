@@ -5,7 +5,7 @@ import {} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Sparkles, Type } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AIGeneratedUploader } from "./ai-generated-uploader";
 import { FileWithAnswersUploader } from "./file-with-answers-uploader";
 import { ProcessingScreen } from "./processing-screen";
@@ -13,7 +13,7 @@ import { TextContentUploader } from "./text-content-uploader";
 
 export function QuizCreator() {
   const t = useTranslations("Quizzes");
-  const [activeTab, setActiveTab] = useState("file-with-answers");
+  const [activeTab, setActiveTab] = useState("ai-generated");
 
   // Centralized processing overlay state
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,6 +46,17 @@ export function QuizCreator() {
     }
   };
 
+  // Lock background scroll while processing to keep overlay fixed and clean
+  useEffect(() => {
+    if (isProcessing) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [isProcessing]);
+
   return (
     <ThinLayout maxWidth="6xl" classNames="py-6">
       <div className={`mb-8 text-center ${isProcessing ? "invisible" : ""}`}>
@@ -57,7 +68,7 @@ export function QuizCreator() {
 
       <div className="relative">
         {isProcessing && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[1000] flex h-screen w-screen items-center justify-center bg-background ">
             <ProcessingScreen
               fileName={processingFileName || "File"}
               label={processingLabel}
@@ -67,7 +78,7 @@ export function QuizCreator() {
         )}
 
         <div
-          className={`grid gap-6 lg:grid-cols-3 ${
+          className={`grid gap-6 lg:grid-cols-2 ${
             isProcessing ? "invisible overflow-hidden" : ""
           }`}
           aria-busy={isProcessing}
@@ -100,10 +111,15 @@ export function QuizCreator() {
                   className="flex items-center gap-2"
                 >
                   <Type className="h-4 w-4" />
-                  Text Content
+                  {t("create.tabs.textContent")}
                 </TabsTrigger>
               </TabsList>
-
+              <TabsContent value="ai-generated" className="mt-6">
+                <AIGeneratedUploader
+                  onProcessingStart={handleProcessingStart}
+                  onProcessingDone={handleProcessingDone}
+                />
+              </TabsContent>
               <TabsContent
                 value="file-with-answers"
                 className="mt-6 border-none"
@@ -113,14 +129,6 @@ export function QuizCreator() {
                   onProcessingDone={handleProcessingDone}
                 />
               </TabsContent>
-
-              <TabsContent value="ai-generated" className="mt-6">
-                <AIGeneratedUploader
-                  onProcessingStart={handleProcessingStart}
-                  onProcessingDone={handleProcessingDone}
-                />
-              </TabsContent>
-
               <TabsContent value="text-content" className="mt-6 border-none">
                 <TextContentUploader
                   onProcessingStart={handleProcessingStart}

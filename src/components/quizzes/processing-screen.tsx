@@ -26,9 +26,9 @@ export function ProcessingScreen({
   }, [isDone]);
 
   return (
-    <div className="w-full max-w-sm rounded-lg border bg-white p-6 text-center shadow-lg">
+    <div className="w-full max-w-sm rounded-lg p-6 text-center ">
       <div className="mb-4 flex justify-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full ">
           {showComplete ? (
             <CheckCircle className="h-6 w-6 text-green-600" />
           ) : (

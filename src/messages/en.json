@@ -215,7 +215,8 @@
       "subtitle": "Quickly create a new quiz from your study materials!",
       "tabs": {
         "fileWithAnswers": "File with Answers",
-        "aiGenerated": "AI Generated"
+        "aiGenerated": "AI Generated",
+        "textContent": "Text Content"
       },
       "settings": {
         "title": "Quiz Settings",
@@ -229,7 +230,7 @@
         "mixed": "Mixed",
         "multipleChoice": "Multiple Choice",
         "trueFalse": "True/False",
-        "numberOfQuestions": "# Number of questions",
+        "numberOfQuestions": "Number of questions",
         "difficulty": "Difficulty",
         "easy": "Easy",
         "medium": "Medium",
@@ -238,7 +239,24 @@
         "fast": "Fast",
         "balanced": "Balanced",
         "thorough": "Thorough",
-        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer."
+        "fastModeWarning": "Fast mode skips images and tables. Use Balanced mode if material has them, but processing will take longer.",
+        "generationMode": "Generation Mode",
+        "modeGenerate": "Generate",
+        "modeExtract": "Extract",
+        "fileProcessing": "File Processing",
+        "fileProcessingParseThenSend": "Parse then send",
+        "fileProcessingSendDirect": "Send direct",
+        "unlisted": "Unlisted",
+        "modeLabel": "Mode",
+        "quiz": "Quiz",
+        "flashcard": "Flashcard",
+        "studyGuide": "Study Guide",
+        "taskLabel": "Task",
+        "taskGenerateQuiz": "Generate Quiz",
+        "taskReview": "Review",
+        "taskTest": "Test",
+        "fillBlank": "Fill in the blank",
+        "freeResponse": "Free response"
       },
       "supportedFormats": {
         "title": "Supported Formats",
@@ -278,6 +296,17 @@
         "startGeneration": "Start AI Generation",
         "createQuiz": "Create Quiz",
         "guidance": "Use documents with accurate factual information for best results."
+      },
+      "textContent": {
+        "title": "Text Content",
+        "description": "Paste or type your content directly to extract quiz questions",
+        "placeholder": "Enter your text content here...\n\nExample:\n1. What is the capital of France?\na) London\nb) Berlin\nc) Paris\nd) Madrid\nAnswer: c) Paris",
+        "pasteContent": "Paste Content",
+        "clearContent": "Clear Content",
+        "extractQuestions": "Extract Questions",
+        "extractingQuestions": "Extracting Questions...",
+        "createQuiz": "Create Quiz",
+        "guidance": "Paste clear and well-structured content for better question extraction."
       }
     },
     "edit": {
@@ -499,7 +528,7 @@
         "mixed": "Mixed",
         "questionAnswer": "Question/Answer",
         "cloze": "Cloze deletion",
-        "numberOfCards": "# Number of cards",
+        "numberOfCards": "Number of cards",
         "difficulty": "Difficulty",
         "easy": "Easy",
         "medium": "Medium",

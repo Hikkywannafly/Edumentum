@@ -23,8 +23,9 @@ import {
 } from "@/lib/utils/file-utils";
 import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
-import type { QuizMode, Visibility } from "@/types/quiz";
+import type { Language, ParsingMode, QuizMode, Visibility } from "@/types/quiz";
 import { CheckCircle, Loader2, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileList } from "./file-list";
@@ -39,20 +40,21 @@ export function FileWithAnswersUploader({
   onProcessingStart,
   onProcessingDone,
 }: FileWithAnswersUploaderProps) {
+  const t = useTranslations("Quizzes");
   const { goQuizEdit } = useLocalizedNavigation();
-  // removed initial mount fla
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
 
-  // Enhanced settings for file extraction
+  // Cài đặt cho trích xuất
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
+  const [language, setLanguage] = useState<Language>("AUTO");
   const [mode, setMode] = useState<QuizMode>("QUIZ");
+  const [parsingMode, setParsingMode] = useState<ParsingMode>("BALANCED");
 
   const {
     uploadedFiles,
     addFiles,
     removeFile,
     extractQuestionsFromFiles,
-
     isProcessing,
     hasFiles,
   } = useFileProcessor();
@@ -79,13 +81,13 @@ export function FileWithAnswersUploader({
 
     onProcessingStart?.(
       uploadedFiles[0]?.name || "File",
-      "Extracting quiz from file",
+      t("create.fileWithAnswers.processing"),
     );
 
     try {
       await extractQuestionsFromFiles({
-        language: "AUTO",
-        parsingMode: "BALANCED",
+        language,
+        parsingMode,
       });
 
       // Navigate immediately; parent overlay stays until route change
@@ -101,92 +103,159 @@ export function FileWithAnswersUploader({
   };
 
   return (
-    <div
-      className={`space-y-6 border-none ${isBusy ? "pointer-events-none opacity-60" : ""}`}
-      aria-busy={isBusy}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Quiz Settings
-          </CardTitle>
-          <CardDescription>
-            Configure your quiz extraction settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="visibility">Visibility</Label>
-              <Select
-                value={visibility}
-                onValueChange={(value: Visibility) => setVisibility(value)}
-                disabled={isBusy}
-              >
-                <SelectTrigger className="w-full" disabled={isBusy}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  <SelectItem value="PRIVATE">Private</SelectItem>
-                  <SelectItem value="PUBLIC">Public</SelectItem>
-                  <SelectItem value="UNLISTED">Unlisted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="space-y-6">
+      <div
+        className={`grid gap-6 lg:grid-cols-3 ${isBusy ? "pointer-events-none opacity-60" : ""}`}
+        aria-busy={isBusy}
+      >
+        {/* Khu tải file */}
+        <div className="space-y-6 lg:col-span-2">
+          <FileUploadArea
+            onDrop={isBusy ? () => {} : addFiles}
+            isDragActive={isDragActive}
+            variant="file-with-answers"
+          />
+          <FileList files={uploadedFiles} onRemoveFile={removeFile} />
 
-            <div className="space-y-2">
-              <Label htmlFor="mode">Mode</Label>
-              <Select
-                value={mode}
-                onValueChange={(value: QuizMode) => setMode(value)}
-                disabled={isBusy}
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground text-sm">
+              {t("create.fileWithAnswers.guidance")}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                disabled={!hasFiles || isProcessing || isCreatingQuiz}
+                onClick={handleCreateQuiz}
+                className="flex items-center gap-2"
               >
-                <SelectTrigger className="w-full" disabled={isBusy}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  <SelectItem value="QUIZ">Quiz</SelectItem>
-                  <SelectItem value="FLASHCARD">Flashcard</SelectItem>
-                  <SelectItem value="STUDY_GUIDE">Study Guide</SelectItem>
-                </SelectContent>
-              </Select>
+                {isCreatingQuiz ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                    {t("create.fileWithAnswers.processing")}
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4" />{" "}
+                    {t("create.fileWithAnswers.createQuiz")}
+                  </>
+                )}
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <>
-        <FileUploadArea
-          onDrop={isBusy ? () => {} : addFiles}
-          isDragActive={isDragActive}
-        />
-        <FileList files={uploadedFiles} onRemoveFile={removeFile} />
-      </>
+        {/* Sidebar cài đặt */}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" /> {t("create.settings.title")}
+              </CardTitle>
+              <CardDescription>
+                {t("create.settings.description")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label>{t("create.settings.visibility")}</Label>
+                <Select
+                  value={visibility}
+                  onValueChange={(v: Visibility) => setVisibility(v)}
+                  disabled={isBusy}
+                >
+                  <SelectTrigger className="w-full" disabled={isBusy}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectItem value="PRIVATE">
+                      {t("create.settings.private")}
+                    </SelectItem>
+                    <SelectItem value="PUBLIC">
+                      {t("create.settings.public")}
+                    </SelectItem>
+                    <SelectItem value="UNLISTED">
+                      {t("create.settings.unlisted")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {"Upload file with questions and answers to extract quiz"}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            disabled={!hasFiles || isProcessing || isCreatingQuiz}
-            onClick={handleCreateQuiz}
-            className="flex items-center gap-2"
-          >
-            {isCreatingQuiz ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Preparing Quiz...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4" />
-                Create Quiz
-              </>
-            )}
-          </Button>
+              <div className="space-y-2">
+                <Label>{t("create.settings.language")}</Label>
+                <Select
+                  value={language}
+                  onValueChange={(v: Language) => setLanguage(v)}
+                  disabled={isBusy}
+                >
+                  <SelectTrigger className="w-full" disabled={isBusy}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectItem value="AUTO">
+                      🌐 {t("create.settings.autoDetect")}
+                    </SelectItem>
+                    <SelectItem value="EN">🇺🇸 English</SelectItem>
+                    <SelectItem value="VI">🇻🇳 Tiếng Việt</SelectItem>
+                    <SelectItem value="KO">🇰🇷 한국어</SelectItem>
+                    <SelectItem value="ZH">🇨🇳 中文</SelectItem>
+                    <SelectItem value="JA">🇯🇵 日本語</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("create.settings.modeLabel")}</Label>
+                <Select
+                  value={mode}
+                  onValueChange={(v: QuizMode) => setMode(v)}
+                  disabled={isBusy}
+                >
+                  <SelectTrigger className="w-full" disabled={isBusy}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectItem value="QUIZ">
+                      {t("create.settings.quiz")}
+                    </SelectItem>
+                    <SelectItem value="FLASHCARD">
+                      {t("create.settings.flashcard")}
+                    </SelectItem>
+                    <SelectItem value="STUDY_GUIDE">
+                      {t("create.settings.studyGuide")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("create.settings.parsingMode")}</Label>
+                <Select
+                  value={parsingMode}
+                  onValueChange={(v: ParsingMode) => setParsingMode(v)}
+                  disabled={isBusy}
+                >
+                  <SelectTrigger className="w-full" disabled={isBusy}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectItem value="FAST">
+                      {t("create.settings.fast")}
+                    </SelectItem>
+                    <SelectItem value="BALANCED">
+                      {t("create.settings.balanced")}
+                    </SelectItem>
+                    <SelectItem value="THOROUGH">
+                      {t("create.settings.thorough")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {parsingMode === "FAST" && (
+                  <p className="text-muted-foreground text-xs">
+                    {t("create.settings.fastModeWarning")}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
