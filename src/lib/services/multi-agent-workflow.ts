@@ -14,7 +14,8 @@ import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
-const DEFAULT_MODEL = "gpt-4o";
+// Use a faster, more cost-effective default model
+const DEFAULT_MODEL = "gpt-3.5-turbo";
 
 // Multi-agent workflow interfaces
 interface MultiAgentGenerateParams {

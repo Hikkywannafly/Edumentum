@@ -18,7 +18,7 @@ export interface UploadedFile {
   error?: string;
   parsedContent?: string;
   extractedQuestions?: QuestionData[];
-  actualFile?: File; // Store actual file for direct sending
+  actualFile?: File;
 }
 
 export interface GeneratedQuiz {
@@ -181,7 +181,7 @@ const extractQuestionsWithAIHandler = async (
         console.error(
           `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
         );
-        break; // Exit retry loop immediately
+        break;
       }
 
       if (attempt < maxRetries) {
@@ -196,7 +196,6 @@ const extractQuestionsWithAIHandler = async (
   );
 };
 
-// Generate NEW questions using AI (for AI-generated quizzes)
 const generateQuestionsWithAI = async (
   content: string,
   actualFile?: File,
@@ -300,21 +299,12 @@ const generateQuestionsWithAI = async (
           throw new Error("Generated questions are empty or invalid");
         }
 
+        // ✅ OPTIMIZATION: Don't throw if we have partial results - return what we have
         const expectedCount = settings?.numberOfQuestions || 5;
         if (validQuestions.length < expectedCount) {
           console.warn(
-            `⚠️ Got ${validQuestions.length} questions but expected ${expectedCount}`,
+            `⚠️ Got ${validQuestions.length}/${expectedCount} questions. Returning partial results without retry.`,
           );
-
-          // If we're significantly short, try again unless this is the last attempt
-          if (
-            validQuestions.length < Math.ceil(expectedCount * 0.6) &&
-            attempt < maxRetries
-          ) {
-            throw new Error(
-              `Insufficient questions: got ${validQuestions.length}, expected ${expectedCount}`,
-            );
-          }
         }
 
         console.log(
@@ -328,28 +318,39 @@ const generateQuestionsWithAI = async (
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
 
-      // Don't retry on quota exhaustion or invalid API key - these won't be fixed by retrying
+      // ✅ OPTIMIZATION: Only retry on network/5xx/429 errors, not content/parse errors
       const isQuotaExhausted =
         lastError.message.includes("OpenRouter Quota Exhausted") ||
         lastError.message.includes("insufficient_quota");
       const isInvalidApiKey = lastError.message.includes("Invalid API key");
+      const isNetworkError =
+        lastError.message.includes("ECONNRESET") ||
+        lastError.message.includes("ETIMEDOUT") ||
+        lastError.message.includes("ENOTFOUND") ||
+        lastError.message.includes("503") ||
+        lastError.message.includes("502");
+      const isRateLimit =
+        lastError.message.includes("429") && !isQuotaExhausted;
 
+      // Only retry for network/server errors, not for quota/auth/content issues
       if (isQuotaExhausted || isInvalidApiKey) {
         console.error(
           `❌ ${isQuotaExhausted ? "Quota exhausted" : "Invalid API key"} - stopping retries`,
         );
-        break; // Exit retry loop immediately
+        break;
       }
 
-      if (attempt < maxRetries) {
+      // Only retry for network/server errors
+      if ((isNetworkError || isRateLimit) && attempt < maxRetries) {
         const delay = attempt * 1000;
-        console.log(`🔄 Retrying in ${delay}ms...`);
+        console.log(`🔄 Retrying network error in ${delay}ms...`);
         await new Promise((resolve) => setTimeout(resolve, delay));
+      } else if (attempt < maxRetries) {
+        console.warn(`⚠️ Non-retryable error: ${lastError.message}`);
+        break; // Don't retry content/parse errors
       }
     }
   }
-
-  // All attempts failed, throw the last error with more context
   const errorMessage = `Failed to generate questions after ${maxRetries} attempts. Last error: ${lastError?.message || "Unknown error"}`;
   console.error("❌", errorMessage);
   throw new Error(errorMessage);
@@ -419,9 +420,10 @@ export function useFileProcessor() {
 
       setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-      for (const file of newFiles) {
-        await processFile(file, acceptedFiles[newFiles.indexOf(file)]);
-      }
+      // Process files concurrently for faster UX
+      await Promise.all(
+        newFiles.map((file, idx) => processFile(file, acceptedFiles[idx])),
+      );
     },
     [processFile],
   );
@@ -440,7 +442,6 @@ export function useFileProcessor() {
     [setQuizData],
   );
 
-  // Extract existing questions from files (for file-with-answers uploader)
   const extractQuestionsFromFiles = useCallback(
     async (settings?: {
       language?: Language;
@@ -580,15 +581,82 @@ export function useFileProcessor() {
     [updateQuizData],
   );
 
+  // Extract existing questions directly from TEXT content (no AI)
+  const extractQuestionsFromText = useCallback(
+    async (
+      content: string,
+      settings?: {
+        language?: Language;
+        parsingMode?: ParsingMode;
+      },
+    ) => {
+      if (!content || content.trim().length === 0) {
+        throw new Error("No text content provided");
+      }
+
+      const questions = await extractQuestionsFromContent(content, settings);
+
+      const quizData: GeneratedQuiz = {
+        title: "Quiz from Text Content",
+        description: `Extracted ${questions.length} questions from text`,
+        questions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [setQuizData],
+  );
+
+  // Generate new questions directly from TEXT content (AI)
+  const generateQuestionsFromText = useCallback(
+    async (
+      content: string,
+      settings?: {
+        generationMode?: "GENERATE" | "EXTRACT";
+        visibility?: string;
+        language?: string;
+        questionType?: string;
+        numberOfQuestions?: number;
+        mode?: string;
+        difficulty?: string;
+        task?: string;
+        parsingMode?: string;
+      },
+    ) => {
+      if (!content || content.trim().length === 0) {
+        throw new Error("No text content provided");
+      }
+
+      const questions =
+        settings?.generationMode === "EXTRACT"
+          ? await extractQuestionsWithAIHandler(content, undefined, settings)
+          : await generateQuestionsWithAI(content, undefined, settings);
+
+      const isExtractMode = settings?.generationMode === "EXTRACT";
+      const quizData: GeneratedQuiz = {
+        title: isExtractMode
+          ? "Extracted Quiz from Text"
+          : "AI-Generated Quiz from Text",
+        description: isExtractMode
+          ? `Extracted ${questions.length} questions from text`
+          : `Generated ${questions.length} questions from text using AI`,
+        questions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [setQuizData],
+  );
+
   const reset = useCallback(() => {
     setUploadedFiles([]);
     setQuizData(null as any);
   }, [setQuizData]);
 
-  // Get current quiz data from store
   const { quizData } = useQuizEditorStore();
 
-  // Update quiz data when files are processed
   useEffect(() => {
     const successfulFiles = uploadedFiles.filter(
       (f) => f.status === "success" && f.extractedQuestions,
@@ -605,7 +673,6 @@ export function useFileProcessor() {
         questions: allQuestions,
       });
     } else if (uploadedFiles.length === 0) {
-      // Clear quiz data when no files
       setQuizData(null as any);
     }
   }, [uploadedFiles, setQuizData]);
@@ -617,6 +684,8 @@ export function useFileProcessor() {
     removeFile,
     extractQuestionsFromFiles,
     generateQuestionsFromFiles,
+    extractQuestionsFromText,
+    generateQuestionsFromText,
     updateQuizDetails,
     reset,
     isProcessing: uploadedFiles.some(

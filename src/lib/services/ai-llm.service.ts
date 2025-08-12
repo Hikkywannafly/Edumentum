@@ -3,36 +3,54 @@ import axios, { type AxiosInstance, type AxiosError } from "axios";
 import { ContentExtractor } from "./content-extractor.service";
 import type { FileForAI } from "./file-to-ai.service";
 
+const inFlight = new Map<string, Promise<AIResponse>>();
+
+function makeRequestKey(
+  content: string,
+  model: string,
+  settings?: any,
+): string {
+  const raw = JSON.stringify({
+    content: content.slice(0, 1000),
+    model,
+    settings,
+  }); // Use first 1k chars for hash
+  let h = 2166136261;
+  for (let i = 0; i < raw.length; i++) {
+    h ^= raw.charCodeAt(i);
+    h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+  }
+  return String(h >>> 0);
+}
+
 // AI service for quiz generation (NOT extraction)
 const OPENROUTER_API_BASE = "https://openrouter.ai/api/v1";
-const DEFAULT_MODEL = "openai/gpt-oss-20b:free"; // Stable model on OpenRouter
+const DEFAULT_MODEL = "openai/gpt-oss-20b:free";
+const DEFAULT_TEMPERATURE = 0.3;
+const DEFAULT_MAX_TOKENS = 3500;
 
-// Cache axios clients to avoid recreating instances
 const clientCache = new Map<string, AxiosInstance>();
 
-// Create optimized axios instance with retry logic
 const createOpenAIClient = (apiKey: string): AxiosInstance => {
-  // Use cached client if available (performance optimization)
-  const cacheKey = apiKey.substring(0, 10); // Use partial key for caching
+  const cacheKey = apiKey.substring(0, 10);
   if (clientCache.has(cacheKey)) {
-    return clientCache.get(cacheKey) as AxiosInstance;
+    const client = clientCache.get(cacheKey) as AxiosInstance;
+    return client;
   }
 
   const client = axios.create({
     baseURL: OPENROUTER_API_BASE,
-    timeout: 90000, // 90 seconds for longer requests
+    timeout: 90000,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://edumentum.vercel.app", // Required for OpenRouter
-      "X-Title": "Edumentum Quiz Generator", // Optional but recommended
+      "HTTP-Referer": "https://edumentum.vercel.app",
+      "X-Title": "Edumentum Quiz Generator",
     },
-    // Performance optimizations
     maxRedirects: 0,
-    validateStatus: (status) => status < 500, // Don't throw on 4xx errors, handle them manually
+    validateStatus: (status) => status < 500,
   });
 
-  // Add retry interceptor for rate limiting (429) and network errors
   client.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
@@ -40,16 +58,18 @@ const createOpenAIClient = (apiKey: string): AxiosInstance => {
       const retryCount = config._retryCount || 0;
       const maxRetries = 4; // Increased retries for better resilience
 
-      // Handle rate limiting (429), timeout errors, and connection resets
-      // BUT NOT quota exhaustion (insufficient_quota) - retrying won't help
       const isQuotaExhausted =
         (error.response?.data as any)?.error?.code === "insufficient_quota";
+      const isNetworkError = [
+        "ECONNRESET",
+        "ETIMEDOUT",
+        "ENOTFOUND",
+        "ECONNREFUSED",
+      ].includes(error.code || "");
       const shouldRetry =
         ((error.response?.status === 429 && !isQuotaExhausted) ||
-          error.response?.status === 503 || // Service unavailable
-          error.code === "ECONNRESET" ||
-          error.code === "ETIMEDOUT" ||
-          error.code === "ENOTFOUND") &&
+          (error.response?.status && error.response.status >= 500) ||
+          isNetworkError) &&
         retryCount < maxRetries;
 
       if (shouldRetry) {
@@ -149,7 +169,8 @@ async function callOpenRouterApi(
   try {
     const client = createOpenAIClient(apiKey);
 
-    const response = await client.post("/chat/completions", {
+    // Prefer strict JSON output
+    const basePayload: any = {
       model: modelName,
       messages: [
         {
@@ -157,16 +178,25 @@ async function callOpenRouterApi(
           content: prompt,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 4000, // Qwen supports longer responses
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: DEFAULT_MAX_TOKENS,
+    };
+
+    let response = await client.post("/chat/completions", {
+      ...basePayload,
+      response_format: { type: "json_object" },
     });
+
+    // Some models might not support response_format; fallback without it
+    if (response.status === 400 || response.status === 422) {
+      response = await client.post("/chat/completions", basePayload);
+    }
 
     // Handle HTTP error status codes that didn't trigger retry
     if (response.status >= 400) {
       const errorData = response.data;
       console.error(`OpenRouter API error ${response.status}:`, errorData);
 
-      // Provide more specific error messages
       let errorMessage = `OpenRouter API error: ${response.status} ${response.statusText}`;
       if (errorData?.error?.message) {
         errorMessage += ` - ${errorData.error.message}`;
@@ -183,6 +213,11 @@ async function callOpenRouterApi(
     return responseContent;
   } catch (error) {
     if (axios.isAxiosError(error)) {
+      if (!error.response) {
+        throw new Error(
+          "Network error or CORS blocked the request. If running in the browser, ensure the endpoint allows required headers and CORS preflight.",
+        );
+      }
       const status = error.response?.status;
       const statusText = error.response?.statusText;
       const errorData = error.response?.data;
@@ -252,7 +287,7 @@ async function callOpenRouterApiWithFile(
       });
     }
 
-    const response = await client.post("/chat/completions", {
+    const basePayload: any = {
       model: modelName,
       messages: [
         {
@@ -260,9 +295,18 @@ async function callOpenRouterApiWithFile(
           content: messageContent,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 4000, // Qwen supports longer responses
+      temperature: DEFAULT_TEMPERATURE,
+      max_tokens: DEFAULT_MAX_TOKENS,
+    };
+
+    let response = await client.post("/chat/completions", {
+      ...basePayload,
+      response_format: { type: "json_object" },
     });
+
+    if (response.status === 400 || response.status === 422) {
+      response = await client.post("/chat/completions", basePayload);
+    }
 
     // Handle HTTP error status codes
     if (response.status >= 400) {
@@ -324,109 +368,112 @@ async function callOpenRouterApiWithFile(
   }
 }
 
+// Robust JSON parsing with fallback fixes
+function tryParseJSON(content: string): any {
+  try {
+    return JSON.parse(content);
+  } catch {
+    let fixed = content
+      .replace(/,\s*]/g, "]")
+      .replace(/,\s*}/g, "}")
+      .replace(/([{,]\s*)(\w+):/g, '$1"$2":')
+      .replace(/:\s*'([^']*)'/g, ': "$1"');
+
+    fixed = fixed.replace(
+      /"([^"]+)":\s*([^",\[\]{}][^,\]\}]*)/g,
+      (match, key, value) => {
+        const trimmedValue = value.trim();
+        if (
+          trimmedValue.startsWith('"') ||
+          /^-?\d+\.?\d*$/.test(trimmedValue) ||
+          trimmedValue === "true" ||
+          trimmedValue === "false" ||
+          trimmedValue === "null"
+        ) {
+          return match;
+        }
+        return `"${key}": "${trimmedValue}"`;
+      },
+    );
+
+    try {
+      return JSON.parse(fixed);
+    } catch {
+      const arrayMatch = fixed.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        try {
+          return JSON.parse(arrayMatch[0]);
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+  }
+}
+
 export function parseQuestionsFromAI(
   aiResponse: string,
   settings?: GenerateQuestionsParams["settings"],
 ): QuestionData[] {
-  console.log("🔍 Parsing AI Response, length:", aiResponse.length);
-  console.log(
-    "🔍 Raw AI Response (first 500 chars):",
-    aiResponse.substring(0, 500),
-  );
+  // Clean wrappers like code fences or think tags
+  let content = aiResponse.trim();
+  content = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  content = content.replace(/```json\s*([\s\S]*?)\s*```/i, "$1").trim();
+  content = content.replace(/```\s*([\s\S]*?)\s*```/i, "$1").trim();
 
-  let cleanedResponse = aiResponse.trim();
-
-  // Remove any <think> tags if present
-  cleanedResponse = cleanedResponse
-    .replace(/<think>[\s\S]*?<\/think>/gi, "")
-    .trim();
-
-  // Remove any markdown code blocks
-  cleanedResponse = cleanedResponse
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/gi, "")
-    .trim();
-
-  // Remove any extra text before the JSON
-  cleanedResponse = cleanedResponse.replace(/^[^[\{]*/, "").trim();
-
-  // Try multiple approaches to find valid JSON
-  const jsonExtractionMethods = [
-    // Method 1: Look for array brackets
-    () => {
-      const startIndex = cleanedResponse.indexOf("[");
-      const endIndex = cleanedResponse.lastIndexOf("]");
-      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-        return cleanedResponse.substring(startIndex, endIndex + 1);
-      }
-      return null;
-    },
-
-    // Method 2: Look for object brackets (single object)
-    () => {
-      const startIndex = cleanedResponse.indexOf("{");
-      const endIndex = cleanedResponse.lastIndexOf("}");
-      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-        const jsonContent = cleanedResponse.substring(startIndex, endIndex + 1);
-        // Wrap single object in array
-        return `[${jsonContent}]`;
-      }
-      return null;
-    },
-
-    // Method 3: Use the entire cleaned response
-    () => {
-      return cleanedResponse;
-    },
-  ];
-
-  for (const [index, method] of jsonExtractionMethods.entries()) {
-    try {
-      const jsonString = method();
-      if (!jsonString) continue;
-
-      console.log(
-        `🔍 Trying extraction method ${index + 1}:`,
-        jsonString.substring(0, 200),
-      );
-
-      const parsed = JSON.parse(jsonString);
-
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        console.log(
-          `✅ Successfully parsed JSON with method ${index + 1}, found ${parsed.length} items`,
-        );
-        return processQuestionArray(parsed, settings);
-      }
-
-      if (typeof parsed === "object" && parsed !== null) {
-        // Single question object
-        console.log(
-          `✅ Successfully parsed single question object with method ${index + 1}`,
-        );
-        return processQuestionArray([parsed], settings);
-      }
-    } catch (error) {
-      console.warn(`⚠️ Method ${index + 1} failed:`, error);
-    }
-  }
-
-  // Fallback: Try to extract questions using regex patterns
-  console.log("🔧 Attempting regex fallback extraction...");
+  // 1) Strict: expect a JSON object { questions: [...] }
   try {
-    const regexQuestions = extractQuestionsWithRegex(aiResponse, settings);
-    if (regexQuestions.length > 0) {
-      console.log(
-        `✅ Regex fallback extracted ${regexQuestions.length} questions`,
-      );
-      return regexQuestions;
+    const direct = JSON.parse(content);
+    if (
+      direct &&
+      typeof direct === "object" &&
+      Array.isArray((direct as any).questions)
+    ) {
+      return processQuestionArray((direct as any).questions, settings);
     }
-  } catch (regexError) {
-    console.warn("❌ Regex fallback also failed:", regexError);
+    if (Array.isArray(direct)) {
+      return processQuestionArray(direct, settings);
+    }
+  } catch (_) {
+    // ignore and try minimal fallback
   }
 
-  console.error("❌ All parsing methods failed");
-  console.error("❌ Full AI response:", aiResponse);
+  // 2) Minimal fallback: slice first [...] block if present
+  const firstBracket = content.indexOf("[");
+  const lastBracket = content.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    const sliced = content.slice(firstBracket, lastBracket + 1);
+    try {
+      const arr = JSON.parse(sliced);
+      if (Array.isArray(arr)) {
+        return processQuestionArray(arr, settings);
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  const parsed = tryParseJSON(content);
+  if (parsed) {
+    const array = Array.isArray(parsed) ? parsed : [parsed];
+    const questions = processQuestionArray(array, settings);
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ Successfully parsed ${questions.length} questions from full content`,
+      );
+    }
+    return questions;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.error("❌ Failed to parse AI response as JSON");
+    console.log(
+      "🔍 Raw content that failed to parse:",
+      content.substring(0, 1000),
+    );
+  }
+
   return [];
 }
 
@@ -499,72 +546,7 @@ function processQuestionArray(
   });
 }
 
-function extractQuestionsWithRegex(
-  text: string,
-  settings?: GenerateQuestionsParams["settings"],
-): QuestionData[] {
-  const questions: QuestionData[] = [];
-
-  // Try to find question patterns
-  const questionPatterns = [
-    /(?:Question|Câu hỏi)\s*\d*[:.]\s*(.+?)(?=(?:Question|Câu hỏi)\s*\d*[:..]|$)/gi,
-    /^\d+[.)]\s*(.+?)(?=^\d+[.)]|$)/gm,
-    /\?\s*(?:\n|$)/gm,
-  ];
-
-  for (const pattern of questionPatterns) {
-    const matches = text.match(pattern);
-    if (matches && matches.length > 0) {
-      matches.forEach((match, index) => {
-        const cleanQuestion = match
-          .replace(/^(?:Question|Câu hỏi)\s*\d*[:.]\s*/, "")
-          .trim();
-        if (cleanQuestion.length > 10) {
-          // Only include substantial questions
-          questions.push({
-            id: `regex-q-${Date.now()}-${index}`,
-            question: cleanQuestion,
-            type: "MULTIPLE_CHOICE",
-            difficulty: (settings?.difficulty || "EASY") as Difficulty,
-            points: 1,
-            explanation: "",
-            answers: [
-              {
-                id: `a-${index}-0`,
-                text: "Option A",
-                isCorrect: true,
-                order_index: 0,
-              },
-              {
-                id: `a-${index}-1`,
-                text: "Option B",
-                isCorrect: false,
-                order_index: 1,
-              },
-              {
-                id: `a-${index}-2`,
-                text: "Option C",
-                isCorrect: false,
-                order_index: 2,
-              },
-              {
-                id: `a-${index}-3`,
-                text: "Option D",
-                isCorrect: false,
-                order_index: 3,
-              },
-            ],
-            shortAnswerText: "",
-          });
-        }
-      });
-
-      if (questions.length > 0) break; // Use first successful pattern
-    }
-  }
-
-  return questions;
-}
+// Removed regex fallback for performance and determinism
 
 // Extract questions from files with existing questions (NO AI, direct parsing)
 export async function extractQuestions(
@@ -620,55 +602,70 @@ export async function generateQuestions(
     useMultiAgent = false,
   } = params;
 
-  try {
-    // Use multi-agent workflow if enabled
-    if (useMultiAgent) {
-      console.log(
-        "🤖 Using multi-agent workflow via API for question generation",
-      );
-
-      try {
-        const response = await fetch("/api/ai/multi-agent-quiz", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            questionHeader,
-            questionDescription,
-            apiKey,
-            fileContent,
-            modelName,
-            settings,
-          }),
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.questions) {
-            console.log(
-              `✅ Multi-agent API generated ${result.questions.length} questions`,
-            );
-            return {
-              success: true,
-              questions: result.questions,
-            };
-          }
-        }
-
-        console.log("⚠️ Multi-agent API failed, falling back to single-agent");
-      } catch (apiError) {
-        console.error("Error calling multi-agent API:", apiError);
-        console.log("⚠️ Multi-agent API error, falling back to single-agent");
-      }
-    }
-
-    // Build the prompt based on settings
-    const numberOfQuestions = Math.max(
-      1,
-      Math.min(10, settings.numberOfQuestions || 5),
+  const requestKey = makeRequestKey(fileContent, modelName, settings);
+  if (inFlight.has(requestKey)) {
+    console.log(
+      "🔄 Request already in progress, waiting for existing result...",
     );
-    const prompt = `
+    const existingPromise = inFlight.get(requestKey);
+    if (existingPromise) {
+      return existingPromise;
+    }
+  }
+
+  // Create promise and cache it
+  const promise = (async (): Promise<AIResponse> => {
+    try {
+      // Use multi-agent workflow if enabled
+      if (useMultiAgent) {
+        console.log(
+          "🤖 Using multi-agent workflow via API for question generation",
+        );
+
+        try {
+          const response = await fetch("/api/ai/multi-agent-quiz", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              questionHeader,
+              questionDescription,
+              apiKey,
+              fileContent,
+              modelName,
+              settings,
+            }),
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.questions) {
+              console.log(
+                `✅ Multi-agent API generated ${result.questions.length} questions`,
+              );
+              return {
+                success: true,
+                questions: result.questions,
+              };
+            }
+          }
+
+          console.log("⚠️ Multi-agent API failed, falling back to single-agent");
+        } catch (apiError) {
+          console.error("Error calling multi-agent API:", apiError);
+          console.log("⚠️ Multi-agent API error, falling back to single-agent");
+        }
+      }
+
+      // Build the prompt based on settings
+      const numberOfQuestions = Math.max(
+        5,
+        Math.min(10, settings.numberOfQuestions || 5),
+      );
+      // Truncate very long content to keep token usage reasonable
+      const limitedContent = fileContent?.slice(0, 8000) || ""; // ~8k chars
+      const prompt = `
 Bạn là một chuyên gia tạo quiz. Bạn PHẢI trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi chất lượng cao.
 
 YÊU CẦU:
@@ -679,61 +676,80 @@ YÊU CẦU:
 - Độ khó: ${settings.difficulty || "EASY"}
 - Số câu hỏi: ${numberOfQuestions}
 
-Nội dung để tạo câu hỏi:
-${fileContent}
+ Nội dung để tạo câu hỏi (truncated nếu quá dài):
+ ${limitedContent}
 
 QUY TẮC QUAN TRỌNG:
 1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
 2. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
 3. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
-4. Response PHẢI là JSON array hợp lệ, không có text khác
+4. Response PHẢI là MỘT OBJECT JSON hợp lệ có dạng {"questions": [...]}, không có text nào khác
 
 FORMAT JSON:
-[
-  {
-    "id": "q1",
-    "question": "Câu hỏi của bạn?",
-    "type": "MULTIPLE_CHOICE",
-    "difficulty": "${settings.difficulty || "EASY"}",
-    "points": 1,
-    "explanation": "Giải thích tại sao đáp án này đúng",
-    "answers": [
-      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
-      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
-      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
-      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
-    ]
-  }
-]
-
-PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
-
-    console.log("🚀 Generating questions with AI...");
-    const aiResponse = await callOpenRouterApi(apiKey, prompt, modelName);
-
-    console.log("📝 Parsing AI response...");
-
-    console.log("🔍 Full AI Response Length:", aiResponse.length, settings);
-    console.log("🔍 Full AI Response:", aiResponse);
-
-    const questions = parseQuestionsFromAI(aiResponse, settings);
-
-    if (questions.length === 0) {
-      throw new Error("No questions could be extracted from AI response");
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Câu hỏi của bạn?",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "${settings.difficulty || "EASY"}",
+      "points": 1,
+      "explanation": "Giải thích tại sao đáp án này đúng",
+      "answers": [
+        {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+        {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+        {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+        {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+      ]
     }
+  ]
+}
 
-    console.log(`✅ Successfully generated ${questions.length} questions`);
-    return {
-      success: true,
-      questions, // Return the actual questions, not empty array!
-    };
-  } catch (error) {
-    console.error("❌ Question generation failed:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
+CHỈ TRẢ VỀ OBJECT JSON TRÊN. Không thêm bất kỳ text nào khác.`.trim();
+
+      console.log("🚀 Generating questions with AI...");
+      const aiResponse = await callOpenRouterApi(apiKey, prompt, modelName);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("📝 Parsing AI response...");
+        console.log("🔍 Full AI Response Length:", aiResponse.length, settings);
+        console.log("🔍 Full AI Response:", aiResponse);
+      }
+
+      const questions = parseQuestionsFromAI(aiResponse, settings);
+
+      if (questions.length === 0) {
+        throw new Error("No questions could be extracted from AI response");
+      }
+
+      // ✅ OPTIMIZATION: Don't throw if we have partial results
+      const expectedCount = settings?.numberOfQuestions || 5;
+      if (questions.length < expectedCount) {
+        console.warn(
+          `⚠️ Got ${questions.length}/${expectedCount} questions. Returning partial results without retry.`,
+        );
+      }
+
+      console.log(`✅ Successfully generated ${questions.length} questions`);
+      return {
+        success: true,
+        questions, // Return the actual questions, not empty array!
+      };
+    } catch (error) {
+      console.error("❌ Question generation failed:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    } finally {
+      // Clean up in-flight cache
+      inFlight.delete(requestKey);
+    }
+  })();
+
+  // Cache the promise
+  inFlight.set(requestKey, promise);
+  return promise;
 }
 
 // Extract questions using AI (for content that already has quiz format)
@@ -775,28 +791,30 @@ QUY TẮC QUAN TRỌNG:
 2. Giữ nguyên nội dung câu hỏi và đáp án từ nguồn
 3. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
 4. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
-5. Response PHẢI là JSON array hợp lệ, không có text khác
+5. Response PHẢI là MỘT OBJECT JSON hợp lệ dạng {"questions": [...]}, không có text khác
 6. Nếu không tìm thấy câu hỏi có sẵn, trả về array rỗng []
 
 FORMAT JSON:
-[
-  {
-    "id": "q1",
-    "question": "Câu hỏi được trích xuất nguyên văn",
-    "type": "MULTIPLE_CHOICE",
-    "difficulty": "${settings.difficulty || "EASY"}",
-    "points": 1,
-    "explanation": "Giải thích nếu có sẵn trong nguồn",
-    "answers": [
-      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
-      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
-      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
-      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
-    ]
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Câu hỏi được trích xuất nguyên văn",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "${settings.difficulty || "EASY"}",
+      "points": 1,
+      "explanation": "Giải thích nếu có sẵn trong nguồn",
+      "answers": [
+        {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+        {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+        {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+        {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+      ]
+    }
+  ]
+}
 
-CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả về [].`.trim();
+CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả về {"questions": []}.`.trim();
 
     console.log("🔍 Extracting questions with AI...");
 
@@ -816,16 +834,19 @@ CHỈ TRÍCH XUẤT câu hỏi có SẴN. Nếu không có quiz format, trả v�
         "openai/gpt-oss-20b:free", // Use GPT-3.5 for file support
       );
     } else {
+      const limitedExtractContent = (fileContent || "").slice(0, 8000);
       aiResponse = await callOpenRouterApi(
         apiKey,
-        `${prompt}\n\nContent to extract from:\n${fileContent}`,
+        `${prompt}\n\nContent to extract from (truncated nếu quá dài):\n${limitedExtractContent}`,
         modelName,
       );
     }
 
-    console.log("📝 Parsing AI extraction response...");
-    console.log("🔍 Full AI Response Length:", aiResponse.length);
-    console.log("🔍 Full AI Response:", aiResponse);
+    if (process.env.NODE_ENV === "development") {
+      console.log("📝 Parsing AI extraction response...");
+      console.log("🔍 Full AI Response Length:", aiResponse.length);
+      console.log("🔍 Full AI Response:", aiResponse);
+    }
 
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
@@ -861,7 +882,7 @@ export async function generateQuestionsFromFile(
 
   try {
     const numberOfQuestions = Math.max(
-      1,
+      5,
       Math.min(10, settings.numberOfQuestions || 5),
     );
 
@@ -882,28 +903,30 @@ QUY TẮC QUAN TRỌNG:
 1. Trả về CHÍNH XÁC ${numberOfQuestions} câu hỏi, không nhiều hơn không ít hơn
 2. Mỗi câu hỏi trắc nghiệm PHẢI có CHÍNH XÁC 4 đáp án (A, B, C, D)
 3. CHỈ có 1 đáp án đúng cho mỗi câu hỏi
-4. Response PHẢI là JSON array hợp lệ, không có text khác
+4. Response PHẢI là MỘT OBJECT JSON hợp lệ có dạng {"questions": [...]}, không có text khác
 5. Phân tích toàn bộ nội dung file để tạo câu hỏi chính xác
 
 FORMAT JSON:
-[
-  {
-    "id": "q1",
-    "question": "Câu hỏi của bạn?",
-    "type": "MULTIPLE_CHOICE",
-    "difficulty": "${settings.difficulty || "EASY"}",
-    "points": 1,
-    "explanation": "Giải thích tại sao đáp án này đúng",
-    "answers": [
-      {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
-      {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
-      {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
-      {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
-    ]
-  }
-]
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Câu hỏi của bạn?",
+      "type": "MULTIPLE_CHOICE",
+      "difficulty": "${settings.difficulty || "EASY"}",
+      "points": 1,
+      "explanation": "Giải thích tại sao đáp án này đúng",
+      "answers": [
+        {"id": "a1", "text": "Đáp án A", "isCorrect": false, "order_index": 0},
+        {"id": "a2", "text": "Đáp án B", "isCorrect": true, "order_index": 1},
+        {"id": "a3", "text": "Đáp án C", "isCorrect": false, "order_index": 2},
+        {"id": "a4", "text": "Đáp án D", "isCorrect": false, "order_index": 3}
+      ]
+    }
+  ]
+}
 
-PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON array, không có text khác.`.trim();
+CHỈ TRẢ VỀ OBJECT JSON TRÊN. Không thêm bất kỳ text nào khác.`.trim();
 
     console.log("🚀 Generating questions from file with AI...");
     console.log(
@@ -920,9 +943,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       modelName,
     );
 
-    console.log("📝 Parsing AI response from file...");
-    console.log("🔍 Full AI Response Length:", aiResponse.length);
-    console.log("🔍 Full AI Response:", aiResponse);
+    if (process.env.NODE_ENV === "development") {
+      console.log("📝 Parsing AI response from file...");
+      console.log("🔍 Full AI Response Length:", aiResponse.length);
+      console.log("🔍 Full AI Response:", aiResponse);
+    }
 
     const questions = parseQuestionsFromAI(aiResponse, settings);
 
@@ -930,9 +955,11 @@ PHẢI TRẢ VỀ ${numberOfQuestions} OBJECT TRONG ARRAY. Chỉ trả về JSON
       throw new Error("No questions could be extracted from AI response");
     }
 
-    console.log(
-      `✅ Successfully generated ${questions.length} questions from file`,
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        `✅ Successfully generated ${questions.length} questions from file`,
+      );
+    }
     return {
       success: true,
       questions,
