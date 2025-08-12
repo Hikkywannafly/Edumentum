@@ -576,6 +576,75 @@ export function useFileProcessor() {
     [updateQuizData],
   );
 
+  // Extract existing questions directly from TEXT content (no AI)
+  const extractQuestionsFromText = useCallback(
+    async (
+      content: string,
+      settings?: {
+        language?: Language;
+        parsingMode?: ParsingMode;
+      },
+    ) => {
+      if (!content || content.trim().length === 0) {
+        throw new Error("No text content provided");
+      }
+
+      const questions = await extractQuestionsFromContent(content, settings);
+
+      const quizData: GeneratedQuiz = {
+        title: "Quiz from Text Content",
+        description: `Extracted ${questions.length} questions from text`,
+        questions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [setQuizData],
+  );
+
+  // Generate new questions directly from TEXT content (AI)
+  const generateQuestionsFromText = useCallback(
+    async (
+      content: string,
+      settings?: {
+        generationMode?: "GENERATE" | "EXTRACT";
+        visibility?: string;
+        language?: string;
+        questionType?: string;
+        numberOfQuestions?: number;
+        mode?: string;
+        difficulty?: string;
+        task?: string;
+        parsingMode?: string;
+      },
+    ) => {
+      if (!content || content.trim().length === 0) {
+        throw new Error("No text content provided");
+      }
+
+      const questions =
+        settings?.generationMode === "EXTRACT"
+          ? await extractQuestionsWithAIHandler(content, undefined, settings)
+          : await generateQuestionsWithAI(content, undefined, settings);
+
+      const isExtractMode = settings?.generationMode === "EXTRACT";
+      const quizData: GeneratedQuiz = {
+        title: isExtractMode
+          ? "Extracted Quiz from Text"
+          : "AI-Generated Quiz from Text",
+        description: isExtractMode
+          ? `Extracted ${questions.length} questions from text`
+          : `Generated ${questions.length} questions from text using AI`,
+        questions,
+      };
+
+      setQuizData(quizData);
+      return quizData;
+    },
+    [setQuizData],
+  );
+
   const reset = useCallback(() => {
     setUploadedFiles([]);
     setQuizData(null as any);
@@ -611,6 +680,8 @@ export function useFileProcessor() {
     removeFile,
     extractQuestionsFromFiles,
     generateQuestionsFromFiles,
+    extractQuestionsFromText,
+    generateQuestionsFromText,
     updateQuizDetails,
     reset,
     isProcessing: uploadedFiles.some(
