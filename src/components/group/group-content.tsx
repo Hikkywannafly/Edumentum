@@ -100,6 +100,10 @@ export default function GroupContent() {
       <GroupDialog
         selectedGroup={selectedGroup}
         onClose={() => setSelectedGroup(null)}
+        onJoinSuccess={(group) => {
+          setMyGroups((prev) => [...prev, group]);
+          setGroups((prev) => prev.filter((g) => g.id !== group.id));
+        }}
       />
     </div>
   );
