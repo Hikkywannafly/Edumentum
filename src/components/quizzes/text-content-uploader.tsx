@@ -14,6 +14,7 @@ import { useFileProcessor } from "@/hooks/use-file-processor";
 import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import { Loader2, Type } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 interface TextContentUploaderProps {
@@ -25,6 +26,7 @@ export function TextContentUploader({
   onProcessingStart,
   onProcessingDone,
 }: TextContentUploaderProps) {
+  const t = useTranslations("Quizzes");
   const { goQuizEdit } = useLocalizedNavigation();
   const [isInitialMount, setIsInitialMount] = useState(true);
   const [isCreatingQuiz, setIsCreatingQuiz] = useState(false);
@@ -43,7 +45,10 @@ export function TextContentUploader({
     if (isBusy) return;
     setIsCreatingQuiz(true);
 
-    onProcessingStart?.("Text Content", "Extracting quiz from text");
+    onProcessingStart?.(
+      "Text Content",
+      t("create.textContent.extractingQuestions"),
+    );
 
     try {
       await extractQuestionsFromText(textContent, {
@@ -61,29 +66,42 @@ export function TextContentUploader({
     }
   };
 
+  const handleClearContent = () => {
+    setTextContent("");
+  };
+
+  const handlePasteContent = async () => {
+    try {
+      const clipboardContent = await navigator.clipboard.readText();
+      setTextContent(clipboardContent);
+    } catch (error) {
+      console.error("Failed to read clipboard:", error);
+    }
+  };
+
   return (
     <div
       className={`space-y-6 border-none ${isBusy ? "pointer-events-none opacity-60" : ""}`}
     >
-      <Card>
+      <Card className="border-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 border-none">
             <Type className="h-5 w-5" />
-            Text Content
+            {t("create.textContent.title")}
           </CardTitle>
           <CardDescription>
-            Paste your quiz content with questions and answers
+            {t("create.textContent.description")}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="border-none">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="text-content">Quiz Content</Label>
+              <Label htmlFor="text-content">
+                {t("create.textContent.title")}
+              </Label>
               <Textarea
                 id="text-content"
-                placeholder={
-                  "Paste your quiz content here...\n\nExample:\n1. What is the capital of France?\na) London\nb) Berlin\nc) Paris\nd) Madrid\nAnswer: c) Paris"
-                }
+                placeholder={t("create.textContent.placeholder")}
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
                 className="min-h-[300px] resize-none"
@@ -97,13 +115,31 @@ export function TextContentUploader({
                 lines
               </span>
             </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePasteContent}
+                disabled={isBusy}
+              >
+                {t("create.textContent.pasteContent")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearContent}
+                disabled={!textContent.trim() || isBusy}
+              >
+                {t("create.textContent.clearContent")}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
-          Enter text content with questions and answers to extract quiz
+          {t("create.textContent.guidance")}
         </p>
         <div className="flex gap-2">
           <Button
@@ -114,10 +150,10 @@ export function TextContentUploader({
             {isCreatingQuiz ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Preparing Quiz...
+                {t("create.textContent.extractingQuestions")}
               </>
             ) : (
-              <>Create Quiz</>
+              <>{t("create.textContent.extractQuestions")}</>
             )}
           </Button>
         </div>

@@ -274,7 +274,8 @@
       "subtitle": "Nhanh chóng tạo quiz mới từ tài liệu học tập của bạn!",
       "tabs": {
         "fileWithAnswers": "Có sẵn đáp án file",
-        "aiGenerated": "AI soạn quiz"
+        "aiGenerated": "AI soạn quiz",
+        "textContent": "Nội dung văn bản"
       },
       "settings": {
         "title": "Cài đặt Quiz",
@@ -297,7 +298,24 @@
         "fast": "Nhanh",
         "balanced": "Cân bằng",
         "thorough": "Kỹ lưỡng",
-        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn."
+        "fastModeWarning": "Chế độ nhanh bỏ qua hình ảnh và bảng. Sử dụng chế độ cân bằng nếu tài liệu có chúng, nhưng xử lý sẽ mất nhiều thời gian hơn.",
+        "generationMode": "Chế độ tạo",
+        "modeGenerate": "Tạo mới",
+        "modeExtract": "Trích xuất",
+        "fileProcessing": "Xử lý tệp",
+        "fileProcessingParseThenSend": "Phân tích rồi gửi",
+        "fileProcessingSendDirect": "Gửi trực tiếp",
+        "unlisted": "Không công khai",
+        "modeLabel": "Chế độ",
+        "quiz": "Quiz",
+        "flashcard": "Flashcard",
+        "studyGuide": "Hướng dẫn học",
+        "taskLabel": "Nhiệm vụ",
+        "taskGenerateQuiz": "Tạo Quiz",
+        "taskReview": "Ôn tập",
+        "taskTest": "Kiểm tra",
+        "fillBlank": "Điền vào chỗ trống",
+        "freeResponse": "Trả lời tự do"
       },
       "supportedFormats": {
         "title": "Định dạng hỗ trợ",
@@ -336,6 +354,17 @@
         "startGeneration": "Bắt đầu tạo AI",
         "createQuiz": "Tạo Quiz",
         "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
+      },
+      "textContent": {
+        "title": "Nội dung văn bản",
+        "description": "Dán hoặc nhập nội dung trực tiếp để trích xuất câu hỏi quiz",
+        "placeholder": "Nhập nội dung văn bản của bạn vào đây...\n\nVí dụ:\n1. Thủ đô của Pháp là gì?\na) London\nb) Berlin\nc) Paris\nd) Madrid\nĐáp án: c) Paris",
+        "pasteContent": "Dán nội dung",
+        "clearContent": "Xóa nội dung",
+        "extractQuestions": "Trích xuất câu hỏi",
+        "extractingQuestions": "Đang trích xuất câu hỏi...",
+        "createQuiz": "Tạo Quiz",
+        "guidance": "Dán nội dung rõ ràng và có cấu trúc tốt để trích xuất câu hỏi tốt hơn."
       }
     },
     "edit": {

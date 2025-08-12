@@ -19,9 +19,14 @@ import { useDropzone } from "react-dropzone";
 interface FileUploadAreaProps {
   onDrop: (acceptedFiles: File[]) => void;
   isDragActive: boolean;
+  variant?: "file-with-answers" | "ai";
 }
 
-export function FileUploadArea({ onDrop, isDragActive }: FileUploadAreaProps) {
+export function FileUploadArea({
+  onDrop,
+  isDragActive,
+  variant = "file-with-answers",
+}: FileUploadAreaProps) {
   const t = useTranslations("Quizzes");
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -30,18 +35,19 @@ export function FileUploadArea({ onDrop, isDragActive }: FileUploadAreaProps) {
     maxSize: FILE_UPLOAD_LIMITS.maxSize,
   });
 
+  const i18nKey =
+    variant === "ai" ? "create.aiGenerated" : "create.fileWithAnswers";
+
   return (
     <Card className="border-none">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 border-none">
           <Upload className="h-5 w-5" />
-          {t("create.fileWithAnswers.title")}
+          {t(`${i18nKey}.title` as any)}
         </CardTitle>
-        <CardDescription>
-          {t("create.fileWithAnswers.description")}
-        </CardDescription>
+        <CardDescription>{t(`${i18nKey}.description` as any)}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="border-none">
         <div
           {...getRootProps()}
           className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
@@ -54,22 +60,23 @@ export function FileUploadArea({ onDrop, isDragActive }: FileUploadAreaProps) {
           <Upload className="mx-auto mb-4 h-12 w-12 text-gray-400" />
           <p className="mb-2 font-medium text-lg">
             {isDragActive
-              ? t("create.fileWithAnswers.dropHere")
-              : t("create.fileWithAnswers.dropOrSelect")}
+              ? t(`${i18nKey}.dropHere` as any)
+              : t(`${i18nKey}.dropOrSelect` as any)}
           </p>
           <p className="mb-4 text-muted-foreground text-sm">
-            {t("create.fileWithAnswers.supportedFormats")}
+            {t(`${i18nKey}.supportedFormats` as any)}
           </p>
           <div className="mb-4 flex flex-wrap justify-center gap-2">
             <Badge variant="outline">PDF</Badge>
             <Badge variant="outline">DOC(X)</Badge>
             <Badge variant="outline">PPT(X)</Badge>
             <Badge variant="outline">XLS(X)</Badge>
+            {variant === "ai" && <Badge variant="outline">TXT</Badge>}
             <Badge variant="outline">JSON</Badge>
             <Badge variant="outline">MD</Badge>
           </div>
           <p className="text-muted-foreground text-xs">
-            {t("create.fileWithAnswers.limits")}
+            {t(`${i18nKey}.limits` as any)}
           </p>
         </div>
       </CardContent>
