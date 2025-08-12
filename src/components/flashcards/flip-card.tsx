@@ -1,6 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { htmlToText } from "@/lib/utils/text";
 import type { FlashcardData } from "@/types/flashcard";
 import { CheckCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -91,7 +92,7 @@ export function FlipCard({ flashcard, onNext, onPrevious }: FlipCardProps) {
               <div className="text-center">
                 <p className="mb-2 text-muted-foreground text-sm">Question:</p>
                 <h3 className="font-medium text-lg leading-relaxed">
-                  {flashcard.question}
+                  {htmlToText(flashcard.question)}
                 </h3>
               </div>
 
@@ -112,7 +113,7 @@ export function FlipCard({ flashcard, onNext, onPrevious }: FlipCardProps) {
                       {getChoiceLetter(flashcard.correctAnswer)}
                     </Badge>
                     <span className="font-medium text-green-600 text-lg">
-                      {flashcard.choices[flashcard.correctAnswer]}
+                      {htmlToText(flashcard.choices[flashcard.correctAnswer])}
                     </span>
                   </div>
                 </div>
@@ -121,7 +122,9 @@ export function FlipCard({ flashcard, onNext, onPrevious }: FlipCardProps) {
                 {flashcard.explanation && (
                   <div className="rounded-lg border border-blue-200 p-4">
                     <h4 className="mb-2 font-semibold">Explanation</h4>
-                    <p className="leading-relaxed">{flashcard.explanation}</p>
+                    <p className="leading-relaxed">
+                      {htmlToText(flashcard.explanation)}
+                    </p>
                   </div>
                 )}
               </div>
@@ -153,7 +156,7 @@ export function FlipCard({ flashcard, onNext, onPrevious }: FlipCardProps) {
             <div className="text-center">
               <p className="mb-2 text-muted-foreground text-sm">Question:</p>
               <h3 className="font-semibold text-xl leading-relaxed">
-                {flashcard.question}
+                {htmlToText(flashcard.question)}
               </h3>
             </div>
 
@@ -169,7 +172,9 @@ export function FlipCard({ flashcard, onNext, onPrevious }: FlipCardProps) {
                   >
                     {getChoiceLetter(index)}
                   </Badge>
-                  <span className="font-medium text-lg">{choice}</span>
+                  <span className="font-medium text-lg">
+                    {htmlToText(choice)}
+                  </span>
                 </div>
               ))}
             </div>

@@ -575,6 +575,25 @@
         "createDeck": "Tạo bộ thẻ",
         "guidance": "Sử dụng tài liệu có thông tin chính xác để có kết quả tốt nhất."
       }
+    },
+    "editPage": {
+      "title": "Chỉnh sửa bộ Flashcard",
+      "backToFlashcards": "Quay lại Flashcards",
+      "saveChanges": "Lưu thay đổi",
+      "saveDraft": "Lưu nháp",
+      "flashcardSetTitle": "Tiêu đề bộ Flashcard",
+      "description": "Mô tả",
+      "addFlashcard": "Thêm Flashcard",
+      "deleteFlashcard": "Xóa Flashcard",
+      "question": "Câu hỏi",
+      "answerChoices": "Lựa chọn đáp án",
+      "addChoice": "Thêm lựa chọn",
+      "correctAnswer": "Đáp án đúng",
+      "advanced": "Nâng cao",
+      "explanation": "Giải thích (Tùy chọn)",
+      "noFlashcards": "Chưa có flashcard nào. Nhấn \"Thêm Flashcard\" để bắt đầu.",
+      "moveUp": "Di chuyển lên",
+      "moveDown": "Di chuyển xuống"
     }
   },
   "Pomodoro": {

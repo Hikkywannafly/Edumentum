@@ -22,13 +22,13 @@ export default async function FlashcardEditPage({
     <DashboardLayout>
       <div className="space-y-6">
         <PageHeaderClient
-          title={t("editPage.title")}
+          title={t("create.title")}
           action={
             <div className="flex gap-2">
               <LocalizedLink href="/flashcards">
                 <Button variant="outline" className="flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
-                  {t("editPage.backToFlashcards")}
+                  {t("create.backToFlashcards")}
                 </Button>
               </LocalizedLink>
             </div>
