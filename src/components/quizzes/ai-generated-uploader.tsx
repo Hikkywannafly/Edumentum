@@ -68,7 +68,7 @@ export function AIGeneratedUploader({
   const [visibility, setVisibility] = useState<Visibility>("PRIVATE");
   const [language, setLanguage] = useState<Language>("AUTO");
   const [questionType, setQuestionType] = useState<QuestionType | "MIXED">(
-    "MIXED",
+    "MULTIPLE_CHOICE",
   );
   const [numberOfQuestions, setNumberOfQuestions] = useState<number>(5);
   const [mode, setMode] = useState<QuizMode>("QUIZ");
@@ -315,11 +315,11 @@ export function AIGeneratedUploader({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="w-full">
-                        <SelectItem value="MIXED">
-                          {t("create.settings.mixed")}
-                        </SelectItem>
                         <SelectItem value="MULTIPLE_CHOICE">
                           {t("create.settings.multipleChoice")}
+                        </SelectItem>
+                        <SelectItem value="MIXED">
+                          {t("create.settings.mixed")}
                         </SelectItem>
                         <SelectItem value="TRUE_FALSE">
                           {t("create.settings.trueFalse")}

@@ -36,7 +36,7 @@ export function FileList({ files, onRemoveFile }: FileListProps) {
   if (files.length === 0) return null;
 
   return (
-    <Card>
+    <Card className="border-none">
       <CardHeader>
         <CardTitle>{t("create.fileWithAnswers.uploadedFiles")}</CardTitle>
       </CardHeader>
@@ -61,13 +61,7 @@ export function FileList({ files, onRemoveFile }: FileListProps) {
                   {file.status === "processing" && (
                     <span>{t("create.fileWithAnswers.processing")}</span>
                   )}
-                  {file.status === "success" && (
-                    <span className="text-green-600">
-                      {t("create.fileWithAnswers.success")}
-                      {file.extractedQuestions &&
-                        ` (${file.extractedQuestions.length} questions)`}
-                    </span>
-                  )}
+
                   {file.status === "error" && (
                     <span className="text-red-600">{file.error}</span>
                   )}

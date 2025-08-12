@@ -144,7 +144,7 @@ const extractQuestionsWithAIHandler = async (
 
       if (result.success && result.questions && result.questions.length > 0) {
         console.log(
-          `✅ Successfully extracted ${result.questions.length} questions on attempt ${attempt}`,
+          `Successfully extracted ${result.questions.length} questions on attempt ${attempt}`,
         );
 
         // Validate questions have proper structure
@@ -236,7 +236,7 @@ const generateQuestionsWithAI = async (
       console.log("🔄 Auto-fallback to 'Parse Then Send' mode for generation");
       actualMode = false; // Fallback to parse mode
     } else {
-      console.log("✅ File validated for direct AI generation");
+      console.log("File validated for direct AI generation");
     }
   }
 
@@ -250,7 +250,7 @@ const generateQuestionsWithAI = async (
 
       if (actualMode && actualFile) {
         // Convert file to AI format and send directly
-        console.log("🎯 Converting file for direct AI processing...");
+        console.log(" Converting file for direct AI processing...");
         const fileForAI = await fileToAIService.convertFileToAI(actualFile);
 
         result = await generateQuestionsFromFile({
@@ -299,7 +299,6 @@ const generateQuestionsWithAI = async (
           throw new Error("Generated questions are empty or invalid");
         }
 
-        // ✅ OPTIMIZATION: Don't throw if we have partial results - return what we have
         const expectedCount = settings?.numberOfQuestions || 5;
         if (validQuestions.length < expectedCount) {
           console.warn(
@@ -308,7 +307,7 @@ const generateQuestionsWithAI = async (
         }
 
         console.log(
-          `✅ Validated ${validQuestions.length} questions (expected: ${expectedCount})`,
+          ` Validated ${validQuestions.length} questions (expected: ${expectedCount})`,
         );
         return validQuestions;
       }
@@ -318,7 +317,6 @@ const generateQuestionsWithAI = async (
       lastError = error instanceof Error ? error : new Error(String(error));
       console.warn(`⚠️ Attempt ${attempt} failed:`, lastError.message);
 
-      // ✅ OPTIMIZATION: Only retry on network/5xx/429 errors, not content/parse errors
       const isQuotaExhausted =
         lastError.message.includes("OpenRouter Quota Exhausted") ||
         lastError.message.includes("insufficient_quota");
