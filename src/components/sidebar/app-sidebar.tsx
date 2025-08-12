@@ -239,7 +239,7 @@ export function AppSidebar() {
         </div>
 
         {/* Content */}
-        <div className="h-full overflow-y-auto px-2 py-2">
+        <div className="h-full overflow-y-hidden px-2 py-2">
           {Object.entries(menuData).map(([key, items]) => (
             <Collapsible key={key} defaultOpen className="group/collapsible">
               <div className="relative flex w-full min-w-0 flex-col p-2">
