@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/auth-context";
-import { flashcardService } from "@/lib/services/flashcard.service";
+import { flashcardService } from "@/lib/api/flashcard";
 import { useLocalizedNavigation } from "@/lib/utils/navigation";
 import type { FlashcardData, FlashcardSet } from "@/types/flashcard";
 import { useEffect, useState } from "react";
@@ -44,19 +44,12 @@ export function FlashcardEditorContent({
 
   useEffect(() => {
     const fetchFlashcardSet = async () => {
-      if (!accessToken) {
-        setError("No access token provided");
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
         setError(null);
 
         const data = await flashcardService.getFlashcardById(
           Number.parseInt(flashcardSetId, 10),
-          accessToken,
         );
 
         setFlashcardSet(data);
@@ -74,7 +67,7 @@ export function FlashcardEditorContent({
     };
 
     fetchFlashcardSet();
-  }, [flashcardSetId, accessToken]);
+  }, [flashcardSetId]);
 
   const addFlashcard = () => {
     const newFlashcard: FlashcardData = {
@@ -120,7 +113,6 @@ export function FlashcardEditorContent({
       const result = await flashcardService.updateFlashcardSet(
         flashcardSet.id,
         updatedFlashcardSet,
-        accessToken,
       );
 
       // Update the local state with the result
@@ -152,7 +144,6 @@ export function FlashcardEditorContent({
       const result = await flashcardService.updateFlashcardSet(
         flashcardSet.id,
         updatedFlashcardSet,
-        accessToken,
       );
 
       // Update the local state with the result
@@ -180,7 +171,7 @@ export function FlashcardEditorContent({
       setIsSaving(true);
       setShowDeleteDialog(false);
 
-      await flashcardService.deleteFlashcardSet(flashcardSet.id, accessToken);
+      await flashcardService.deleteFlashcardSet(flashcardSet.id);
 
       // Redirect to flashcards page after successful deletion
       goFlashcards();

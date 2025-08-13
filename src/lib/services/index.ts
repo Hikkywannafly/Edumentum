@@ -4,4 +4,3 @@ export {
   type QuestionData,
   type Answer,
 } from "./content-extractor.service";
-export { flashcardService } from "./flashcard.service";
