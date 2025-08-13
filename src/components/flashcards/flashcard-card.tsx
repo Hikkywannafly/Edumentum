@@ -8,6 +8,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { htmlToText } from "@/lib/utils/text";
 import type { FlashcardSet } from "@/types/flashcard";
 import { Calendar, FileText, Globe, Lock, User } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -33,10 +34,10 @@ export function FlashcardCard({ flashcardSet }: FlashcardCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1 space-y-1">
             <h3 className="line-clamp-2 font-semibold text-lg leading-tight">
-              {flashcardSet.title}
+              {htmlToText(flashcardSet.title)}
             </h3>
             <p className="line-clamp-2 text-muted-foreground text-sm">
-              {flashcardSet.description}
+              {htmlToText(flashcardSet.description)}
             </p>
           </div>
           <div className="ml-3 flex items-center gap-1">
