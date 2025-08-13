@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     const client = createServerOpenAIClient(apiKey);
 
     const response = await client.post("/chat/completions", {
-      model: modelName || "gpt-3.5-turbo",
+      model: modelName,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 2000,

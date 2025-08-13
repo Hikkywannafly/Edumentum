@@ -6,7 +6,8 @@ const GenerateFromFileRequestSchema = z.object({
   questionHeader: z.string(),
   questionDescription: z.string(),
   apiKey: z.string(),
-  modelName: z.string().default("openai/gpt-4o-mini"),
+  modelName: z.string().default("openai/gpt-oss-20b:free"),
+  availableCategories: z.string().optional(),
   settings: z
     .object({
       visibility: z.string().optional(),
@@ -51,11 +52,17 @@ export async function POST(request: NextRequest) {
       questionDescription,
       apiKey,
       modelName,
+      availableCategories = "",
       settings = {},
       file,
     } = validated.data;
     const numberOfQuestions = settings.numberOfQuestions || 5;
     const questionType = settings.questionType || "MIXED";
+
+    // Build category selection instructions
+    const categoryInstructions = availableCategories
+      ? `\n\nCATEGORY SELECTION:\n${availableCategories}\n\nIMPORTANT: You MUST select exactly ONE category from the list above that best matches the file content and generated questions. Include it in the response as "selectedCategory": "Category Name".`
+      : "";
 
     // Build AI prompt for file generation
     const prompt = `
@@ -67,7 +74,7 @@ REQUIREMENTS:
 - Language: ${settings.language || "AUTO"}
 - Question Type: ${questionType}
 - Difficulty: ${settings.difficulty || "EASY"}
-- Number of Questions: ${numberOfQuestions}
+- Number of Questions: ${numberOfQuestions}${categoryInstructions}
 
 Attached File: ${file.fileName}
 
@@ -75,11 +82,13 @@ CRITICAL RULES:
 1. Return EXACTLY ${numberOfQuestions} questions, no more, no less
 2. Each multiple choice question has 4 answers, true/false has 2 answers
 3. Only ONE correct answer per question (except free response)
-4. Response MUST be a valid JSON object with format {"questions": [...]}
-5. Analyze the entire file content to create accurate questions
+4. Generate creative and relevant tags for each question (3-5 tags per question)
+5. Response MUST be a valid JSON object with format {"questions": [...], "selectedCategory": "..."}
+6. Analyze the entire file content to create accurate questions
 
 FORMAT:
 {
+  "selectedCategory": "${availableCategories ? "[Choose from available categories above]" : "General Knowledge"}",
   "questions": [
     {
       "id": "q1",
@@ -88,7 +97,7 @@ FORMAT:
       "difficulty": "${settings.difficulty || "EASY"}",
       "points": 1,
       "explanation": "Detailed explanation why this answer is correct and others are wrong",
-      "tags": ["tag1", "tag2", "tag3"],
+      "tags": ["file-based-tag1", "content-tag2", "topic-tag3"],
       "answers": [
         {"id": "a1", "text": "Option A", "isCorrect": false, "order_index": 0},
         {"id": "a2", "text": "Option B", "isCorrect": true, "order_index": 1},
@@ -160,6 +169,7 @@ RETURN ONLY THE JSON OBJECT ABOVE.`.trim();
     return NextResponse.json({
       success: true,
       questions: parsed.questions,
+      selectedCategory: parsed.selectedCategory || null,
     });
   } catch (error) {
     console.error("Generate questions from file API error:", error);
