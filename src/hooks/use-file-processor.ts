@@ -3,6 +3,7 @@ import {
   extractQuestionsWithAI,
   generateQuestions,
   generateQuestionsFromFile,
+  generateQuizTitleDescription as generateTitleDescriptionService,
 } from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { fileToAIService } from "@/lib/services/file-to-ai.service";
@@ -25,6 +26,33 @@ export interface UploadedFile {
 }
 
 const fileParser = new FileParserService();
+
+const generateQuizTitleDescription = async (
+  content: string,
+  questions: QuestionData[],
+  isExtractMode: boolean,
+  options?: {
+    targetLanguage?: string;
+    filename?: string;
+    category?: string;
+    tags?: string[];
+  },
+): Promise<{
+  success: boolean;
+  title?: string;
+  description?: string;
+  error?: string;
+}> => {
+  return generateTitleDescriptionService({
+    content,
+    questions,
+    isExtractMode,
+    targetLanguage: options?.targetLanguage || "vi",
+    filename: options?.filename,
+    category: options?.category,
+    tags: options?.tags,
+  });
+};
 
 // Extract questions from file content (for files with existing questions - NO AI)
 const extractQuestionsFromContent = async (
@@ -578,172 +606,32 @@ export function useFileProcessor() {
         }
       }
 
-      // Generate smart title and description based on content and metadata
+      // Generate AI-powered title and description
       let aiTitle = "";
       let aiDescription = "";
       try {
         const firstFile = successfulFiles[0];
+        const contentPreview = firstFile.parsedContent?.slice(0, 1000) || "";
 
-        // Extract specific topics from content and questions
-        const contentPreview = firstFile.parsedContent?.toLowerCase() || "";
-        let specificTopic = "";
-        let generalSubject = "";
+        // Let AI generate contextual title and description
+        const titleDescResult = await generateQuizTitleDescription(
+          contentPreview,
+          allQuestions,
+          isExtractMode,
+          {
+            targetLanguage: settings?.language || "vi",
+            filename: firstFile?.name,
+            category: selectedCategory,
+            tags: allTags,
+          },
+        );
 
-        // First, detect general subject area
-        if (
-          contentPreview.includes("toán") ||
-          contentPreview.includes("math") ||
-          contentPreview.includes("số") ||
-          contentPreview.includes("phương trình")
-        ) {
-          generalSubject = "Toán học";
-          // Detect specific math topics
-          if (
-            contentPreview.includes("đạo hàm") ||
-            contentPreview.includes("derivative")
-          ) {
-            specificTopic = "Đạo hàm";
-          } else if (
-            contentPreview.includes("tích phân") ||
-            contentPreview.includes("integral")
-          ) {
-            specificTopic = "Tích phân";
-          } else if (
-            contentPreview.includes("phương trình bậc") ||
-            contentPreview.includes("quadratic")
-          ) {
-            specificTopic = "Phương trình bậc hai";
-          } else if (
-            contentPreview.includes("hình học") ||
-            contentPreview.includes("geometry")
-          ) {
-            specificTopic = "Hình học";
-          } else if (
-            contentPreview.includes("lượng giác") ||
-            contentPreview.includes("trigonometry")
-          ) {
-            specificTopic = "Lượng giác";
-          } else if (
-            contentPreview.includes("ma trận") ||
-            contentPreview.includes("matrix")
-          ) {
-            specificTopic = "Ma trận";
-          }
-        } else if (
-          contentPreview.includes("vật lý") ||
-          contentPreview.includes("physics")
-        ) {
-          generalSubject = "Vật lý";
-          if (
-            contentPreview.includes("cơ học") ||
-            contentPreview.includes("mechanics")
-          ) {
-            specificTopic = "Cơ học";
-          } else if (
-            contentPreview.includes("điện") ||
-            contentPreview.includes("electric")
-          ) {
-            specificTopic = "Điện học";
-          } else if (
-            contentPreview.includes("quang") ||
-            contentPreview.includes("optics")
-          ) {
-            specificTopic = "Quang học";
-          }
-        } else if (
-          contentPreview.includes("hóa") ||
-          contentPreview.includes("chemistry")
-        ) {
-          generalSubject = "Hóa học";
-          if (
-            contentPreview.includes("hữu cơ") ||
-            contentPreview.includes("organic")
-          ) {
-            specificTopic = "Hóa hữu cơ";
-          } else if (
-            contentPreview.includes("vô cơ") ||
-            contentPreview.includes("inorganic")
-          ) {
-            specificTopic = "Hóa vô cơ";
-          }
-        } else if (
-          contentPreview.includes("programming") ||
-          contentPreview.includes("lập trình")
-        ) {
-          generalSubject = "Lập trình";
-          if (
-            contentPreview.includes("javascript") ||
-            contentPreview.includes("js")
-          ) {
-            specificTopic = "JavaScript";
-          } else if (contentPreview.includes("python")) {
-            specificTopic = "Python";
-          } else if (contentPreview.includes("react")) {
-            specificTopic = "React";
-          }
+        if (titleDescResult.success) {
+          aiTitle = titleDescResult.title || "";
+          aiDescription = titleDescResult.description || "";
         }
-
-        // Try to extract topic from question content if no specific topic found
-        if (!specificTopic && allQuestions.length > 0) {
-          const questionTexts = allQuestions
-            .map((q) => q.question.toLowerCase())
-            .join(" ");
-
-          // Look for common patterns in questions
-          if (
-            questionTexts.includes("đạo hàm") ||
-            questionTexts.includes("derivative")
-          ) {
-            specificTopic = "Đạo hàm";
-            generalSubject = generalSubject || "Toán học";
-          } else if (
-            questionTexts.includes("tích phân") ||
-            questionTexts.includes("integral")
-          ) {
-            specificTopic = "Tích phân";
-            generalSubject = generalSubject || "Toán học";
-          } else if (questionTexts.includes("phương trình")) {
-            specificTopic = "Phương trình";
-            generalSubject = generalSubject || "Toán học";
-          }
-        }
-
-        // Generate smart titles based on content analysis
-        const topicForTitle =
-          specificTopic || selectedCategory || generalSubject || "Tổng hợp";
-
-        if (isExtractMode) {
-          aiTitle = specificTopic
-            ? `Bài tập ${specificTopic}`
-            : generalSubject
-              ? `Bài tập ${generalSubject}`
-              : `Quiz ${topicForTitle}`;
-        } else {
-          aiTitle = specificTopic
-            ? `${specificTopic} - Câu hỏi AI`
-            : generalSubject
-              ? `${generalSubject} - Câu hỏi AI`
-              : `Quiz AI - ${topicForTitle}`;
-        }
-
-        // Generate meaningful descriptions
-        const questionTypes = [...new Set(allQuestions.map((q) => q.type))];
-        const typeText =
-          questionTypes.length > 1
-            ? "hỗn hợp"
-            : questionTypes[0] === "MULTIPLE_CHOICE"
-              ? "trắc nghiệm"
-              : questionTypes[0] === "TRUE_FALSE"
-                ? "đúng/sai"
-                : "tự luận";
-
-        const topicForDesc =
-          specificTopic || generalSubject || "chủ đề tổng hợp";
-        aiDescription = isExtractMode
-          ? `${allQuestions.length} câu hỏi ${typeText} về ${topicForDesc.toLowerCase()}`
-          : `${allQuestions.length} câu hỏi ${typeText} được tạo bởi AI về ${topicForDesc.toLowerCase()}`;
       } catch (error) {
-        console.warn("Failed to generate smart title/description:", error);
+        console.warn("Failed to generate AI title/description:", error);
       }
 
       const quizData: GeneratedQuiz = {
