@@ -181,6 +181,63 @@ async function callServerAPI(endpoint: string, payload: any): Promise<any> {
   }
 }
 
+// Generate quiz title and description using AI (server-side API call)
+export async function generateQuizTitleDescription(params: {
+  content: string;
+  questions: QuestionData[];
+  isExtractMode: boolean;
+  targetLanguage?: string;
+  filename?: string;
+  category?: string;
+  tags?: string[];
+  modelName?: string;
+}): Promise<{
+  success: boolean;
+  title?: string;
+  description?: string;
+  error?: string;
+}> {
+  const {
+    content,
+    questions,
+    isExtractMode,
+    targetLanguage = "vi",
+    filename,
+    category,
+    tags,
+    modelName = DEFAULT_MODEL,
+  } = params;
+
+  try {
+    const result = await callServerAPI("generate-title-description", {
+      content,
+      questions: questions.map((q) => ({ question: q.question, type: q.type })),
+      isExtractMode,
+      targetLanguage,
+      filename,
+      category,
+      tags,
+      modelName,
+    });
+
+    if (!result.success || !result.title || !result.description) {
+      throw new Error(result.error || "Failed to generate title/description");
+    }
+
+    return {
+      success: true,
+      title: result.title,
+      description: result.description,
+    };
+  } catch (error) {
+    console.warn("AI title/description generation failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 // Enhanced error handling for server API calls
 function handleServerAPIError(error: string): string {
   if (error.includes("fetch")) {
