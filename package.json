@@ -78,6 +78,8 @@
     "@serwist/next": "^9.1.1",
     "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/typography": "latest",
+    "@tanstack/react-query": "^5.85.0",
+    "@tanstack/react-query-devtools": "^5.85.0",
     "@tiptap/extension-link": "^3.0.9",
     "@tiptap/react": "^3.0.9",
     "@tiptap/starter-kit": "^3.0.9",
