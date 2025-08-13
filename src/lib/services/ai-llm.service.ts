@@ -153,10 +153,15 @@ interface AIResponse {
 }
 
 // Server-side API call function
-async function callServerAPI(endpoint: string, payload: any): Promise<any> {
+async function callServerAPI(
+  endpoint: string,
+  payload: any,
+  signal?: AbortSignal,
+): Promise<any> {
   try {
     const response = await fetch(`/api/ai/${endpoint}`, {
       method: "POST",
+      signal,
       headers: {
         "Content-Type": "application/json",
       },
@@ -416,6 +421,7 @@ export async function extractQuestions(
 // Generate NEW questions using AI from content (server-side only)
 export async function generateQuestions(
   params: GenerateQuestionsParams & { useMultiAgent?: boolean },
+  signal?: AbortSignal,
 ): Promise<AIResponse> {
   const {
     questionHeader,
@@ -453,15 +459,19 @@ export async function generateQuestions(
         }
       }
 
-      const result = await callServerAPI("generate-questions", {
-        questionHeader,
-        questionDescription,
-        apiKey,
-        fileContent,
-        modelName,
-        settings: { ...settings, numberOfQuestions, mode },
-        availableCategories,
-      });
+      const result = await callServerAPI(
+        "generate-questions",
+        {
+          questionHeader,
+          questionDescription,
+          apiKey,
+          fileContent,
+          modelName,
+          settings: { ...settings, numberOfQuestions, mode },
+          availableCategories,
+        },
+        signal,
+      );
 
       if (!result.success || !result.questions) {
         throw new Error(result.error || "Failed to generate questions");

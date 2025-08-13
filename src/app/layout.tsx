@@ -1,5 +1,6 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { LocaleProvider } from "@/components/locale-provider";
+import { ReactQueryProvider } from "@/components/provider/react-query-provider";
 import { ThemeProvider } from "@/components/theme";
 import { AuthProvider } from "@/contexts/auth-context";
 import type { Metadata, Viewport } from "next";
@@ -35,17 +36,19 @@ export default function RootLayout({
         className={`${inter.variable} bg-background font-sans text-foreground antialiased`}
       >
         <NextTopLoader />
-        <ThemeProvider>
-          <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID || ""}>
-            <LocaleProvider>
-              <AuthProvider>
-                <AuthGuard>
-                  <main className="mx-auto ">{children}</main>
-                </AuthGuard>
-              </AuthProvider>
-            </LocaleProvider>
-          </GoogleOAuthProvider>
-        </ThemeProvider>
+        <ReactQueryProvider>
+          <ThemeProvider>
+            <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID || ""}>
+              <LocaleProvider>
+                <AuthProvider>
+                  <AuthGuard>
+                    <main className="mx-auto ">{children}</main>
+                  </AuthGuard>
+                </AuthProvider>
+              </LocaleProvider>
+            </GoogleOAuthProvider>
+          </ThemeProvider>
+        </ReactQueryProvider>
         <Toaster
           position="bottom-right"
           richColors
