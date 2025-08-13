@@ -128,6 +128,7 @@ export function TaskCard({
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDeleteModalOpen(true);
   };
 
   return (

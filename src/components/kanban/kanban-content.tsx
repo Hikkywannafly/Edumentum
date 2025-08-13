@@ -10,7 +10,7 @@ import {
   updateTask,
 } from "@/services/TaskServices";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ITask } from "../../types/task";
 import { Button } from "../ui/button";
 import { AddTaskModal } from "./add-task-modal";
@@ -37,13 +37,19 @@ export default function KanbanContent() {
   const [tasks, setTasks] = useState<ITask[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
+  const pendingChanges = useRef<
+    {
+      type: "create" | "update" | "delete";
+      task: Partial<ITask>;
+      tempId?: string;
+    }[]
+  >([]);
 
   const [activeTask, setActiveTask] = useState<ITask | null>(null);
   const [draggedTaskOriginalStatus, setDraggedTaskOriginalStatus] = useState<
     ITask["status"] | null
   >(null);
 
-  // Configure sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -52,12 +58,7 @@ export default function KanbanContent() {
     }),
   );
 
-  useEffect(() => {
-    if (!accessToken) return;
-    fetchTasks();
-  }, [accessToken]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       if (!accessToken) throw new Error("Access token is missing");
       const response = await getAllTasks(accessToken);
@@ -87,32 +88,85 @@ export default function KanbanContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [accessToken, toast]);
 
-  const handleAddTask = async (newTask: Omit<ITask, "id">) => {
-    if (!accessToken) return;
+  const flushPendingChanges = useCallback(async () => {
+    if (!accessToken || pendingChanges.current.length === 0) return;
 
     try {
-      const response = await createTask(
-        {
-          title: newTask.title,
-          description: newTask.description,
-          status: newTask.status,
-          dueDate: newTask.dueDate,
-        },
-        accessToken,
-      );
-      const date = new Date(response.data.dueDate);
-      const offset = date.getTimezoneOffset();
+      for (const change of pendingChanges.current) {
+        if (change.type === "create") {
+          await createTask(change.task as Omit<ITask, "id">, accessToken);
+        } else if (change.type === "update" && change.task.id) {
+          await updateTask(change.task.id, change.task, accessToken);
+        } else if (change.type === "delete" && change.task.id) {
+          await deleteTask(change.task.id, accessToken);
+        }
+      }
+      // Clear pending changes after successful save
+      pendingChanges.current = [];
+      // Refresh tasks from server
+      await fetchTasks();
+    } catch (error) {
+      console.error("Error flushing changes:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Some changes may be lost.",
+        variant: "destructive",
+      });
+    }
+  }, [accessToken, toast, fetchTasks]);
 
-      const taskWithParsedDate = {
-        ...response.data,
-        dueDate: new Date(date.getTime() - offset * 60 * 1000),
+  useEffect(() => {
+    if (!accessToken) return;
+    fetchTasks();
+  }, [accessToken, fetchTasks]);
+
+  // Handle saving changes when leaving the page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (pendingChanges.current.length > 0) {
+        flushPendingChanges();
+        e.preventDefault();
+        e.returnValue =
+          "You have unsaved changes. Are you sure you want to leave?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      if (pendingChanges.current.length > 0) {
+        flushPendingChanges();
+      }
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [flushPendingChanges]);
+
+  const handleAddTask = async (newTask: Omit<ITask, "id">) => {
+    try {
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Create temporary task for frontend
+      const tempTask: ITask = {
+        id: tempId,
+        title: newTask.title,
+        description: newTask.description,
+        status: newTask.status,
+        dueDate: newTask.dueDate,
       };
-      setTasks((prev) => [...prev, taskWithParsedDate]);
+
+      setTasks((prev) => [...prev, tempTask]);
+
+      pendingChanges.current.push({
+        type: "create",
+        task: newTask,
+        tempId: tempId,
+      });
+
       toast({
         title: "Success",
-        description: "Task created successfully",
+        description: "Task created (not saved to server)",
       });
     } catch (error) {
       if (error instanceof AccessDeniedError) {
@@ -136,32 +190,22 @@ export default function KanbanContent() {
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<ITask>) => {
-    if (!accessToken) return;
-
     try {
-      const response = await updateTask(
-        taskId,
-        {
-          ...updates,
-          dueDate: updates.dueDate,
-        },
-        accessToken,
-      );
-
-      const date = new Date(response.data.dueDate);
-      const offset = date.getTimezoneOffset();
-      const taskWithParsedDate = {
-        ...response.data,
-        dueDate: new Date(date.getTime() - offset * 60 * 1000),
-      };
-
       setTasks((prev) =>
-        prev.map((task) => (task.id === taskId ? taskWithParsedDate : task)),
+        prev.map((task) =>
+          task.id === taskId ? { ...task, ...updates } : task,
+        ),
       );
+
+      pendingChanges.current.push({
+        type: "update",
+        task: { id: taskId, ...updates },
+      });
+
       setSelectedTask(null);
       toast({
         title: "Success",
-        description: "Task updated successfully",
+        description: "Task updated (not saved to server)",
       });
     } catch (error) {
       if (error instanceof AccessDeniedError) {
@@ -181,14 +225,17 @@ export default function KanbanContent() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (!accessToken) return;
-
     try {
-      await deleteTask(taskId, accessToken);
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
+
+      pendingChanges.current.push({
+        type: "delete",
+        task: { id: taskId },
+      });
+
       toast({
         title: "Success",
-        description: "Task deleted successfully",
+        description: "Task deleted (not saved to server)",
       });
     } catch (error) {
       if (error instanceof AccessDeniedError) {
@@ -255,19 +302,6 @@ export default function KanbanContent() {
       ["TODO", "IN_PROGRESS", "DONE"].includes(newStatus) &&
       draggedTaskOriginalStatus !== newStatus
     ) {
-      if (!accessToken) {
-        // Revert if no access token
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === active.id
-              ? { ...task, status: draggedTaskOriginalStatus }
-              : task,
-          ),
-        );
-        setDraggedTaskOriginalStatus(null);
-        return;
-      }
-
       try {
         // Find the current task with all its data
         const currentTask = tasks.find((task) => task.id === active.id);
@@ -276,35 +310,34 @@ export default function KanbanContent() {
           return;
         }
 
-        const response = await updateTask(
-          active.id as string,
-          {
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === active.id ? { ...task, status: newStatus } : task,
+          ),
+        );
+
+        pendingChanges.current.push({
+          type: "update",
+          task: {
+            id: active.id as string,
             title: currentTask.title,
             description: currentTask.description,
             status: newStatus,
             dueDate: currentTask.dueDate,
           },
-          accessToken,
-        );
-
-        const date = new Date(response.data.dueDate);
-        const offset = date.getTimezoneOffset();
-        const taskWithParsedDate = {
-          ...response.data,
-          dueDate: new Date(date.getTime() - offset * 60 * 1000),
-        };
-
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === active.id ? taskWithParsedDate : task,
-          ),
-        );
+        });
 
         toast({
           title: "Success",
-          description: `Task moved to ${newStatus === "TODO" ? "To Do" : newStatus === "IN_PROGRESS" ? "In Progress" : "Done"}`,
+          description: `Task moved to ${
+            newStatus === "TODO"
+              ? "To Do"
+              : newStatus === "IN_PROGRESS"
+                ? "In Progress"
+                : "Done"
+          } (not saved)`,
         });
-      } catch (error) {
+      } catch (_error) {
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
             task.id === active.id
@@ -313,19 +346,11 @@ export default function KanbanContent() {
           ),
         );
 
-        if (error instanceof AccessDeniedError) {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to move this task.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to move task",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Error",
+          description: "Failed to move task",
+          variant: "destructive",
+        });
       }
     }
 
@@ -370,7 +395,25 @@ export default function KanbanContent() {
     >
       <div className="flex h-full flex-col gap-4 p-4">
         <div className="flex items-center justify-between border-b pb-4">
-          <h1 className="font-bold text-2xl">Kanban Board</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="font-bold text-2xl">Kanban Board</h1>
+            {pendingChanges.current.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-yellow-600 dark:text-yellow-400">
+                  ({pendingChanges.current.length} unsaved{" "}
+                  {pendingChanges.current.length === 1 ? "change" : "changes"})
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => flushPendingChanges()}
+                  className="text-sm"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            )}
+          </div>
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Task
