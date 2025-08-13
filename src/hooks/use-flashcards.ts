@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/auth-context";
-import { flashcardService } from "@/lib/services/flashcard.service";
+import { flashcardService } from "@/lib/api/flashcard";
 import type { FlashcardSet, FlashcardStats } from "@/types/flashcard";
 import { useCallback, useEffect, useState } from "react";
 
@@ -26,7 +26,7 @@ export function useFlashcards() {
       setIsLoading(true);
       setError(null);
 
-      const response = await flashcardService.getAllFlashcards(accessToken);
+      const response = await flashcardService.getAllFlashcards();
       setFlashcardSets(response.data);
 
       const calculatedStats = flashcardService.calculateStats(response.data);

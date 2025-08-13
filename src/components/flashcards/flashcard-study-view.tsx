@@ -1,8 +1,7 @@
 "use client";
 import { LocalizedLink } from "@/components/localized-link";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
-import { flashcardService } from "@/lib/services/flashcard.service";
+import { flashcardService } from "@/lib/api/flashcard";
 import type { FlashcardSet } from "@/types/flashcard";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -16,27 +15,17 @@ interface FlashcardStudyViewProps {
 export function FlashcardStudyView({
   flashcardSetId,
 }: FlashcardStudyViewProps) {
-  const { accessToken } = useAuth();
   const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFlashcardSet = async () => {
-      if (!accessToken) {
-        setError("No access token available");
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
         setError(null);
 
-        const data = await flashcardService.getFlashcardById(
-          flashcardSetId,
-          accessToken,
-        );
+        const data = await flashcardService.getFlashcardById(flashcardSetId);
         setFlashcardSet(data);
       } catch (err) {
         setError(
@@ -48,7 +37,7 @@ export function FlashcardStudyView({
     };
 
     fetchFlashcardSet();
-  }, [flashcardSetId, accessToken]);
+  }, [flashcardSetId]);
 
   if (isLoading) {
     return (

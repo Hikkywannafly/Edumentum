@@ -87,7 +87,7 @@ export function FlashcardEditorHeader({
                 value={isPublic ? "public" : "private"}
                 onValueChange={(value) => onPrivacyChange?.(value === "public")}
               >
-                <SelectTrigger className="h-auto w-auto border-rounded bg-transparent p-0 p-2 text-sm">
+                <SelectTrigger className="h-auto w-auto border-rounded bg-transparent p-2 text-sm">
                   <SelectValue>
                     <div className="flex items-center gap-1">
                       {isPublic ? (
