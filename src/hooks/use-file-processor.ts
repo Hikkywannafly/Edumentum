@@ -11,6 +11,7 @@ import {
   generateQuestionsWithAI,
   generateQuizTitleDescription,
 } from "@/lib/services/quiz-generate.service";
+import type { UploadedFile } from "@/lib/services/quiz-generate.service";
 // import { fileToAIService } from "@/lib/services/file-to-ai.service";
 import {
   type GeneratedQuiz,
@@ -18,17 +19,6 @@ import {
 } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
-export interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  status: "uploading" | "processing" | "success" | "error";
-  progress: number;
-  error?: string;
-  parsedContent?: string;
-  extractedQuestions?: QuestionData[];
-  actualFile?: File;
-}
 
 const fileParser = new FileParserService();
 export function useFileProcessor() {
@@ -197,21 +187,18 @@ export function useFileProcessor() {
             let questions: QuestionData[] = [];
 
             if (settings?.generationMode === "EXTRACT") {
-              // Extract existing questions using AI (not regex)
               questions = await extractQuestionsWithAIHandler(
                 file.parsedContent,
-                file.actualFile, // Pass the actual file for direct sending option
+                file.actualFile,
                 settings,
               );
             } else {
-              // Generate new questions using AI (default mode)
               questions = await generateQuestionsWithAI(
                 file.parsedContent,
-                file.actualFile, // Pass the actual file for direct sending option
+                file.actualFile,
                 settings,
               );
             }
-
             allQuestions = [...allQuestions, ...questions];
           } catch (error) {
             console.error(
@@ -230,13 +217,11 @@ export function useFileProcessor() {
         );
       }
 
-      // Update quiz data with AI-selected category
       const isExtractMode = settings?.generationMode === "EXTRACT";
 
       let selectedCategory: string | undefined;
       const allTags: string[] = [];
 
-      // Extract metadata from generated questions
       for (const question of allQuestions) {
         if (question.tags) {
           for (const tag of question.tags) {
@@ -247,14 +232,12 @@ export function useFileProcessor() {
         }
       }
 
-      // Generate AI-powered title and description
       let aiTitle = "";
       let aiDescription = "";
       try {
         const firstFile = successfulFiles[0];
         const contentPreview = firstFile.parsedContent?.slice(0, 1000) || "";
 
-        // Let AI generate contextual title and description
         const titleDescResult = await generateQuizTitleDescription(
           contentPreview,
           allQuestions,
@@ -298,7 +281,6 @@ export function useFileProcessor() {
           category: selectedCategory,
         },
       };
-
       setQuizData(quizData);
       return quizData;
     },
@@ -452,61 +434,6 @@ export function useFileProcessor() {
       setQuizData(null as any);
     }
   }, [uploadedFiles, setQuizData]);
-
-  // imp react-query
-  // const generateQuestionsMutation = useGenerateQuestionsMutation();
-  // const generateQuestionsFromFileMutation = useGenerateQuestionsFromFileMutation();
-
-  // const generateQuestionsWithAI_Temp = useCallback(
-  //   async (
-  //     content: string,
-  //     actualFile?: File,
-  //     settings?: {
-  //       fileProcessingMode?: "PARSE_THEN_SEND" | "SEND_DIRECT";
-  //       visibility?: string;
-  //       language?: string;
-  //       questionType?: string;
-  //       numberOfQuestions?: number;
-  //       mode?: string;
-  //       difficulty?: string;
-  //       task?: string;
-  //       parsingMode?: string;
-  //       includeCategories?: boolean;
-  //     },
-  //   ): Promise<QuestionData[]> => {
-  //     const isDirectMode = settings?.fileProcessingMode === "SEND_DIRECT";
-  //     const numberOfQuestions = settings?.numberOfQuestions || 5;
-  //     console.log(isDirectMode, numberOfQuestions);
-
-  //     if (isDirectMode && actualFile) {
-  //       const validation = fileToAIService.validateFileForAI(actualFile);
-  //       if (!validation.valid) {
-  //         console.warn("⚠️ File not supported for direct sending:", validation.error);
-  //       } else {
-  //         const fileForAI = await fileToAIService.convertFileToAI(actualFile);
-  //         const questions = await generateQuestionsFromFile({
-  //           questionHeader: "Generate Quiz Questions",
-  //           questionDescription: "Generate new quiz questions from the provided file.",
-  //           apiKey: "",
-  //           file: fileForAI,
-  //           settings: { ...settings, numberOfQuestions, includeCategories: true },
-  //           useMultiAgent: settings?.parsingMode === "THOROUGH",
-  //         });
-  //         return questions.questions as QuestionData[];
-  //       }
-  //     }
-
-  //     const questions = await generateQuestions({
-  //       questionHeader: "Generate Quiz Questions",
-  //       questionDescription: "Generate new quiz questions from the provided file.",
-  //       apiKey: "",
-  //       fileContent: content,
-  //       settings: { ...settings, numberOfQuestions, includeCategories: true },
-  //       useMultiAgent: settings?.parsingMode === "THOROUGH",
-  //     });
-  //     return questions.questions as QuestionData[];
-  //   }
-  // )
 
   return {
     uploadedFiles,
