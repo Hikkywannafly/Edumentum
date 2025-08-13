@@ -18,7 +18,7 @@ export function QuizTitleEditor({
         <CardTitle>Quiz Title</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className=" items-start gap-2 rounded-md border border-gray-200 transition-all duration-200 hover:border-gray-300">
+        <div className="items-start gap-2 rounded-md border border-gray-200 transition-all duration-200 hover:border-gray-300">
           <TiptapEditor
             content={title}
             onChange={onTitleChange}

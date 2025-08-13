@@ -1,5 +1,6 @@
 import type { Difficulty, QuestionData } from "@/types/quiz";
 import { z } from "zod";
+import { categoriesService } from "./categories.service";
 import { ContentExtractor } from "./content-extractor.service";
 import type { FileForAI } from "./file-to-ai.service";
 
@@ -132,6 +133,7 @@ interface GenerateQuestionsParams {
     task?: string;
     parsingMode?: string;
     promptOverride?: string;
+    includeCategories?: boolean;
   };
 }
 
@@ -314,9 +316,6 @@ export function processQuestionArray(
     return question;
   });
 }
-
-// Removed regex fallback for performance and determinism
-
 // Extract questions from files with existing questions (NO AI, direct parsing)
 export async function extractQuestions(
   params: ExtractQuestionsParams,
@@ -386,6 +385,17 @@ export async function generateQuestions(
       );
       const mode = settings.numberOfQuestions ? "exact" : "max";
 
+      // Get available categories for AI selection if enabled
+      let availableCategories = "";
+      if (settings.includeCategories !== false) {
+        try {
+          availableCategories = await categoriesService.getCategoriesForAI();
+        } catch (error) {
+          console.warn("Failed to fetch categories for AI:", error);
+          availableCategories = "No categories available";
+        }
+      }
+
       const result = await callServerAPI("generate-questions", {
         questionHeader,
         questionDescription,
@@ -393,6 +403,7 @@ export async function generateQuestions(
         fileContent,
         modelName,
         settings: { ...settings, numberOfQuestions, mode },
+        availableCategories,
       });
 
       if (!result.success || !result.questions) {
@@ -448,6 +459,17 @@ export async function extractQuestionsWithAI(
     );
     const mode = "max"; // Extraction typically allows up to N questions
 
+    // Get available categories for AI selection if enabled
+    let availableCategories = "";
+    if (settings.includeCategories !== false) {
+      try {
+        availableCategories = await categoriesService.getCategoriesForAI();
+      } catch (error) {
+        console.warn("Failed to fetch categories for AI:", error);
+        availableCategories = "No categories available";
+      }
+    }
+
     const result = await callServerAPI("extract-questions-ai", {
       questionHeader,
       questionDescription,
@@ -456,6 +478,7 @@ export async function extractQuestionsWithAI(
       modelName,
       settings: { ...settings, numberOfQuestions, mode },
       file,
+      availableCategories,
     });
 
     if (!result.success || !result.questions) {
@@ -500,6 +523,17 @@ export async function generateQuestionsFromFile(
     );
     const mode = settings.numberOfQuestions ? "exact" : "max";
 
+    // Get available categories for AI selection if enabled
+    let availableCategories = "";
+    if (settings.includeCategories !== false) {
+      try {
+        availableCategories = await categoriesService.getCategoriesForAI();
+      } catch (error) {
+        console.warn("Failed to fetch categories for AI:", error);
+        availableCategories = "No categories available";
+      }
+    }
+
     const result = await callServerAPI("generate-questions-from-file", {
       questionHeader,
       questionDescription,
@@ -507,6 +541,7 @@ export async function generateQuestionsFromFile(
       modelName,
       settings: { ...settings, numberOfQuestions, mode },
       file,
+      availableCategories,
     });
 
     if (!result.success || !result.questions) {

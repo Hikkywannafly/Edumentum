@@ -1,5 +1,6 @@
 import axios from "axios";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // Zod schemas for validation
@@ -8,7 +9,8 @@ const GenerateQuestionsRequestSchema = z.object({
   questionDescription: z.string(),
   apiKey: z.string(),
   fileContent: z.string().optional(),
-  modelName: z.string().default("openai/gpt-4o-mini"),
+  modelName: z.string().default("openai/gpt-oss-20b:free"),
+  availableCategories: z.string().optional(),
   settings: z
     .object({
       visibility: z.string().optional(),
@@ -47,12 +49,17 @@ export async function POST(request: NextRequest) {
       apiKey,
       fileContent = "",
       modelName,
+      availableCategories = "",
       settings = {},
     } = validated.data;
     const numberOfQuestions = settings.numberOfQuestions || 5;
     const questionType = settings.questionType || "MIXED";
 
-    // Build AI prompt
+    // Build AI prompt with category selection
+    const categoryInstructions = availableCategories
+      ? `\n\nCATEGORY SELECTION:\n${availableCategories}\n\nIMPORTANT: You MUST select exactly ONE category from the list above that best matches the quiz content. Include it in the response as "selectedCategory": "Category Name".`
+      : "";
+
     const prompt = `
 You are an expert quiz generator. You MUST return EXACTLY ${numberOfQuestions} high-quality questions.
 
@@ -62,7 +69,7 @@ REQUIREMENTS:
 - Language: ${settings.language || "AUTO"}
 - Question Type: ${questionType}
 - Difficulty: ${settings.difficulty || "EASY"}
-- Number of Questions: ${numberOfQuestions}
+- Number of Questions: ${numberOfQuestions}${categoryInstructions}
 
 Content to generate questions from:
 ${fileContent.slice(0, 8000)}
@@ -72,10 +79,12 @@ CRITICAL RULES:
 2. Each multiple choice question has 4 answers, true/false has 2 answers
 3. Only ONE correct answer per question (except free response)
 4. MUST include detailed explanation for each question
-5. Response MUST be a valid JSON object with format {"questions": [...]}
+5. Generate creative and relevant tags for each question (3-5 tags per question)
+6. Response MUST be a valid JSON object with format {"questions": [...], "selectedCategory": "..."}
 
 FORMAT:
 {
+  "selectedCategory": "${availableCategories ? "[Choose from available categories above]" : "General Knowledge"}",
   "questions": [
     {
       "id": "q1",
@@ -84,7 +93,7 @@ FORMAT:
       "difficulty": "${settings.difficulty || "EASY"}",
       "points": 1,
       "explanation": "Detailed explanation",
-      "tags": ["tag1", "tag2"],
+      "tags": ["relevant-tag1", "topic-tag2", "difficulty-tag3"],
       "answers": [
         {"id": "a1", "text": "Option A", "isCorrect": false, "order_index": 0},
         {"id": "a2", "text": "Option B", "isCorrect": true, "order_index": 1},
@@ -132,6 +141,7 @@ RETURN ONLY THE JSON OBJECT ABOVE.`.trim();
     return NextResponse.json({
       success: true,
       questions: parsed.questions,
+      selectedCategory: parsed.selectedCategory || null,
     });
   } catch (error) {
     console.error("Generate questions API error:", error);

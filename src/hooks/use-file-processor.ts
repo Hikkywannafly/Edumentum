@@ -6,7 +6,10 @@ import {
 } from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import { fileToAIService } from "@/lib/services/file-to-ai.service";
-import { useQuizEditorStore } from "@/stores/quiz-editor-store";
+import {
+  type GeneratedQuiz,
+  useQuizEditorStore,
+} from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
 export interface UploadedFile {
@@ -19,12 +22,6 @@ export interface UploadedFile {
   parsedContent?: string;
   extractedQuestions?: QuestionData[];
   actualFile?: File;
-}
-
-export interface GeneratedQuiz {
-  title: string;
-  description: string;
-  questions: QuestionData[];
 }
 
 const fileParser = new FileParserService();
@@ -70,6 +67,7 @@ const extractQuestionsWithAIHandler = async (
     difficulty?: string;
     task?: string;
     parsingMode?: string;
+    includeCategories?: boolean;
   },
 ): Promise<QuestionData[]> => {
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
@@ -95,7 +93,7 @@ const extractQuestionsWithAIHandler = async (
         `⚠️ File not supported for direct sending: ${validation.error}`,
       );
       console.log("🔄 Auto-fallback to 'Parse Then Send' mode for extraction");
-      actualMode = false; // Fallback to parse mode
+      actualMode = false;
     } else {
       console.log("✅ File validated for direct AI extraction");
     }
@@ -110,8 +108,7 @@ const extractQuestionsWithAIHandler = async (
       let result: any;
 
       if (actualMode && actualFile) {
-        // Convert file to AI format and send directly
-        console.log("🎯 Converting file for direct AI extraction...");
+        console.log(" Converting file for direct AI extraction...");
         const fileForAI = await fileToAIService.convertFileToAI(actualFile);
 
         result = await extractQuestionsWithAI({
@@ -123,11 +120,11 @@ const extractQuestionsWithAIHandler = async (
           settings: {
             ...settings,
             numberOfQuestions: settings?.numberOfQuestions || 10, // Higher default for extraction
+            includeCategories: true,
           },
           useMultiAgent: settings?.parsingMode === "THOROUGH",
         });
       } else {
-        // Use traditional text-based approach
         result = await extractQuestionsWithAI({
           questionHeader: "Extract Quiz Questions",
           questionDescription:
@@ -137,6 +134,7 @@ const extractQuestionsWithAIHandler = async (
           settings: {
             ...settings,
             numberOfQuestions: settings?.numberOfQuestions || 10,
+            includeCategories: true, // Enable AI category selection
           },
           useMultiAgent: settings?.parsingMode === "THOROUGH",
         });
@@ -196,6 +194,7 @@ const extractQuestionsWithAIHandler = async (
   );
 };
 
+// Generate new questions directly from TEXT content (AI)
 const generateQuestionsWithAI = async (
   content: string,
   actualFile?: File,
@@ -209,6 +208,7 @@ const generateQuestionsWithAI = async (
     difficulty?: string;
     task?: string;
     parsingMode?: string;
+    includeCategories?: boolean;
   },
 ): Promise<QuestionData[]> => {
   const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
@@ -250,7 +250,7 @@ const generateQuestionsWithAI = async (
 
       if (actualMode && actualFile) {
         // Convert file to AI format and send directly
-        console.log(" Converting file for direct AI processing...");
+        console.log("🔄 Converting file for direct AI processing...");
         const fileForAI = await fileToAIService.convertFileToAI(actualFile);
 
         result = await generateQuestionsFromFile({
@@ -262,11 +262,17 @@ const generateQuestionsWithAI = async (
           settings: {
             ...settings,
             numberOfQuestions: settings?.numberOfQuestions || 5,
+            includeCategories: true, // Enable AI category selection
           },
           useMultiAgent: settings?.parsingMode === "THOROUGH",
         });
       } else {
         // Use traditional text-based approach
+        console.log("🔄 Using text-based AI processing...");
+        const { generateQuestions } = await import(
+          "@/lib/services/ai-llm.service"
+        );
+
         result = await generateQuestions({
           questionHeader: "Generate Quiz Questions",
           questionDescription:
@@ -275,9 +281,10 @@ const generateQuestionsWithAI = async (
           fileContent: content,
           settings: {
             ...settings,
-            numberOfQuestions: settings?.numberOfQuestions || 5, // Ensure we have a default
+            numberOfQuestions: settings?.numberOfQuestions || 5,
+            includeCategories: true,
           },
-          useMultiAgent: settings?.parsingMode === "THOROUGH", // Use multi-agent for thorough mode
+          useMultiAgent: settings?.parsingMode === "THOROUGH",
         });
       }
 
@@ -554,16 +561,213 @@ export function useFileProcessor() {
         );
       }
 
-      // Update quiz data
+      // Update quiz data with AI-selected category
       const isExtractMode = settings?.generationMode === "EXTRACT";
+
+      let selectedCategory: string | undefined;
+      const allTags: string[] = [];
+
+      // Extract metadata from generated questions
+      for (const question of allQuestions) {
+        if (question.tags) {
+          for (const tag of question.tags) {
+            if (!allTags.includes(tag)) {
+              allTags.push(tag);
+            }
+          }
+        }
+      }
+
+      // Generate smart title and description based on content and metadata
+      let aiTitle = "";
+      let aiDescription = "";
+      try {
+        const firstFile = successfulFiles[0];
+
+        // Extract specific topics from content and questions
+        const contentPreview = firstFile.parsedContent?.toLowerCase() || "";
+        let specificTopic = "";
+        let generalSubject = "";
+
+        // First, detect general subject area
+        if (
+          contentPreview.includes("toán") ||
+          contentPreview.includes("math") ||
+          contentPreview.includes("số") ||
+          contentPreview.includes("phương trình")
+        ) {
+          generalSubject = "Toán học";
+          // Detect specific math topics
+          if (
+            contentPreview.includes("đạo hàm") ||
+            contentPreview.includes("derivative")
+          ) {
+            specificTopic = "Đạo hàm";
+          } else if (
+            contentPreview.includes("tích phân") ||
+            contentPreview.includes("integral")
+          ) {
+            specificTopic = "Tích phân";
+          } else if (
+            contentPreview.includes("phương trình bậc") ||
+            contentPreview.includes("quadratic")
+          ) {
+            specificTopic = "Phương trình bậc hai";
+          } else if (
+            contentPreview.includes("hình học") ||
+            contentPreview.includes("geometry")
+          ) {
+            specificTopic = "Hình học";
+          } else if (
+            contentPreview.includes("lượng giác") ||
+            contentPreview.includes("trigonometry")
+          ) {
+            specificTopic = "Lượng giác";
+          } else if (
+            contentPreview.includes("ma trận") ||
+            contentPreview.includes("matrix")
+          ) {
+            specificTopic = "Ma trận";
+          }
+        } else if (
+          contentPreview.includes("vật lý") ||
+          contentPreview.includes("physics")
+        ) {
+          generalSubject = "Vật lý";
+          if (
+            contentPreview.includes("cơ học") ||
+            contentPreview.includes("mechanics")
+          ) {
+            specificTopic = "Cơ học";
+          } else if (
+            contentPreview.includes("điện") ||
+            contentPreview.includes("electric")
+          ) {
+            specificTopic = "Điện học";
+          } else if (
+            contentPreview.includes("quang") ||
+            contentPreview.includes("optics")
+          ) {
+            specificTopic = "Quang học";
+          }
+        } else if (
+          contentPreview.includes("hóa") ||
+          contentPreview.includes("chemistry")
+        ) {
+          generalSubject = "Hóa học";
+          if (
+            contentPreview.includes("hữu cơ") ||
+            contentPreview.includes("organic")
+          ) {
+            specificTopic = "Hóa hữu cơ";
+          } else if (
+            contentPreview.includes("vô cơ") ||
+            contentPreview.includes("inorganic")
+          ) {
+            specificTopic = "Hóa vô cơ";
+          }
+        } else if (
+          contentPreview.includes("programming") ||
+          contentPreview.includes("lập trình")
+        ) {
+          generalSubject = "Lập trình";
+          if (
+            contentPreview.includes("javascript") ||
+            contentPreview.includes("js")
+          ) {
+            specificTopic = "JavaScript";
+          } else if (contentPreview.includes("python")) {
+            specificTopic = "Python";
+          } else if (contentPreview.includes("react")) {
+            specificTopic = "React";
+          }
+        }
+
+        // Try to extract topic from question content if no specific topic found
+        if (!specificTopic && allQuestions.length > 0) {
+          const questionTexts = allQuestions
+            .map((q) => q.question.toLowerCase())
+            .join(" ");
+
+          // Look for common patterns in questions
+          if (
+            questionTexts.includes("đạo hàm") ||
+            questionTexts.includes("derivative")
+          ) {
+            specificTopic = "Đạo hàm";
+            generalSubject = generalSubject || "Toán học";
+          } else if (
+            questionTexts.includes("tích phân") ||
+            questionTexts.includes("integral")
+          ) {
+            specificTopic = "Tích phân";
+            generalSubject = generalSubject || "Toán học";
+          } else if (questionTexts.includes("phương trình")) {
+            specificTopic = "Phương trình";
+            generalSubject = generalSubject || "Toán học";
+          }
+        }
+
+        // Generate smart titles based on content analysis
+        const topicForTitle =
+          specificTopic || selectedCategory || generalSubject || "Tổng hợp";
+
+        if (isExtractMode) {
+          aiTitle = specificTopic
+            ? `Bài tập ${specificTopic}`
+            : generalSubject
+              ? `Bài tập ${generalSubject}`
+              : `Quiz ${topicForTitle}`;
+        } else {
+          aiTitle = specificTopic
+            ? `${specificTopic} - Câu hỏi AI`
+            : generalSubject
+              ? `${generalSubject} - Câu hỏi AI`
+              : `Quiz AI - ${topicForTitle}`;
+        }
+
+        // Generate meaningful descriptions
+        const questionTypes = [...new Set(allQuestions.map((q) => q.type))];
+        const typeText =
+          questionTypes.length > 1
+            ? "hỗn hợp"
+            : questionTypes[0] === "MULTIPLE_CHOICE"
+              ? "trắc nghiệm"
+              : questionTypes[0] === "TRUE_FALSE"
+                ? "đúng/sai"
+                : "tự luận";
+
+        const topicForDesc =
+          specificTopic || generalSubject || "chủ đề tổng hợp";
+        aiDescription = isExtractMode
+          ? `${allQuestions.length} câu hỏi ${typeText} về ${topicForDesc.toLowerCase()}`
+          : `${allQuestions.length} câu hỏi ${typeText} được tạo bởi AI về ${topicForDesc.toLowerCase()}`;
+      } catch (error) {
+        console.warn("Failed to generate smart title/description:", error);
+      }
+
       const quizData: GeneratedQuiz = {
-        title: isExtractMode
-          ? `Extracted Quiz from ${successfulFiles[0].name}`
-          : `AI-Generated Quiz from ${successfulFiles[0].name}`,
-        description: isExtractMode
-          ? `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`
-          : `Generated from ${successfulFiles.length} file(s) using AI`,
+        title:
+          aiTitle ||
+          (isExtractMode
+            ? `Extracted Quiz from ${successfulFiles[0].name}`
+            : `AI-Generated Quiz from ${successfulFiles[0].name}`),
+        description:
+          aiDescription ||
+          (isExtractMode
+            ? `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`
+            : `Generated from ${successfulFiles.length} file(s) using AI`),
         questions: allQuestions,
+        metadata: {
+          total_questions: allQuestions.length,
+          total_points: allQuestions.reduce(
+            (sum, q) => sum + (q.points || 1),
+            0,
+          ),
+          estimated_time: Math.max(5, Math.ceil(allQuestions.length * 1.5)), // 1.5 minutes per question
+          tags: allTags.slice(0, 10), // Limit to first 10 unique tags
+          category: selectedCategory,
+        },
       };
 
       setQuizData(quizData);
@@ -620,16 +824,50 @@ export function useFileProcessor() {
         difficulty?: string;
         task?: string;
         parsingMode?: string;
+        includeCategories?: boolean;
       },
     ) => {
       if (!content || content.trim().length === 0) {
         throw new Error("No text content provided");
       }
 
-      const questions =
+      const result: any =
         settings?.generationMode === "EXTRACT"
-          ? await extractQuestionsWithAIHandler(content, undefined, settings)
-          : await generateQuestionsWithAI(content, undefined, settings);
+          ? await extractQuestionsWithAI({
+              questionHeader: "Extract Questions",
+              questionDescription: "Extract questions from content",
+              apiKey: "", // Will be handled server-side
+              fileContent: content,
+              settings: {
+                ...settings,
+                includeCategories: true,
+              },
+            })
+          : await generateQuestions({
+              questionHeader: "Generate Questions",
+              questionDescription: "Generate questions from content",
+              apiKey: "", // Will be handled server-side
+              fileContent: content,
+              settings: {
+                ...settings,
+                includeCategories: true,
+              },
+            });
+
+      const questions = Array.isArray(result) ? result : result.questions || [];
+      const selectedCategory = result.selectedCategory;
+
+      // Collect unique tags from all questions
+      const allTags: string[] = [];
+      for (const q of questions) {
+        if (q.tags) {
+          for (const tag of q.tags) {
+            if (!allTags.includes(tag)) {
+              allTags.push(tag);
+            }
+          }
+        }
+      }
 
       const isExtractMode = settings?.generationMode === "EXTRACT";
       const quizData: GeneratedQuiz = {
@@ -640,6 +878,17 @@ export function useFileProcessor() {
           ? `Extracted ${questions.length} questions from text`
           : `Generated ${questions.length} questions from text using AI`,
         questions,
+        metadata: {
+          total_questions: questions.length,
+          total_points: questions.reduce(
+            (sum: number, q: QuestionData) => sum + (q.points || 1),
+            0,
+          ),
+          estimated_time: Math.max(5, Math.ceil(questions.length * 1.5)), // 1.5 minutes per question
+          tags: allTags.slice(0, 10), // Limit to first 10 unique tags
+          category: selectedCategory,
+          subject: settings?.language,
+        },
       };
 
       setQuizData(quizData);
