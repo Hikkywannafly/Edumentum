@@ -1,4 +1,4 @@
-import type { Difficulty, QuestionData } from "@/types/quiz";
+import type { Difficulty, ParsingMode, QuestionData } from "@/types/quiz";
 import { z } from "zod";
 import { categoriesService } from "./categories.service";
 import { ContentExtractor } from "./content-extractor.service";
@@ -131,7 +131,7 @@ interface GenerateQuestionsParams {
     mode?: string;
     difficulty?: string;
     task?: string;
-    parsingMode?: string;
+    parsingMode?: ParsingMode;
     promptOverride?: string;
     includeCategories?: boolean;
   };
@@ -142,11 +142,11 @@ interface ExtractQuestionsParams {
   fileContent: string;
   settings?: {
     language?: string;
-    parsingMode?: string;
+    parsingMode?: ParsingMode;
   };
 }
 
-interface AIResponse {
+export interface AIResponse {
   success: boolean;
   questions?: QuestionData[];
   error?: string;
@@ -190,7 +190,7 @@ async function callServerAPI(
 export async function generateQuizTitleDescription(params: {
   content: string;
   questions: QuestionData[];
-  isExtractMode: boolean;
+  isExtractMode?: boolean;
   targetLanguage?: string;
   filename?: string;
   category?: string;
