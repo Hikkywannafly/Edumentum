@@ -232,10 +232,17 @@ export function useFileProcessor() {
         const firstFile = successfulFiles[0];
         const contentPreview = firstFile.parsedContent?.slice(0, 1000) || "";
 
+        console.log("🎯 Attempting to generate AI title/description...");
+        console.log("📄 Content preview:", contentPreview.substring(0, 200));
+        console.log("📊 Questions count:", allQuestions.length);
+        console.log("🏷️ Tags:", allTags);
+        console.log("📁 Filename:", firstFile?.name);
+
         const titleDescResult = await generateQuizTitleDescription(
           contentPreview,
           allQuestions,
           {
+            isExtractMode,
             targetLanguage: settings?.language || "vi",
             filename: firstFile?.name,
             category: selectedCategory,
@@ -243,25 +250,41 @@ export function useFileProcessor() {
           },
         );
 
+        console.log("🔍 AI Title/Description Result:", titleDescResult);
+
         if (titleDescResult) {
           aiTitle = titleDescResult.title || "";
           aiDescription = titleDescResult.description || "";
+          console.log("✅ AI Title:", aiTitle);
+          console.log("✅ AI Description:", aiDescription);
+        } else {
+          console.warn("⚠️ AI title/description result is null or undefined");
         }
       } catch (error) {
-        console.warn("Failed to generate AI title/description:", error);
+        console.error("❌ Failed to generate AI title/description:", error);
       }
 
+      // Final title and description with fallback
+      const finalTitle =
+        aiTitle ||
+        (isExtractMode
+          ? `Extracted Quiz from ${successfulFiles[0].name}`
+          : `AI-Generated Quiz from ${successfulFiles[0].name}`);
+
+      const finalDescription =
+        aiDescription ||
+        (isExtractMode
+          ? `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`
+          : `Generated from ${successfulFiles.length} file(s) using AI`);
+
+      console.log("🏁 Final Quiz Title:", finalTitle);
+      console.log("🏁 Final Quiz Description:", finalDescription);
+      console.log("🤖 Using AI Title:", !!aiTitle);
+      console.log("🤖 Using AI Description:", !!aiDescription);
+
       const quizData: GeneratedQuiz = {
-        title:
-          aiTitle ||
-          (isExtractMode
-            ? `Extracted Quiz from ${successfulFiles[0].name}`
-            : `AI-Generated Quiz from ${successfulFiles[0].name}`),
-        description:
-          aiDescription ||
-          (isExtractMode
-            ? `Extracted ${allQuestions.length} questions from ${successfulFiles.length} file(s)`
-            : `Generated from ${successfulFiles.length} file(s) using AI`),
+        title: finalTitle,
+        description: finalDescription,
         questions: allQuestions,
         metadata: {
           total_questions: allQuestions.length,

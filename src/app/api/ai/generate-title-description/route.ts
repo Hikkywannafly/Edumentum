@@ -11,7 +11,7 @@ const GenerateTitleDescriptionRequestSchema = z.object({
     }),
   ),
   isExtractMode: z.boolean(),
-  targetLanguage: z.string().default("vi"),
+  targetLanguage: z.string().default("auto"),
   filename: z.string().optional(),
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -73,13 +73,37 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join("\n");
 
+    // Language detection (simple heuristic) when targetLanguage = 'auto'
+    const detectLanguage = (text: string): string => {
+      const sample = text.toLowerCase();
+      // Vietnamese diacritics or common words
+      const viDiacritics =
+        /[ăâđêôơưàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i;
+      const viWords =
+        /(câu hỏi|bài|trắc nghiệm|đúng|sai|mô tả|tiêu đề|nội dung)/i;
+      const ko = /[\u3131-\uD79D]/; // Hangul
+      const ja = /[\u3040-\u30ff]/; // Hiragana/Katakana
+      const zh = /[\u4e00-\u9fff]/; // CJK Unified Ideographs
+      if (viDiacritics.test(sample) || viWords.test(sample)) return "vi";
+      if (ko.test(sample)) return "ko";
+      if (ja.test(sample)) return "ja";
+      if (zh.test(sample)) return "zh";
+      return "en";
+    };
+
+    const requestedLang = (targetLanguage || "auto").toLowerCase();
+    const effectiveLanguage =
+      requestedLang === "auto"
+        ? detectLanguage(`${contentPreview}\n${questionSamples}`)
+        : requestedLang;
+
     const languageNote =
-      targetLanguage.toLowerCase() === "vi"
+      effectiveLanguage === "vi"
         ? "tiếng Việt tự nhiên"
-        : `natural ${targetLanguage}`;
+        : `natural ${effectiveLanguage}`;
 
     const prompt =
-      targetLanguage.toLowerCase() === "vi"
+      effectiveLanguage === "vi"
         ? `Dựa trên nội dung và câu hỏi dưới đây, hãy tạo một tiêu đề và mô tả hấp dẫn cho bài quiz này.\n\nNỘI DUNG:\n${contentPreview}\n\nCÂU HỎI MẪU:\n${questionSamples}\n\nTHÔNG TIN QUIZ:\n${contextInfo}\n\nYÊU CẦU:\n1. Tiêu đề: Ngắn gọn, hấp dẫn, phản ánh đúng chủ đề (tối đa 60 ký tự)\n2. Mô tả: Chi tiết hơn, giải thích nội dung và mục đích của quiz (80-150 ký tự)\n3. Sử dụng ${languageNote}\n4. Phản ánh đúng chủ đề và nội dung thực tế\n\nTrả về JSON format:\n{\n  "title": "Tiêu đề quiz",\n  "description": "Mô tả chi tiết về quiz"\n}`
         : `Based on the content and questions below, create an engaging title and description for this quiz.\n\nCONTENT:\n${contentPreview}\n\nSAMPLE QUESTIONS:\n${questionSamples}\n\nQUIZ INFO:\n${contextInfo}\n\nREQUIREMENTS:\n1. Title: Concise, engaging, reflects the topic (max 60 characters)\n2. Description: Detailed explanation of quiz content and purpose (80-150 characters)\n3. Use ${languageNote}\n4. Accurately reflect the actual topic and content\n\nReturn JSON format:\n{\n  "title": "Quiz title",\n  "description": "Detailed quiz description"\n}`;
 
