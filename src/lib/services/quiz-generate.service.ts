@@ -43,6 +43,7 @@ export const generateQuizTitleDescription = async (
   content: string,
   questions: QuestionData[],
   options?: {
+    isExtractMode?: boolean;
     targetLanguage?: string;
     filename?: string;
     category?: string;
@@ -54,6 +55,7 @@ export const generateQuizTitleDescription = async (
       content,
       questions,
 
+      isExtractMode: options?.isExtractMode ?? false,
       targetLanguage: options?.targetLanguage || "vi",
       filename: options?.filename,
       category: options?.category,
@@ -121,8 +123,6 @@ export const extractQuestionsWithAIHandler = async (
     throw new Error("OpenRouter API key is not configured");
   }
 
-  console.log("🔍 Extracting existing questions with AI...");
-
   // Determine processing mode
   const isDirectMode =
     settings?.fileProcessingMode === "SEND_DIRECT" && actualFile;
@@ -132,9 +132,6 @@ export const extractQuestionsWithAIHandler = async (
     const validation = fileToAIService.validateFileForAI(actualFile);
     if (validation.valid) {
       useDirectMode = true;
-      console.log("✅ Using direct file mode");
-    } else {
-      console.log("🔄 Fallback to parsed content mode:", validation.error);
     }
   }
 
@@ -189,8 +186,6 @@ export const extractQuestionsWithAIHandler = async (
     if (validQuestions.length === 0) {
       throw new Error("Extracted questions are invalid or empty");
     }
-
-    console.log(`✅ Successfully extracted ${validQuestions.length} questions`);
     return validQuestions;
   } catch (error) {
     console.error("❌ AI extraction failed:", error);
@@ -220,8 +215,6 @@ export const generateQuestionsWithAI = async (
     throw new Error("OpenRouter API key not configured");
   }
 
-  console.log("🚀 Generating new questions with AI...");
-
   // Determine processing mode
   const isDirectMode =
     settings?.fileProcessingMode === "SEND_DIRECT" && actualFile;
@@ -231,9 +224,6 @@ export const generateQuestionsWithAI = async (
     const validation = fileToAIService.validateFileForAI(actualFile);
     if (validation.valid) {
       useDirectMode = true;
-      console.log("✅ Using direct file mode");
-    } else {
-      console.log("🔄 Fallback to parsed content mode:", validation.error);
     }
   }
 
@@ -295,8 +285,6 @@ export const generateQuestionsWithAI = async (
         `⚠️ Got ${validQuestions.length}/${expectedCount} questions. Returning partial results.`,
       );
     }
-
-    console.log(`✅ Successfully generated ${validQuestions.length} questions`);
     return validQuestions;
   } catch (error) {
     console.error("❌ AI generation failed:", error);
