@@ -56,7 +56,7 @@ export const generateQuizTitleDescription = async (
       questions,
 
       isExtractMode: options?.isExtractMode ?? false,
-      targetLanguage: options?.targetLanguage || "vi",
+      targetLanguage: options?.targetLanguage || "auto",
       filename: options?.filename,
       category: options?.category,
       tags: options?.tags,

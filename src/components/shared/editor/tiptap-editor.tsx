@@ -41,7 +41,12 @@ export default function TiptapEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      // Ensure we don't register Link twice. Some StarterKit variants/presets may include Link.
+      StarterKit.configure({
+        // Explicitly disable link to prevent duplicate extension name 'link'
+        // If your StarterKit version ignores this option, keeping it here is harmless.
+        link: false as unknown as undefined,
+      }),
       Link.configure({
         openOnClick: false,
       }),
