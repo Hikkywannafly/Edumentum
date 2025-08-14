@@ -8,7 +8,7 @@ import {
   Award,
   BarChart3,
   BookOpen,
-  Calendar,
+  Camera,
   Clock,
   Eye,
   Target,
@@ -107,7 +107,7 @@ export default function UserProfile() {
         />
         <div className="absolute top-4 right-4">
           <Button variant="secondary" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
+            <Camera className="mr-2 h-4 w-4" />
             Change Banner
           </Button>
         </div>
@@ -137,7 +137,7 @@ export default function UserProfile() {
             </div>
             <div className="flex flex-row items-center text-muted-foreground text-sm">
               Joined {userData.joinDate}
-              <Eye className="mr-2 ml-3" />
+              <Eye className="mr-1 ml-5 w-3" />
               {userData.profileViews} views
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function UserProfile() {
         </div>
 
         {/* Calendar and Productivity Insights */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Calendar */}
           <Card>
             <CardHeader>
