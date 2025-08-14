@@ -10,6 +10,7 @@ import {
   BookOpen,
   Calendar,
   Clock,
+  Eye,
   Target,
   Trophy,
   Zap,
@@ -114,17 +115,17 @@ export default function UserProfile() {
 
       {/* Profile Info */}
       <div className="-mt-16 container relative z-10 mx-auto px-4">
-        <div className="mb-8 flex items-end gap-6">
-          <Avatar className="h-32 w-32 border-4 border-background">
+        <div className="mb-8 flex flex-col items-start text-start">
+          <Avatar className="mb-6 h-32 w-32 border-4 border-background">
             <AvatarImage src={userData.avatar || "/placeholder.svg"} />
             <AvatarFallback className="bg-muted font-bold text-4xl">
               {userData.name.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
 
-          <div className="pb-4">
-            <h1 className="mb-2 font-bold text-4xl">{userData.name}</h1>
-            <div className="mb-2 flex items-center gap-4 text-muted-foreground">
+          <div>
+            <h1 className="mb-4 font-bold text-4xl">{userData.name}</h1>
+            <div className="mb-2 flex items-center justify-center gap-4 text-muted-foreground">
               <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 Level {userData.level}
               </Badge>
@@ -134,8 +135,10 @@ export default function UserProfile() {
                 {userData.streak} days streak
               </span>
             </div>
-            <div className="text-muted-foreground text-sm">
-              Joined {userData.joinDate} • {userData.profileViews} views
+            <div className="flex flex-row items-center text-muted-foreground text-sm">
+              Joined {userData.joinDate}
+              <Eye className="mr-2 ml-3" />
+              {userData.profileViews} views
             </div>
           </div>
         </div>

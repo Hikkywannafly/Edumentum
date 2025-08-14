@@ -122,19 +122,20 @@ export default function UserSetting() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
+              <div className="items-left flex flex-col gap-2">
+                <div className="flex flex-1">
                   <Input
+                    className="mr-2"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your display name"
                     maxLength={32}
                   />
-                  <p className="mt-1 text-muted-foreground text-xs">
-                    Max 32 characters
-                  </p>
+                  <Button onClick={handleSaveChanges}>Save Changes</Button>
                 </div>
-                <Button onClick={handleSaveChanges}>Save Changes</Button>
+                <p className="mt-1 text-muted-foreground text-xs">
+                  Max 32 characters
+                </p>
               </div>
             </CardContent>
           </Card>
