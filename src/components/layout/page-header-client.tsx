@@ -3,9 +3,9 @@
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/auth-context";
+// import { useAuth } from "@/contexts/auth-context";
 import type React from "react";
-import { Button } from "../ui/button";
+import { SettingMenu } from "../setting-menu";
 
 interface PageHeaderClientProps {
   title: string;
@@ -24,7 +24,7 @@ export function PageHeaderClient({
   showThemeToggle = true,
   showLanguageSwitcher = true,
 }: PageHeaderClientProps) {
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
 
   return (
     <header className={`flex h-16 items-center gap-3 px-4 ${className}`}>
@@ -43,7 +43,7 @@ export function PageHeaderClient({
         <div className="flex items-center gap-2">
           {showThemeToggle && <ThemeToggle />}
           {showLanguageSwitcher && <LanguageSwitcher />}
-          <Button onClick={logout}>Logout</Button>
+          <SettingMenu />
         </div>
       </div>
     </header>
