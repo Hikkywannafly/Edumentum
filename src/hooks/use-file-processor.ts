@@ -1,18 +1,11 @@
-// import { useGenerateQuestionsFromFileMutation, useGenerateQuestionsMutation } from "@/hooks/quizz";
-import {
-  extractQuestionsWithAI,
-  generateQuestions,
-  // generateQuestionsFromFile,
-} from "@/lib/services/ai-llm.service";
 import { FileParserService } from "@/lib/services/file-parser.service";
 import {
+  type UploadedFile,
   extractQuestionsFromContent,
   extractQuestionsWithAIHandler,
   generateQuestionsWithAI,
   generateQuizTitleDescription,
 } from "@/lib/services/quiz-generate.service";
-import type { UploadedFile } from "@/lib/services/quiz-generate.service";
-// import { fileToAIService } from "@/lib/services/file-to-ai.service";
 import {
   type GeneratedQuiz,
   useQuizEditorStore,
@@ -21,6 +14,7 @@ import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
 
 const fileParser = new FileParserService();
+
 export function useFileProcessor() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const { setQuizData, updateQuizData } = useQuizEditorStore();
@@ -46,8 +40,8 @@ export function useFileProcessor() {
                   status: "success" as const,
                   progress: 100,
                   parsedContent: content,
-                  extractedQuestions: [], // Don't extract yet, just parse
-                  actualFile, // Store the actual file for direct sending
+                  extractedQuestions: [],
+                  actualFile,
                 }
               : file,
           );
@@ -169,7 +163,7 @@ export function useFileProcessor() {
       mode?: string;
       difficulty?: string;
       task?: string;
-      parsingMode?: string;
+      parsingMode?: ParsingMode;
     }) => {
       const successfulFiles = uploadedFiles.filter(
         (f) => f.status === "success" && f.parsedContent,
@@ -241,7 +235,6 @@ export function useFileProcessor() {
         const titleDescResult = await generateQuizTitleDescription(
           contentPreview,
           allQuestions,
-          isExtractMode,
           {
             targetLanguage: settings?.language || "vi",
             filename: firstFile?.name,
@@ -250,7 +243,7 @@ export function useFileProcessor() {
           },
         );
 
-        if (titleDescResult.success) {
+        if (titleDescResult) {
           aiTitle = titleDescResult.title || "";
           aiDescription = titleDescResult.description || "";
         }
@@ -334,7 +327,7 @@ export function useFileProcessor() {
         mode?: string;
         difficulty?: string;
         task?: string;
-        parsingMode?: string;
+        parsingMode?: ParsingMode;
         includeCategories?: boolean;
       },
     ) => {
@@ -342,31 +335,18 @@ export function useFileProcessor() {
         throw new Error("No text content provided");
       }
 
-      const result: any =
+      const questions =
         settings?.generationMode === "EXTRACT"
-          ? await extractQuestionsWithAI({
-              questionHeader: "Extract Questions",
-              questionDescription: "Extract questions from content",
-              apiKey: "", // Will be handled server-side
-              fileContent: content,
-              settings: {
-                ...settings,
-                includeCategories: true,
-              },
+          ? await extractQuestionsWithAIHandler(content, undefined, {
+              ...settings,
+              includeCategories: true,
             })
-          : await generateQuestions({
-              questionHeader: "Generate Questions",
-              questionDescription: "Generate questions from content",
-              apiKey: "", // Will be handled server-side
-              fileContent: content,
-              settings: {
-                ...settings,
-                includeCategories: true,
-              },
+          : await generateQuestionsWithAI(content, undefined, {
+              ...settings,
+              includeCategories: true,
             });
 
-      const questions = Array.isArray(result) ? result : result.questions || [];
-      const selectedCategory = result.selectedCategory;
+      const selectedCategory = undefined as unknown as string | undefined;
 
       // Collect unique tags from all questions
       const allTags: string[] = [];

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { UploadedFile } from "@/hooks/use-file-processor";
+import type { UploadedFile } from "@/lib/services/quiz-generate.service";
 import { formatFileSize, getFileIconClassName } from "@/lib/utils/file-utils";
 import { AlertCircle, CheckCircle, FileText, X } from "lucide-react";
 import { useTranslations } from "next-intl";
