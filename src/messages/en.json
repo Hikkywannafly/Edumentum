@@ -116,6 +116,16 @@
   },
   "Mindmap": {
     "title": "Mindmaps",
+    "viewTitle": "View Mindmap",
+    "editTitle": "Edit Mindmap",
+    "edit": "Edit",
+    "back": "Back",
+    "save": "Save",
+    "loading": "Loading...",
+    "loadError": "Error loading mindmap",
+    "tryAgain": "Try again",
+    "noData": "No data found",
+    "noDataDescription": "This mindmap appears to be empty",
     "createMindmap": "Create Mindmap",
     "searchPlaceholder": "Search mindmaps...",
     "createCTA": {
@@ -124,7 +134,7 @@
       "button": "Create Mindmap"
     },
     "editor": {
-      "backToList": "Back to List",
+      "backToList": "Back",
       "newMindmap": "New Mindmap",
       "save": "Save",
       "saving": "Saving...",

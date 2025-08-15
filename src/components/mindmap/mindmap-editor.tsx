@@ -1,10 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import type { FileProps, MindMapType } from "@/lib/api/mindmap";
-import { mindmapAPI } from "@/lib/api/mindmap";
 import { useMindmapStore } from "@/stores/mindmap";
 import { Edit, Save, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import ExitConfirmationDialog from "./exit-confirmation-dialog";
@@ -12,23 +12,60 @@ import Mindmap from "./mindmap";
 import SaveMindmapDialog from "./save-mindmap-dialog";
 
 type MindmapEditorProps = {
-  initialFile: FileProps | null;
-  onClose: () => void;
+  initialFile?: FileProps | null;
+  mindmapId?: string;
+  onClose?: () => void;
 };
 
-const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
+const MindmapEditor = ({
+  initialFile,
+  mindmapId,
+  onClose,
+}: MindmapEditorProps) => {
   const t = useTranslations("Mindmap");
-  const { createFile, updateFile, setMindmapCurrentFile, setOnDataChange } =
-    useMindmapStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const {
+    createFile,
+    updateFile,
+    setMindmapCurrentFile,
+    setOnDataChange,
+    loadFile,
+    mindmapCurrentFile,
+  } = useMindmapStore();
 
   const [selectedFile, setSelectedFile] = useState<FileProps | null>(
-    () => initialFile,
+    () => initialFile || null,
   );
   const [showSaveMindmapDialog, setShowSaveMindmapDialog] = useState(false);
   const [showEditNameDialog, setShowEditNameDialog] = useState(false);
   const [showExitConfirmationDialog, setShowExitConfirmationDialog] =
     useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Load mindmap by ID if provided
+  useEffect(() => {
+    const loadMindmapById = async () => {
+      if (mindmapId && !initialFile) {
+        try {
+          await loadFile(mindmapId);
+          // The loadFile function will set mindmapCurrentFile in the store
+        } catch (error) {
+          console.error("Error loading mindmap:", error);
+          toast.error(t("editor.loadError"));
+        }
+      }
+    };
+
+    loadMindmapById();
+  }, [mindmapId, initialFile, loadFile, t]);
+
+  // Get current file from store and update selectedFile
+  useEffect(() => {
+    if (mindmapCurrentFile && mindmapId && !initialFile) {
+      setSelectedFile(mindmapCurrentFile);
+    }
+  }, [mindmapCurrentFile, mindmapId, initialFile]);
 
   useEffect(() => {
     setOnDataChange(() => setHasUnsavedChanges(true));
@@ -49,7 +86,17 @@ const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
   const handleExitEditor = () => {
     setHasUnsavedChanges(false);
     localStorage.removeItem("mindmap-current-file");
-    onClose();
+
+    // If we have an onClose callback, use it (for inline editor)
+    // Otherwise, navigate back to mindmap list with proper locale (for page-based editor)
+    if (onClose) {
+      onClose();
+    } else {
+      // Extract locale from current pathname and navigate back to mindmap list
+      const locale = pathname.split("/")[1]; // Get locale from path like /vi/mindmap/...
+      const mindmapPath = locale ? `/${locale}/mindmap` : "/mindmap";
+      router.push(mindmapPath);
+    }
   };
 
   return (
@@ -101,7 +148,6 @@ const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
                     name: selectedFile.name,
                   } as any);
                   setHasUnsavedChanges(false);
-                  handleExitEditor();
                   toast.success(t("editor.saveSuccess"));
                 } catch (error) {
                   console.error("Error saving mindmap:", error);
@@ -141,7 +187,6 @@ const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
             setSelectedFile(newFile);
             setMindmapCurrentFile(newFile);
             setHasUnsavedChanges(false);
-            handleExitEditor();
             toast.success(t("editor.saveSuccess"));
           } catch (error) {
             console.error("Error saving mindmap:", error);
@@ -194,8 +239,17 @@ const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
         onSave={async (newName: string, newType: MindMapType) => {
           try {
             if (selectedFile) {
-              await mindmapAPI.updateFileName(selectedFile.id, {
+              // Use updateFile to update both name and type
+              const data = {
+                nodes: useMindmapStore.getState().mindmapNodes,
+                edges: useMindmapStore.getState().mindmapEdges,
+                viewport: { x: 0, y: 0, zoom: 1 },
+              };
+
+              await updateFile(selectedFile.id, {
                 name: newName,
+                data: JSON.stringify(data),
+                type: newType,
               });
 
               const updatedFile = {
@@ -206,6 +260,7 @@ const MindmapEditor = ({ initialFile, onClose }: MindmapEditorProps) => {
               setSelectedFile(updatedFile);
               setMindmapCurrentFile(updatedFile);
 
+              // Update the file in the store
               const { mindmapFiles } = useMindmapStore.getState();
               const updatedFiles = mindmapFiles.map((file) =>
                 file.id === selectedFile.id ? updatedFile : file,

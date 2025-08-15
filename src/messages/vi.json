@@ -175,6 +175,16 @@
   },
   "Mindmap": {
     "title": "Sơ đồ tư duy",
+    "viewTitle": "Xem sơ đồ tư duy",
+    "editTitle": "Chỉnh sửa sơ đồ tư duy",
+    "edit": "Chỉnh sửa",
+    "back": "Quay lại",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "loadError": "Lỗi khi tải sơ đồ tư duy",
+    "tryAgain": "Thử lại",
+    "noData": "Không tìm thấy dữ liệu",
+    "noDataDescription": "Sơ đồ tư duy này có vẻ trống",
     "createMindmap": "Tạo sơ đồ tư duy",
     "searchPlaceholder": "Tìm kiếm sơ đồ tư duy...",
     "createCTA": {
@@ -183,7 +193,7 @@
       "button": "Tạo sơ đồ tư duy"
     },
     "editor": {
-      "backToList": "Quay lại danh sách",
+      "backToList": "Quay lại",
       "newMindmap": "Sơ đồ tư duy mới",
       "save": "Lưu",
       "saving": "Đang lưu...",
