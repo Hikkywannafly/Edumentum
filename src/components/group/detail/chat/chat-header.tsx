@@ -11,7 +11,7 @@ interface ChatHeaderProps {
 export function ChatHeader({ setClose }: ChatHeaderProps) {
   return (
     <CardHeader className="flex flex-row items-center justify-between bg-primary p-3 text-primary-foreground">
-      <span className="font-semibold">💬 Group Chat</span>
+      <span className="font-semibold">Group Chat</span>
       <Button
         type="button"
         variant="ghost"

@@ -124,7 +124,7 @@ export default function Chat({
   };
 
   return (
-    <Card className="flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg">
+    <Card className="flex h-[480px] w-[360px] flex-col overflow-hidden rounded-lg bg-white shadow-lg">
       <ChatHeader setClose={setClose} />
       <CardContent className="flex-1 overflow-hidden">
         <ChatMessages messages={messages} currentUserId={currentUserId} />

@@ -47,14 +47,14 @@ class GroupAPI {
 
   async getGroups(): Promise<GroupResponse[]> {
     const response = await this.request<GetGroupsAPIResponse>(
-      "/student/groups/public",
+      "/user/groups/public",
     );
     console.log(response.data);
     return response.data;
   }
 
   async createGroup(createGroup: GroupRequest): Promise<GroupResponse> {
-    const response = await this.request<GroupResponse>("/student/groups", {
+    const response = await this.request<GroupResponse>("/user/groups", {
       method: "POST",
       body: JSON.stringify(createGroup),
     });
@@ -64,7 +64,7 @@ class GroupAPI {
 
   async getGroupDetailById(groupId: number): Promise<GroupDetailResponse> {
     const response = await this.request<GetGroupsDetailAPIResponse>(
-      `/student/groups/${groupId}`,
+      `/user/groups/${groupId}`,
       {
         method: "GET",
       },
@@ -75,16 +75,28 @@ class GroupAPI {
 
   async getMyGroups(): Promise<GroupResponse[]> {
     const response = await this.request<GetGroupsAPIResponse>(
-      "/student/groups/my-group",
+      "/user/groups/my-group",
     );
     console.log(response.data);
     return response.data;
   }
 
   async joinGroup(groupId: number): Promise<void> {
-    await this.request(`/student/groups/${groupId}/join`, {
+    await this.request(`/user/groups/${groupId}/join`, {
       method: "POST",
     });
+  }
+
+  async updateGroup(
+    createGroup: GroupRequest,
+    id: string,
+  ): Promise<GroupResponse> {
+    const response = await this.request<any>(`/user/groups/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(createGroup),
+    });
+    console.log(response.data);
+    return response.data;
   }
 }
 

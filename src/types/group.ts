@@ -39,6 +39,8 @@ export interface GroupDetailResponse {
   key: string;
   name: string;
   description: string;
+
+  isPublic: boolean;
   userGroupResponseList: UserGroupResponse[];
 }
 
@@ -46,4 +48,11 @@ export interface GetGroupsDetailAPIResponse {
   data: GroupDetailResponse;
   status: string;
   message: string;
+}
+
+export interface GroupRequestUpdate {
+  name: string;
+  description: string;
+  memberLimit: number;
+  public: boolean;
 }

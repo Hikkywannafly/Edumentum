@@ -19,7 +19,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
 import {
   type CreateStudyGroupFormData,
   createStudyGroupSchema,
@@ -28,6 +27,7 @@ import type { GroupRequest } from "@/types/group";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation"; // ✅ thêm import
 import { type SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { groupAPI } from "../../../lib/api/group";
 
 export function CreateGroupContent() {
@@ -51,23 +51,12 @@ export function CreateGroupContent() {
         memberLimit: values.memberLimit,
         public: values.public,
       };
-
-      const newGroup = await groupAPI.createGroup(payload);
-
-      toast({
-        title: "Group Created!",
-        description: `Study group "${newGroup.name}" has been created successfully.`,
-      });
-
+      await groupAPI.createGroup(payload);
+      toast.success("Tạo nhóm thành công!");
       form.reset();
       router.back();
     } catch (err) {
-      toast({
-        title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to create group",
-        variant: "destructive",
-      });
+      console.error(err);
     }
   };
 

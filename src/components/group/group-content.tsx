@@ -28,9 +28,37 @@ export default function GroupContent() {
     fetchGroups();
   }, []);
 
+  const renderGroupList = (
+    list: GroupResponse[],
+    isMyGroup: boolean,
+    onClick?: (group: GroupResponse) => void,
+  ) =>
+    list.length > 0 ? (
+      list.map((group) => (
+        <div
+          key={group.id}
+          onClick={onClick ? () => onClick(group) : undefined}
+          className="cursor-pointer"
+        >
+          {isMyGroup ? (
+            <LocalizedLink href={`/group/${group.id}`}>
+              <StudyGroupCard
+                publicHidden={false}
+                roleHidden={false}
+                iStudyGroupCard={group}
+              />
+            </LocalizedLink>
+          ) : (
+            <StudyGroupCard publicHidden roleHidden iStudyGroupCard={group} />
+          )}
+        </div>
+      ))
+    ) : (
+      <div className="py-4 text-center text-gray-500">Không có dữ liệu</div>
+    );
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-      {/* Header */}
       <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="font-bold text-3xl text-foreground tracking-tight">
@@ -55,45 +83,21 @@ export default function GroupContent() {
         </div>
       </header>
 
-      {/* My Groups */}
       <section className="mb-10">
         <h2 className="mb-4 font-semibold text-foreground text-xl">
           My Groups
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {myGroups.map((group) => (
-            <div key={group.id} className="cursor-pointer">
-              <LocalizedLink href={`/group/${group.id}`}>
-                <StudyGroupCard
-                  publicHidden={false}
-                  roleHidden={false}
-                  iStudyGroupCard={group}
-                />
-              </LocalizedLink>
-            </div>
-          ))}
+          {renderGroupList(myGroups, true)}
         </div>
       </section>
 
-      {/* Discover Groups */}
       <section>
         <h2 className="mb-4 font-semibold text-foreground text-xl">
           Discover Groups
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {groups.map((group) => (
-            <div
-              key={group.id}
-              onClick={() => setSelectedGroup(group)}
-              className="cursor-pointer"
-            >
-              <StudyGroupCard
-                publicHidden={true}
-                roleHidden={true}
-                iStudyGroupCard={group}
-              />
-            </div>
-          ))}
+          {renderGroupList(groups, false, setSelectedGroup)}
         </div>
       </section>
 
