@@ -81,7 +81,7 @@ export function AIGeneratedUploader({
     addFiles,
     removeFile,
     generateFromFiles,
-    extractFromFiles,
+    extractFromFilesAI,
     isProcessing,
     hasFiles,
   } = useQuizProcessor();
@@ -139,7 +139,8 @@ export function AIGeneratedUploader({
         if (generationMode === "GENERATE") {
           await generateFromFiles(settings);
         } else {
-          await extractFromFiles(settings);
+          // Use AI extraction instead of manual extraction
+          await extractFromFilesAI(settings);
         }
       }
       setEditing(true);
