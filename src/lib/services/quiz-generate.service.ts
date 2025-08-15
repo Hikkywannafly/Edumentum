@@ -13,18 +13,6 @@ function shouldUseMultiAgent(parsingMode?: ParsingMode): boolean {
   return parsingMode === "THOROUGH";
 }
 
-export interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  status: "uploading" | "processing" | "success" | "error";
-  progress: number;
-  error?: string;
-  parsedContent?: string;
-  extractedQuestions?: QuestionData[];
-  actualFile?: File;
-}
-
 // Orchestration function for quiz title/description generation
 export const generateQuizTitleDescription = async (
   content: string,
@@ -164,7 +152,6 @@ export const extractQuestionsWithAIHandler = async (
       throw new Error(result.error || "No questions could be extracted");
     }
 
-    // Validate question structure
     const validQuestions = result.questions.filter(
       (q: QuestionData) =>
         q.question?.trim() && q.answers && q.answers.length > 0,

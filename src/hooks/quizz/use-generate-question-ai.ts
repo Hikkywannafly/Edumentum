@@ -1,33 +1,35 @@
 import { quizQueryKeys } from "@/hooks/quiz-query-keys";
-import { extractQuestionsWithAIHandler } from "@/lib/services/quiz-generate.service";
+import { generateQuestionsWithAI } from "@/lib/services/quiz-generate.service";
 import { useQuizEditorStore } from "@/stores/quiz-editor-store";
 import type { GeneratedQuiz, UploadedFile } from "@/stores/quiz-editor-store";
 import type { ParsingMode, QuestionData } from "@/types/quiz";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGenerateTitleDescription } from "./use-generate-title-description";
 
-interface ExtractAIParams {
+interface GenerateAIParams {
   source: "files" | "text";
   content?: string;
   files?: UploadedFile[];
   settings?: {
     language?: string;
     numberOfQuestions?: number;
+    difficulty?: string;
+    questionType?: string;
     parsingMode?: ParsingMode;
     [key: string]: any;
   };
 }
 
-export function useExtractQuestionsAI() {
+export function useGenerateQuestionsAI() {
   const queryClient = useQueryClient();
   const { setQuizData } = useQuizEditorStore();
   const titleGenerator = useGenerateTitleDescription();
 
-  const extractQuestionsAIMutation = useMutation({
-    mutationFn: async (params: ExtractAIParams) => {
+  const generateQuestionsAIMutation = useMutation({
+    mutationFn: async (params: GenerateAIParams) => {
       if (params.source === "text" && params.content) {
-        // Extract from text
-        const questions = await extractQuestionsWithAIHandler(
+        // Generate from text
+        const questions = await generateQuestionsWithAI(
           params.content,
           undefined,
           params.settings,
@@ -35,7 +37,7 @@ export function useExtractQuestionsAI() {
         return { questions, source: "text", content: params.content };
       }
 
-      // Extract from files
+      // Generate from files
       const successfulFiles =
         params.files?.filter(
           (f) => f.status === "success" && f.parsedContent,
@@ -45,7 +47,7 @@ export function useExtractQuestionsAI() {
       const allQuestions: QuestionData[] = [];
       for (const file of successfulFiles) {
         if (file.parsedContent) {
-          const questions = await extractQuestionsWithAIHandler(
+          const questions = await generateQuestionsWithAI(
             file.parsedContent,
             file.actualFile,
             params.settings,
@@ -63,7 +65,7 @@ export function useExtractQuestionsAI() {
       // Cache result
       if (data.source === "text" && data.content) {
         queryClient.setQueryData(
-          quizQueryKeys.extractQuestionsAI(data.content, variables.settings),
+          quizQueryKeys.generateQuestions(data.content, variables.settings),
           data.questions,
         );
       }
@@ -71,9 +73,9 @@ export function useExtractQuestionsAI() {
       // Create initial quiz data
       const title =
         data.source === "text"
-          ? "AI Extracted Quiz from Text"
-          : `AI Extracted Quiz from ${data.files?.[0]?.name || "Files"}`;
-      const description = `Extracted ${data.questions.length} questions using AI`;
+          ? "AI Generated Quiz from Text"
+          : `AI Generated Quiz from ${data.files?.[0]?.name || "Files"}`;
+      const description = `Generated ${data.questions.length} questions using AI`;
 
       const quizData: GeneratedQuiz = {
         title,
@@ -91,7 +93,7 @@ export function useExtractQuestionsAI() {
       };
       setQuizData(quizData);
 
-      console.log(`✅ Extracted ${data.questions.length} questions using AI`);
+      console.log(`✅ Generated ${data.questions.length} questions using AI`);
 
       // Generate better title with AI (async, non-blocking)
       try {
@@ -101,7 +103,7 @@ export function useExtractQuestionsAI() {
           contentForTitle,
           data.questions,
           {
-            isExtractMode: true,
+            isExtractMode: false,
             targetLanguage: variables.settings?.language || "vi",
             filename: data.files?.[0]?.name,
           },
@@ -111,22 +113,22 @@ export function useExtractQuestionsAI() {
       }
     },
     onError: (error) => {
-      console.error("❌ Extract Questions AI failed:", error);
+      console.error("❌ Generate Questions AI failed:", error);
     },
     retry: 2,
-    retryDelay: 3000,
+    retryDelay: 5000,
   });
 
   return {
     // Main function
-    extractQuestionsAI: extractQuestionsAIMutation.mutateAsync,
+    generateQuestionsAI: generateQuestionsAIMutation.mutateAsync,
 
     // State
-    isExtracting: extractQuestionsAIMutation.isPending,
-    isSuccess: extractQuestionsAIMutation.isSuccess,
-    isError: extractQuestionsAIMutation.isError,
-    error: extractQuestionsAIMutation.error,
-    data: extractQuestionsAIMutation.data,
+    isGenerating: generateQuestionsAIMutation.isPending,
+    isSuccess: generateQuestionsAIMutation.isSuccess,
+    isError: generateQuestionsAIMutation.isError,
+    error: generateQuestionsAIMutation.error,
+    data: generateQuestionsAIMutation.data,
 
     // Title generation state
     isTitleGenerating: titleGenerator.isGenerating,
@@ -134,7 +136,7 @@ export function useExtractQuestionsAI() {
 
     // Control
     reset: () => {
-      extractQuestionsAIMutation.reset();
+      generateQuestionsAIMutation.reset();
       titleGenerator.reset();
     },
   };

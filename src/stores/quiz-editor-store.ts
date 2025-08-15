@@ -2,6 +2,18 @@ import type { QuestionData, QuizSettings } from "@/types/quiz";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  status: "uploading" | "processing" | "success" | "error";
+  progress: number;
+  error?: string;
+  parsedContent?: string;
+  extractedQuestions?: QuestionData[];
+  actualFile?: File;
+}
+
 export interface GeneratedQuiz {
   title: string;
   description: string;

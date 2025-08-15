@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFileProcessor } from "@/hooks/use-file-processor";
+import { useQuizProcessor } from "@/hooks/use-quiz-processor";
 import {
   FILE_UPLOAD_LIMITS,
   getAcceptedFileTypes,
@@ -80,10 +80,11 @@ export function AIGeneratedUploader({
     uploadedFiles,
     addFiles,
     removeFile,
-    generateQuestionsFromFiles,
+    generateFromFiles,
+    extractFromFiles,
     isProcessing,
     hasFiles,
-  } = useFileProcessor();
+  } = useQuizProcessor();
 
   const { setEditing } = useQuizEditorStore();
 
@@ -134,8 +135,12 @@ export function AIGeneratedUploader({
       };
 
       if (inputMode === "FILE") {
-        // Generate from files
-        await generateQuestionsFromFiles(settings);
+        // Generate from files based on generation mode
+        if (generationMode === "GENERATE") {
+          await generateFromFiles(settings);
+        } else {
+          await extractFromFiles(settings);
+        }
       }
       setEditing(true);
       goQuizEdit();
