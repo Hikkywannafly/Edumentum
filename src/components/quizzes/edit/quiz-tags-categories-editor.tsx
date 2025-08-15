@@ -98,12 +98,28 @@ export function QuizTagsCategoriesEditor({
       }
 
       // Auto-apply tags from quiz data if not already set
-      if (
-        quizData.metadata?.tags &&
-        quizData.metadata.tags.length > 0 &&
-        tags.length === 0
-      ) {
-        onTagsChange(quizData.metadata.tags);
+      if (tags.length === 0) {
+        let tagsToApply: string[] = [];
+
+        // First try to get tags from metadata
+        if (quizData.metadata?.tags && quizData.metadata.tags.length > 0) {
+          tagsToApply = quizData.metadata.tags;
+        }
+        // If metadata tags are empty, extract unique tags from all questions
+        else if (quizData.questions && quizData.questions.length > 0) {
+          const allQuestionTags = quizData.questions
+            .flatMap((q) => q.tags || [])
+            .filter((tag) => tag && tag.trim()) // Remove empty tags
+            .filter((tag, index, arr) => arr.indexOf(tag) === index); // Remove duplicates
+
+          if (allQuestionTags.length > 0) {
+            tagsToApply = allQuestionTags;
+          }
+        }
+
+        if (tagsToApply.length > 0) {
+          onTagsChange(tagsToApply);
+        }
       }
     }
   }, [
@@ -351,7 +367,17 @@ export function QuizTagsCategoriesEditor({
             <br />
             Quiz Category: {quizData?.metadata?.category || "None"}
             <br />
-            Quiz Tags: [{quizData?.metadata?.tags?.join(", ") || "None"}]
+            Quiz Metadata Tags: [
+            {quizData?.metadata?.tags?.join(", ") || "None"}]
+            <br />
+            Question Tags: [
+            {quizData?.questions
+              ?.flatMap((q) => q.tags || [])
+              .filter((tag, index, arr) => arr.indexOf(tag) === index)
+              .join(", ") || "None"}
+            ]
+            <br />
+            Current Tags: [{tags.join(", ") || "None"}]
             <br />
             Show AI: {showAISelections ? "Yes" : "No"}
           </div>
