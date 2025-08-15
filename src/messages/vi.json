@@ -600,6 +600,8 @@
     "title": "Pomodoro",
     "start": "Bắt đầu",
     "pause": "Tạm dừng",
+    "running": "Đang chạy",
+    "paused": "Đã tạm dừng",
     "notTask": "Chưa có nhiệm vụ nào",
     "advice": "Thêm một nhiệm vụ để bắt đầu!",
     "countdown": {

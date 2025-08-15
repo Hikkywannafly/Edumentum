@@ -72,6 +72,13 @@ export function useLocalizedNavigation() {
     navigate("/flashcards");
   };
 
+  /**
+   * Navigate to pomodoro page
+   */
+  const goPomodoro = () => {
+    navigate("/pomodoro");
+  };
+
   return {
     navigate,
     navigateAbsolute,
@@ -82,6 +89,7 @@ export function useLocalizedNavigation() {
     goLogin,
     goQuizEdit,
     goFlashcards,
+    goPomodoro,
     locale,
   };
 }

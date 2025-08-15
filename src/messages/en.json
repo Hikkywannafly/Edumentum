@@ -596,6 +596,8 @@
     "title": "Pomodoro",
     "start": "Start",
     "pause": "Pause",
+    "running": "Running",
+    "paused": "Paused",
     "notTask": "No tasks yet",
     "advice": "Add a task to get started!",
     "countdown": {
