@@ -14,22 +14,12 @@ import { useAuth } from "@/contexts/auth-context";
 import type { FileProps, MindMapType } from "@/lib/api/mindmap";
 import { mindmapAPI } from "@/lib/api/mindmap";
 import { DEFAULT_ROOT_NODE, useMindmapStore } from "@/stores/mindmap";
-import {
-  Edit,
-  FileText,
-  Filter,
-  Plus,
-  Save,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Edit, FileText, Filter, Plus, Search, Trash2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import ExitConfirmationDialog from "./exit-confirmation-dialog";
-import Mindmap from "./mindmap";
-import SaveMindmapDialog from "./save-mindmap-dialog";
+import ThinLayout from "../layout/thin-layout";
+import MindmapEditor from "./mindmap-editor";
 
 const MINDMAP_TYPES: { value: MindMapType; label: string; labelVi: string }[] =
   [
@@ -67,19 +57,11 @@ const MindmapContent = () => {
     deleteFile,
     loadFile,
     setMindmapCurrentFile,
-    createFile,
-    updateFile,
-    setOnDataChange,
   } = useMindmapStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<MindMapType | "ALL">("ALL");
   const [selectedFile, setSelectedFile] = useState<FileProps | null>(null);
   const [isEditingMindmap, setIsEditingMindmap] = useState(false);
-  const [showSaveMindmapDialog, setShowSaveMindmapDialog] = useState(false);
-  const [showEditNameDialog, setShowEditNameDialog] = useState(false);
-  const [showExitConfirmationDialog, setShowExitConfirmationDialog] =
-    useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const t = useTranslations("Mindmap");
   const locale = useLocale();
 
@@ -97,28 +79,8 @@ const MindmapContent = () => {
     return type ? (locale === "vi" ? type.labelVi : type.label) : typeValue;
   };
 
-  const getTypeBadgeVariant = (type: MindMapType) => {
-    switch (type) {
-      case "STUDY_NOTES":
-        return "default";
-      case "PROJECT_PLANNING":
-        return "secondary";
-      case "CONCEPT_MAPPING":
-        return "outline";
-      case "BRAINSTORMING":
-        return "destructive";
-      case "LESSON_PLAN":
-        return "default";
-      case "RESEARCH":
-        return "secondary";
-      case "PRESENTATION":
-        return "outline";
-      case "PERSONAL":
-        return "destructive";
-      default:
-        return "default";
-    }
-  };
+  // Simple neutral badge styling
+  const getTypeBadgeVariant = () => "outline" as const;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -145,11 +107,6 @@ const MindmapContent = () => {
         });
     }
   }, [isAuthenticated, loadFiles, t]);
-
-  // Set up data change callback
-  useEffect(() => {
-    setOnDataChange(() => setHasUnsavedChanges(true));
-  }, [setOnDataChange]);
 
   // Restore mindmap state on page reload
   useEffect(() => {
@@ -200,28 +157,7 @@ const MindmapContent = () => {
     };
   }, [setMindmapCurrentFile, t]);
 
-  // Handle beforeunload event
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [hasUnsavedChanges]);
-
   // Removed handleNavigate as it's no longer needed
-
-  const handleExitEditor = () => {
-    console.log("Exiting editor...");
-    setIsEditingMindmap(false);
-    setHasUnsavedChanges(false);
-    localStorage.removeItem("mindmap-current-file");
-    console.log("Editor exited successfully");
-  };
 
   const handleFileSelect = async (file: FileProps) => {
     try {
@@ -230,7 +166,6 @@ const MindmapContent = () => {
       setSelectedFile(file);
       setMindmapCurrentFile(file);
       setIsEditingMindmap(true);
-      setHasUnsavedChanges(false);
 
       // Save current mindmap state to localStorage
       localStorage.setItem(
@@ -281,205 +216,18 @@ const MindmapContent = () => {
 
   if (isEditingMindmap) {
     return (
-      <div className="flex h-screen flex-col">
-        <div className="flex items-center justify-between border-b bg-background p-4 dark:border-border">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (hasUnsavedChanges) {
-                  setShowExitConfirmationDialog(true);
-                } else {
-                  handleExitEditor();
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <X className="h-4 w-4" />
-              {t("editor.backToList")}
-            </Button>
-            <h2 className="font-semibold text-lg">
-              {selectedFile ? selectedFile.name : t("editor.newMindmap")}
-            </h2>
-            {selectedFile && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowEditNameDialog(true)}
-                className="h-8 w-8 p-0"
-                title={t("editor.editName")}
-              >
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">{t("editor.editName")}</span>
-              </Button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={async () => {
-                if (selectedFile) {
-                  // If file already has a name, save directly
-                  try {
-                    const data = {
-                      nodes: useMindmapStore.getState().mindmapNodes,
-                      edges: useMindmapStore.getState().mindmapEdges,
-                      viewport: { x: 0, y: 0, zoom: 1 },
-                    };
-                    await updateFile(selectedFile.id, data);
-                    setHasUnsavedChanges(false);
-                    // Return to mindmap list after successful save
-                    handleExitEditor();
-                    // Show success message after exiting
-                    toast.success(t("editor.saveSuccess"));
-                  } catch (error) {
-                    console.error("Error saving mindmap:", error);
-                    toast.error(
-                      error instanceof Error
-                        ? error.message
-                        : t("editor.saveError"),
-                    );
-                  }
-                } else {
-                  // If no file name, show dialog to enter name
-                  setShowSaveMindmapDialog(true);
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              {t("editor.save")}
-            </Button>
-          </div>
-        </div>
-        <div className="min-h-0 flex-1">
-          <Mindmap />
-        </div>
-
-        {/* Save Dialog - Only for new files */}
-        <SaveMindmapDialog
-          isOpen={showSaveMindmapDialog}
-          onClose={() => setShowSaveMindmapDialog(false)}
-          onSave={async (name: string, type: MindMapType) => {
-            try {
-              const data = {
-                nodes: useMindmapStore.getState().mindmapNodes,
-                edges: useMindmapStore.getState().mindmapEdges,
-                viewport: { x: 0, y: 0, zoom: 1 },
-              };
-
-              // Create new file with the provided name and type
-              const newFile = await createFile(name, data, type);
-              setSelectedFile(newFile);
-              setMindmapCurrentFile(newFile);
-              setHasUnsavedChanges(false);
-              // Return to mindmap list after successful save
-              handleExitEditor();
-              // Show success message after exiting
-              toast.success(t("editor.saveSuccess"));
-            } catch (error) {
-              console.error("Error saving mindmap:", error);
-              toast.error(
-                error instanceof Error ? error.message : t("editor.saveError"),
-              );
-            }
-          }}
-          currentName=""
-          currentType="STUDY_NOTES"
-          isEditing={false}
-        />
-
-        {/* Exit Confirmation Dialog */}
-        <ExitConfirmationDialog
-          isOpen={showExitConfirmationDialog}
-          onClose={() => setShowExitConfirmationDialog(false)}
-          onSave={async () => {
-            try {
-              console.log("Exit confirmation - Save clicked");
-              if (selectedFile) {
-                console.log("Saving existing file:", selectedFile.id);
-                const data = {
-                  nodes: useMindmapStore.getState().mindmapNodes,
-                  edges: useMindmapStore.getState().mindmapEdges,
-                  viewport: { x: 0, y: 0, zoom: 1 },
-                };
-                await updateFile(selectedFile.id, data);
-                console.log("File saved successfully");
-                setHasUnsavedChanges(false);
-                setShowExitConfirmationDialog(false);
-                // Return to mindmap list after successful save
-                handleExitEditor();
-                // Show success message after exiting
-                toast.success(t("editor.saveSuccess"));
-              } else {
-                console.log("No selected file, showing save dialog");
-                setShowSaveMindmapDialog(true);
-                setShowExitConfirmationDialog(false);
-              }
-            } catch (error) {
-              console.error("Error saving mindmap:", error);
-              toast.error(
-                error instanceof Error ? error.message : t("editor.saveError"),
-              );
-            }
-          }}
-          onDiscard={() => {
-            handleExitEditor();
-            setShowExitConfirmationDialog(false);
-          }}
-        />
-
-        {/* Edit Name Dialog */}
-        <SaveMindmapDialog
-          isOpen={showEditNameDialog}
-          onClose={() => setShowEditNameDialog(false)}
-          onSave={async (newName: string, newType: MindMapType) => {
-            try {
-              if (selectedFile) {
-                // Update the file name in the API
-                await mindmapAPI.updateFileName(selectedFile.id, {
-                  name: newName,
-                });
-
-                // Update local state
-                const updatedFile = {
-                  ...selectedFile,
-                  name: newName,
-                  type: newType,
-                };
-                setSelectedFile(updatedFile);
-                setMindmapCurrentFile(updatedFile);
-
-                // Update files list
-                const { mindmapFiles } = useMindmapStore.getState();
-                const updatedFiles = mindmapFiles.map((file) =>
-                  file.id === selectedFile.id ? updatedFile : file,
-                );
-                useMindmapStore.setState({ mindmapFiles: updatedFiles });
-
-                toast.success(t("editor.nameUpdateSuccess"));
-              }
-            } catch (error) {
-              console.error("Error updating name:", error);
-              toast.error(
-                error instanceof Error
-                  ? error.message
-                  : t("editor.nameUpdateError"),
-              );
-            }
-          }}
-          currentName={selectedFile?.name || ""}
-          currentType={selectedFile?.type || "STUDY_NOTES"}
-          isEditing={true}
-        />
-      </div>
+      <MindmapEditor
+        initialFile={selectedFile}
+        onClose={() => setIsEditingMindmap(false)}
+      />
     );
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <ThinLayout classNames="flex-1 space-y-6 p-4 md:p-6">
       {/* Search and Filter */}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="max-w-md flex-1">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row">
+        <div className="max-w-md flex-1 ">
           <div className="relative">
             <Search className="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -575,7 +323,7 @@ const MindmapContent = () => {
                         <h3 className="truncate font-medium">{file.name}</h3>
                         <div className="mt-1 flex items-center gap-2">
                           <Badge
-                            variant={getTypeBadgeVariant(file.type)}
+                            variant={getTypeBadgeVariant()}
                             className="text-xs"
                           >
                             {getTypeLabel(file.type)}
@@ -614,7 +362,7 @@ const MindmapContent = () => {
           </div>
         )}
       </div>
-    </div>
+    </ThinLayout>
   );
 };
 
