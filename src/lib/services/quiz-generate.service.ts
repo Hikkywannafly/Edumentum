@@ -13,19 +13,6 @@ function shouldUseMultiAgent(parsingMode?: ParsingMode): boolean {
   return parsingMode === "THOROUGH";
 }
 
-// Processing configuration based on parsingMode
-// function getProcessingConfig(parsingMode?: ParsingMode) {
-//   switch (parsingMode) {
-//     case "FAST":
-//       return { useMultiAgent: false, description: "Fast processing mode" };
-//     case "BALANCED":
-//       return { useMultiAgent: false, description: "Balanced processing mode" };
-//     case "THOROUGH":
-//       return { useMultiAgent: true, description: "Thorough processing with multi-agent" };
-//     default:
-//       return { useMultiAgent: false, description: "Default processing mode" };
-//   }
-// }
 export interface UploadedFile {
   id: string;
   name: string;
