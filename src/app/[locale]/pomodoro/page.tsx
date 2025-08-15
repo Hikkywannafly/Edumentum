@@ -1,15 +1,18 @@
+"use client";
+
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { PageHeaderClient } from "@/components/layout/page-header-client";
 import PomodoroContent from "@/components/pomodoro/pomodoro-content";
-import { setRequestLocale } from "next-intl/server";
+import { usePomodoro } from "@/contexts/pomodoro-context";
+import { useEffect } from "react";
 
-export default async function PomodoroPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  setRequestLocale(locale);
+export default function PomodoroPage() {
+  const { setIsMini } = usePomodoro();
+
+  // Tự động mở full view khi vào trang pomodoro
+  useEffect(() => {
+    setIsMini(false);
+  }, [setIsMini]);
 
   return (
     <DashboardLayout>

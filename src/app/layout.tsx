@@ -1,8 +1,10 @@
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { LocaleProvider } from "@/components/locale-provider";
+import { PomodoroAppWrapper } from "@/components/pomodoro/pomodoro-app-wrapper";
 import { ReactQueryProvider } from "@/components/provider/react-query-provider";
 import { ThemeProvider } from "@/components/theme";
 import { AuthProvider } from "@/contexts/auth-context";
+import { PomodoroProvider } from "@/contexts/pomodoro-context";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
@@ -41,9 +43,13 @@ export default function RootLayout({
             <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID || ""}>
               <LocaleProvider>
                 <AuthProvider>
-                  <AuthGuard>
-                    <main className="mx-auto ">{children}</main>
-                  </AuthGuard>
+                  <PomodoroProvider>
+                    <AuthGuard>
+                      <PomodoroAppWrapper>
+                        <main className="mx-auto ">{children}</main>
+                      </PomodoroAppWrapper>
+                    </AuthGuard>
+                  </PomodoroProvider>
                 </AuthProvider>
               </LocaleProvider>
             </GoogleOAuthProvider>

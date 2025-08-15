@@ -9,154 +9,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LayoutGrid, List, Plus, RotateCcw, Settings } from "lucide-react";
+import { usePomodoro } from "@/contexts/pomodoro-context";
+import {
+  LayoutGrid,
+  List,
+  Minimize2,
+  Plus,
+  RotateCcw,
+  Settings,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
-import type { Task, ViewMode } from ".";
+import { useEffect } from "react";
 import { KanbanBoardView } from "./kanban-board";
 import { SimpleTodoView } from "./simple-todo";
 
-type TimerMode = "focus" | "shortBreak" | "longBreak";
-type TimerType = "pomodoro" | "countdown";
-
 export default function PomodoroContent() {
-  const [timerType, setTimerType] = useState<TimerType>("pomodoro");
-  const [timerMode, setTimerMode] = useState<TimerMode>("focus");
-  const [countdownMinutes, setCountdownMinutes] = useState(1);
-  const [time, setTime] = useState(25 * 60); // 25 minutes in seconds
-  const [isRunning, setIsRunning] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      text: "Test",
-      category: "Uncategorized",
-      completed: false,
-      status: "todo",
-    },
-    {
-      id: "2",
-      text: "Test02",
-      category: "Uncategorized",
-      completed: false,
-      status: "todo",
-    },
-    {
-      id: "3",
-      text: "Test1",
-      category: "Uncategorized",
-      completed: false,
-      status: "todo",
-    },
-  ]);
-  const [newTask, setNewTask] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Uncategorized");
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("todo");
-
-  const timerModes = {
-    focus: 25 * 60,
-    shortBreak: 5 * 60,
-    longBreak: 15 * 60,
-  };
-
-  // Khi đổi timerType, cập nhật lại thời gian phù hợp
-  const handleTimerTypeChange = (type: TimerType) => {
-    setTimerType(type);
-    setIsRunning(false);
-    if (type === "pomodoro") {
-      setTimerMode("focus");
-      setTime(timerModes.focus);
-    } else if (type === "countdown") {
-      setTime(countdownMinutes * 60);
-    }
-  };
-
-  // Khi đổi số phút countdown, cập nhật lại time nếu đang ở countdown
-  const handleCountdownMinutesChange = (val: number) => {
-    setCountdownMinutes(val);
-    if (timerType === "countdown") {
-      setTime(val * 60);
-      setIsRunning(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isRunning && time > 0) {
-      intervalRef.current = setInterval(() => {
-        setTime((prev) => prev - 1);
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, time]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleStart = () => {
-    setIsRunning(!isRunning);
-  };
-
-  const handleReset = () => {
-    setIsRunning(false);
-    if (timerType === "pomodoro") {
-      setTime(timerModes[timerMode]);
-    } else if (timerType === "countdown") {
-      setTime(countdownMinutes * 60);
-    }
-  };
-
-  const handleModeChange = (mode: TimerMode) => {
-    setTimerMode(mode);
-    setTime(timerModes[mode]);
-    setIsRunning(false);
-  };
-
-  const addTask = () => {
-    if (newTask.trim()) {
-      const task: Task = {
-        id: Date.now().toString(),
-        text: newTask.trim(),
-        category: selectedCategory,
-        completed: false,
-        status: "todo",
-      };
-      setTasks([...tasks, task]);
-      setNewTask("");
-    }
-  };
-
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task,
-      ),
-    );
-  };
-
-  const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
-  };
-
-  // Tính progress phù hợp cho từng chế độ
-  let progress = 0;
-  if (timerType === "pomodoro") {
-    progress = ((timerModes[timerMode] - time) / timerModes[timerMode]) * 100;
-  } else if (timerType === "countdown") {
-    progress = ((countdownMinutes * 60 - time) / (countdownMinutes * 60)) * 100;
-  }
+  const {
+    timerType,
+    timerMode,
+    countdownMinutes,
+    time,
+    isRunning,
+    isMini,
+    tasks,
+    newTask,
+    selectedCategory,
+    viewMode,
+    progress,
+    setTimerType,
+    setCountdownMinutes,
+    handleStart,
+    handleReset,
+    handleModeChange,
+    setNewTask,
+    setSelectedCategory,
+    setViewMode,
+    addTask,
+    toggleTaskCompletion,
+    deleteTask,
+    setIsMini,
+    formatTime,
+  } = usePomodoro();
 
   const t = useTranslations("Pomodoro");
+
+  // Auto-minimize when navigating away from pomodoro page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isRunning) {
+        setIsMini(true);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && isRunning) {
+        setIsMini(true);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isRunning, setIsMini]);
+
+  // Don't render full content if in mini mode
+  if (isMini) return null;
 
   return (
     <div className="flex h-full flex-col items-center justify-center p-6">
@@ -164,18 +85,32 @@ export default function PomodoroContent() {
         {/* Timer Section */}
         <Card className="p-6">
           <CardContent className="space-y-6">
+            {/* Header with minimize button */}
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-xl">Pomodoro Timer</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMini(true)}
+                className="flex items-center gap-2"
+              >
+                <Minimize2 className="h-4 w-4" />
+                Minimize
+              </Button>
+            </div>
+
             {/* Timer Type Tags */}
             <div className="flex justify-center gap-2">
               <Button
                 variant={timerType === "pomodoro" ? "default" : "outline"}
-                onClick={() => handleTimerTypeChange("pomodoro")}
+                onClick={() => setTimerType("pomodoro")}
                 className="rounded-full px-6 py-2 font-medium"
               >
                 Pomodoro
               </Button>
               <Button
                 variant={timerType === "countdown" ? "default" : "outline"}
-                onClick={() => handleTimerTypeChange("countdown")}
+                onClick={() => setTimerType("countdown")}
                 className="rounded-full px-6 py-2 font-medium"
               >
                 {t("countdown.title")}
@@ -193,9 +128,7 @@ export default function PomodoroContent() {
                   min={1}
                   value={countdownMinutes}
                   onChange={(e) =>
-                    handleCountdownMinutesChange(
-                      Math.max(1, Number(e.target.value)),
-                    )
+                    setCountdownMinutes(Math.max(1, Number(e.target.value)))
                   }
                   className="w-20 rounded border px-3 py-1 text-center"
                 />
