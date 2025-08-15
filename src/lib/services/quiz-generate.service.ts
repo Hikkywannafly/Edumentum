@@ -13,31 +13,6 @@ function shouldUseMultiAgent(parsingMode?: ParsingMode): boolean {
   return parsingMode === "THOROUGH";
 }
 
-// Processing configuration based on parsingMode
-// function getProcessingConfig(parsingMode?: ParsingMode) {
-//   switch (parsingMode) {
-//     case "FAST":
-//       return { useMultiAgent: false, description: "Fast processing mode" };
-//     case "BALANCED":
-//       return { useMultiAgent: false, description: "Balanced processing mode" };
-//     case "THOROUGH":
-//       return { useMultiAgent: true, description: "Thorough processing with multi-agent" };
-//     default:
-//       return { useMultiAgent: false, description: "Default processing mode" };
-//   }
-// }
-export interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  status: "uploading" | "processing" | "success" | "error";
-  progress: number;
-  error?: string;
-  parsedContent?: string;
-  extractedQuestions?: QuestionData[];
-  actualFile?: File;
-}
-
 // Orchestration function for quiz title/description generation
 export const generateQuizTitleDescription = async (
   content: string,
@@ -177,7 +152,6 @@ export const extractQuestionsWithAIHandler = async (
       throw new Error(result.error || "No questions could be extracted");
     }
 
-    // Validate question structure
     const validQuestions = result.questions.filter(
       (q: QuestionData) =>
         q.question?.trim() && q.answers && q.answers.length > 0,

@@ -1,6 +1,5 @@
 import { FileParserService } from "@/lib/services/file-parser.service";
 import {
-  type UploadedFile,
   extractQuestionsFromContent,
   extractQuestionsWithAIHandler,
   generateQuestionsWithAI,
@@ -12,6 +11,8 @@ import {
 } from "@/stores/quiz-editor-store";
 import type { Language, ParsingMode, QuestionData } from "@/types/quiz";
 import { useCallback, useEffect, useState } from "react";
+
+import type { UploadedFile } from "@/stores/quiz-editor-store";
 
 const fileParser = new FileParserService();
 
