@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Calendar,
+  ArchiveRestoreIcon,
   Code,
   Download,
   Eye,
   FileText,
   MessageCircle,
+  StarIcon,
   Trophy,
   Users,
   Zap,
@@ -21,9 +22,11 @@ import { useAuth } from "../../../contexts/auth-context";
 import { groupAPI } from "../../../lib/api/group";
 import type { GroupDetailResponse } from "../../../types/group";
 import Chat from "./chat/chat";
+import GiftPointsDialog from "./gift-point-dialog";
 import GroupHeader from "./group-header";
+import GroupSettingsDialog from "./group-settings-dialog";
 import JoinCodeCard from "./join-code-card";
-import LiveActivityCard from "./live-activity-card";
+import GroupNoteCard from "./live-activity-card";
 import StatsCard from "./stats-card";
 
 export default function GroupDetailContent({ id }: { id: string }) {
@@ -31,6 +34,8 @@ export default function GroupDetailContent({ id }: { id: string }) {
     null,
   );
   const [open, setOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGiftsOpen, setisGiftsOpen] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -49,7 +54,7 @@ export default function GroupDetailContent({ id }: { id: string }) {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8 dark:bg-gray-950">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 dark:bg-gray-950">
       <div className="fixed right-6 bottom-6 z-50">
         {open && (
           <Chat
@@ -74,26 +79,62 @@ export default function GroupDetailContent({ id }: { id: string }) {
       </div>
       <div className="mx-auto max-w-6xl space-y-6">
         <GroupHeader
+          id={groupDetail?.id}
           name={groupDetail?.name}
           description={groupDetail?.description}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenGift={() => {
+            setisGiftsOpen(true);
+          }}
+        />
+
+        <GiftPointsDialog
+          groupId={groupDetail?.id}
+          maxPoints={1000}
+          open={isGiftsOpen}
+          onClose={() => setisGiftsOpen(false)}
+          onGiftSubmit={() => {}}
+        />
+
+        <GroupSettingsDialog
+          open={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          group={{
+            id: groupDetail?.id ?? 0,
+            name: groupDetail?.name ?? "",
+            description: groupDetail?.description ?? "",
+            memberLimit: groupDetail?.memberLimit ?? 0,
+            public: groupDetail?.isPublic ?? false,
+          }}
+          onGroupUpdate={(updated) =>
+            setGroupDetail((prev) => (prev ? { ...prev, ...updated } : prev))
+          }
         />
 
         <div className="grid gap-6">
-          <LiveActivityCard />
+          <GroupNoteCard />
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <StatsCard
               title="Members"
               icon={<Users className="h-4 w-4 text-gray-500" />}
               value={`${groupDetail?.memberCount}/${groupDetail?.memberLimit}`}
-            />
-            <StatsCard
-              title="Competition"
-              icon={<Calendar className="h-4 w-4 text-gray-500" />}
-              value="WEEKLY"
-              description="Ends 8/10/2025"
+              description="Created 8/10/2025"
             />
             <JoinCodeCard code={groupDetail?.key} />
+            <StatsCard
+              title="Điểm đóng góp"
+              icon={<ArchiveRestoreIcon className="h-5 w-5 text-gray-500" />}
+              value="10.230"
+              description={
+                <div className="flex items-center gap-2">
+                  <StarIcon className="h-5 w-5 text-yellow-500" />
+                  <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text font-bold text-lg text-transparent">
+                    Legend
+                  </span>
+                </div>
+              }
+            />
           </div>
         </div>
 
@@ -220,60 +261,31 @@ export default function GroupDetailContent({ id }: { id: string }) {
                   List of all members in this study group.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Avatar"
-                      />
-                      <AvatarFallback>MK</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">Md Kaiyum Hossain</p>
-                      <p className="text-gray-500 text-sm dark:text-gray-400">
-                        Online
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-auto">
-                      View Profile
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg p-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Avatar"
-                      />
-                      <AvatarFallback>AL</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">alexionesc</p>
-                      <p className="text-gray-500 text-sm dark:text-gray-400">
-                        Offline
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-auto">
-                      View Profile
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-lg p-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Avatar"
-                      />
-                      <AvatarFallback>JS</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">Jane Smith</p>
-                      <p className="text-gray-500 text-sm dark:text-gray-400">
-                        Offline
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-auto">
-                      View Profile
-                    </Button>
-                  </div>
+                  {groupDetail?.userGroupResponseList.map((member, index) => {
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src="https://i.scdn.co/image/ab6761610000e5ebba2fd1834e1f4e2069e7b738"
+                            alt="Avatar"
+                          />
+                          <AvatarFallback>MK</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{member.username}</p>
+                          <p className="text-green-500 text-sm dark:text-white">
+                            Online
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="ml-auto">
+                          View Profile
+                        </Button>
+                      </div>
+                    );
+                  })}
                 </div>
               </TabsContent>
 

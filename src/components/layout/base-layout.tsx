@@ -18,9 +18,7 @@ export default function BaseLayout({
   return (
     <React.Fragment>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-purple-50 dark:from-slate-900 dark:via-background dark:to-slate-800">
-        {showHeader && (
-          <Header title={title} />
-        )}
+        {showHeader && <Header title={title} />}
         <main>{children}</main>
         {showFooter && <Footer />}
       </div>
