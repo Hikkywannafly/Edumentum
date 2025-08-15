@@ -317,9 +317,12 @@ export const useMindmapStore = create<RFMindmapState>((set, get) => ({
       // Ensure data is properly stringified
       const dataString = typeof data === "string" ? data : JSON.stringify(data);
 
+      const current =
+        get().mindmapFiles.find((f) => f.id === id) || get().mindmapCurrentFile;
       await mindmapAPI.updateFile(id, {
+        name: current?.name || undefined,
         data: dataString,
-        type: "STUDY_NOTES", // Default type for updates
+        type: (current?.type as any) || "STUDY_NOTES",
       });
 
       console.log("File updated successfully");

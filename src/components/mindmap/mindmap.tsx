@@ -148,13 +148,26 @@ const Mindmap = ({ isFullScreen = false }: MindmapProps) => {
 
   const onNodeContextMenu = useCallback((event: any, node: Node) => {
     event.preventDefault();
-    const pane = ref.current.getBoundingClientRect();
+    const paneRect = ref.current.getBoundingClientRect();
+    const OFFSET = 12; // show slightly to the right of cursor
+    const MENU_WIDTH = 200;
+    const MENU_HEIGHT = 200;
+
+    let left = event.clientX - paneRect.left + OFFSET;
+    let top = event.clientY - paneRect.top;
+
+    // Clamp within pane bounds
+    if (left + MENU_WIDTH > paneRect.width) {
+      left = Math.max(0, paneRect.width - MENU_WIDTH - 8);
+    }
+    if (top + MENU_HEIGHT > paneRect.height) {
+      top = Math.max(0, paneRect.height - MENU_HEIGHT - 8);
+    }
+
     setMenu({
       id: node.id,
-      top: event.clientY < pane.height - 200 && event.clientY,
-      left: event.clientX < pane.width - 200 && event.clientX,
-      right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-      bottom: event.clientY >= pane.height - 200 && pane.height - event.clientY,
+      top,
+      left,
       data: node.data,
       node,
     });
@@ -222,103 +235,114 @@ const Mindmap = ({ isFullScreen = false }: MindmapProps) => {
       className={`h-full w-full ${isFullScreen ? "fixed inset-0 z-50" : ""}`}
       style={{ height: "100%", width: "100%" }}
     >
-      <ReactFlowProvider>
-        <div
-          ref={ref}
-          className="h-full w-full"
-          style={{ height: "100%", width: "100%" }}
+      <div
+        ref={ref}
+        className="h-full w-full"
+        style={{ height: "100%", width: "100%" }}
+      >
+        <ReactFlow
+          nodes={mindmapNodes.map((node) => ({
+            ...node,
+            data: getNodeData(node),
+          }))}
+          edges={mindmapEdges}
+          onNodesChange={onMindmapNodesChange}
+          onEdgesChange={onMindmapEdgesChange}
+          onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
+          onNodeClick={() => {
+            // Handle node click if needed
+          }}
+          onPaneClick={onPaneClick}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneContextMenu={(event) => {
+            event.preventDefault();
+            const paneRect = ref.current.getBoundingClientRect();
+            const OFFSET = 12;
+            setMenu({
+              id: "pane",
+              top: event.clientY - paneRect.top,
+              left: event.clientX - paneRect.left + OFFSET,
+            });
+          }}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          nodeOrigin={nodeOrigin}
+          defaultEdgeOptions={defaultEdgeOptions}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          onInit={setRfInstance}
+          fitView
         >
-          <ReactFlow
-            nodes={mindmapNodes.map((node) => ({
-              ...node,
-              data: getNodeData(node),
-            }))}
-            edges={mindmapEdges}
-            onNodesChange={onMindmapNodesChange}
-            onEdgesChange={onMindmapEdgesChange}
-            onConnect={onConnect}
-            onConnectStart={onConnectStart}
-            onConnectEnd={onConnectEnd}
-            onNodeClick={() => {
-              // Handle node click if needed
-            }}
-            onPaneClick={onPaneClick}
-            onNodeContextMenu={onNodeContextMenu}
-            onPaneContextMenu={(event) => {
-              event.preventDefault();
-              const { top, left } = ref.current.getBoundingClientRect();
-              setMenu({
-                id: "pane",
-                top: event.clientY - top,
-                left: event.clientX - left,
-              });
-            }}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            nodeOrigin={nodeOrigin}
-            defaultEdgeOptions={defaultEdgeOptions}
-            connectionLineType={ConnectionLineType.SmoothStep}
-            onInit={setRfInstance}
-            fitView
-          >
-            <Background className="bg-background" />
-            <Controls className="rounded-lg border border-border bg-background shadow-lg" />
-            <MiniMap className="rounded-lg border border-border bg-background shadow-lg" />
+          <Background className="bg-background" />
+          <Controls className="rounded-lg border border-border bg-background shadow-lg" />
+          <MiniMap className="rounded-lg border border-border bg-background shadow-lg" />
 
-            {/* Save button is now in the header */}
+          {/* Save button is now in the header */}
 
-            {menu && menu.id !== "pane" && (
-              <ContextMenu
-                top={menu.top}
-                left={menu.left}
-                onAddChild={() => handleContextMenuAction("add")}
-                onDelete={() => handleContextMenuAction("delete")}
-                onEditStyle={() => setStyleDialog({ node: menu.node })}
-                onClose={() => setMenu(null)}
-              />
-            )}
-            {styleDialog.node && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                <div className="min-w-[300px] rounded-lg border border-border bg-background p-6 shadow-lg">
-                  <div className="mb-2 font-bold">{t("node.editStyle")}</div>
-                  <div className="mb-2">{t("node.backgroundColor")}:</div>
-                  <input
-                    type="color"
-                    value={styleDialog.node?.data?.background || "#fff"}
-                    onChange={(e) =>
-                      styleDialog.node &&
-                      updateMindmapNodeData(styleDialog.node.id, {
-                        background: e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded border border-border"
-                  />
-                  <div className="mt-2 mb-2">{t("node.textColor")}:</div>
-                  <input
-                    type="color"
-                    value={styleDialog.node?.data?.color || "#222"}
-                    onChange={(e) =>
-                      styleDialog.node &&
-                      updateMindmapNodeData(styleDialog.node.id, {
-                        color: e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded border border-border"
-                  />
-                  <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => setStyleDialog({ node: null })}
-                    >
-                      {t("node.close")}
-                    </Button>
+          {menu && menu.id !== "pane" && (
+            <ContextMenu
+              top={menu.top}
+              left={menu.left}
+              onAddChild={() => handleContextMenuAction("add")}
+              onDelete={() => handleContextMenuAction("delete")}
+              onEditStyle={() => setStyleDialog({ node: menu.node })}
+              onClose={() => setMenu(null)}
+            />
+          )}
+          {styleDialog.node && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+              <div className="min-w-[360px] rounded-lg border border-border bg-background p-6 shadow-lg">
+                <div className="mb-4 font-bold">{t("node.editStyle")}</div>
+                {/* ô chọn màu */}
+                <div className="grid grid-cols-[150px,1fr] items-center gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-muted-foreground text-sm">
+                      {t("node.backgroundColor")}:
+                    </span>
+                    <input
+                      type="color"
+                      value={styleDialog.node?.data?.background || "#ffffff"}
+                      onChange={(e) =>
+                        styleDialog.node &&
+                        updateMindmapNodeData(styleDialog.node.id, {
+                          background: e.target.value,
+                        })
+                      }
+                      className="h-10 w-24 cursor-pointer rounded border border-border"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-muted-foreground text-sm">
+                      {t("node.textColor")}:
+                    </div>
+                    <input
+                      type="color"
+                      value={styleDialog.node?.data?.color}
+                      onChange={(e) =>
+                        styleDialog.node &&
+                        updateMindmapNodeData(styleDialog.node.id, {
+                          color: e.target.value,
+                        })
+                      }
+                      className="h-10 w-24 cursor-pointer rounded border border-border"
+                    />
                   </div>
                 </div>
+
+                <div className="mt-5 flex justify-end gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setStyleDialog({ node: null })}
+                  >
+                    {t("node.close")}
+                  </Button>
+                </div>
               </div>
-            )}
-          </ReactFlow>
-        </div>
-      </ReactFlowProvider>
+            </div>
+          )}
+        </ReactFlow>
+      </div>
     </div>
   );
 };

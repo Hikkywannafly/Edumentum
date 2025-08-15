@@ -28,6 +28,7 @@ export interface CreateFileRequest {
 }
 
 export interface UpdateFileRequest {
+  name?: string;
   data: string;
   type: MindMapType;
 }
